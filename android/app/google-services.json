@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "14234085234",
+    "project_id": "ecomapp-22701",
+    "storage_bucket": "ecomapp-22701.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:14234085234:android:b053976c11e40291dd1feb",
+        "android_client_info": {
+          "package_name": "com.ecomapp.avr"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDYZjcGYvye-WRLMo9YfAB7Q4VbFeEqLgQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

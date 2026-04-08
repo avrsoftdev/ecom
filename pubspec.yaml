@@ -1,0 +1,63 @@
+name: freshveggie
+description: "A single-vendor e-commerce Flutter application with customer mobile app and admin web panel."
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # State Management
+  flutter_bloc: ^9.1.1
+  equatable: ^2.0.8
+
+  # Navigation
+  go_router: ^17.2.0
+
+  # Dependency Injection
+  get_it: ^9.2.1
+
+  # Localization
+  easy_localization: ^3.0.8
+  flutter_localizations:
+    sdk: flutter
+
+  # Firebase
+  firebase_core: ^4.6.0
+  firebase_auth: ^6.3.0
+  cloud_firestore: ^6.2.0
+  firebase_storage: ^13.2.0
+  firebase_messaging: ^16.1.3
+  firebase_remote_config: ^6.3.0
+  firebase_crashlytics: ^5.1.0
+
+  # Networking
+  dio: ^5.9.2
+  connectivity_plus: ^7.1.0
+
+  # UI & Utils
+  flutter_screenutil: ^5.9.3
+  cached_network_image: ^3.4.1
+  intl: ^0.20.2
+  shared_preferences: ^2.5.5
+  url_launcher: ^6.3.2
+  image_picker: ^1.2.1
+  permission_handler: ^12.0.1
+  dartz: ^0.10.1
+  google_fonts: ^6.1.0
+
+  cupertino_icons: ^1.0.9
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/images/
+    - assets/translations/
