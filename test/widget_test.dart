@@ -68,7 +68,12 @@ class _FakeAuthRepository implements AuthRepository {
 
   @override
   Future<Either<Failure, UserCredential>> signUp(
-      String email, String password) async {
+    String email,
+    String password, {
+    String? name,
+    String? phone,
+    String? address,
+  }) async {
     return Left(const AuthFailure('Not implemented in test.'));
   }
 
