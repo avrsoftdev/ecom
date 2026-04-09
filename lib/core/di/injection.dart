@@ -2,6 +2,7 @@ import 'package:get_it/get_it.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:dio/dio.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
@@ -10,6 +11,7 @@ import '../../features/auth/data/datasources/auth_remote_datasource.dart';
 import '../../features/auth/data/repositories/auth_repository_impl.dart';
 import '../../features/auth/domain/repositories/auth_repository.dart';
 import '../../features/auth/domain/usecases/sign_in_usecase.dart';
+import '../../features/auth/domain/usecases/sign_in_with_google_usecase.dart';
 import '../../features/auth/domain/usecases/sign_out_usecase.dart';
 import '../../features/auth/domain/usecases/check_auth_status_usecase.dart';
 import '../../features/auth/presentation/cubits/auth_cubit.dart';
@@ -25,11 +27,16 @@ final getIt = GetIt.instance;
 Future<void> configureDependencies() async {
   // External dependencies
   final sharedPreferences = await SharedPreferences.getInstance();
+  final googleSignIn = GoogleSignIn(
+    scopes: const ['email'],
+  );
+
   getIt.registerSingleton<SharedPreferences>(sharedPreferences);
 
   getIt.registerSingleton<FirebaseAuth>(FirebaseAuth.instance);
   getIt.registerSingleton<FirebaseFirestore>(FirebaseFirestore.instance);
   getIt.registerSingleton<FirebaseStorage>(FirebaseStorage.instance);
+  getIt.registerSingleton<GoogleSignIn>(googleSignIn);
 
   getIt.registerSingleton<Dio>(Dio());
   getIt.registerSingleton<Connectivity>(Connectivity());
@@ -44,6 +51,7 @@ Future<void> configureDependencies() async {
     () => AuthRemoteDataSourceImpl(
       firebaseAuth: getIt(),
       firestore: getIt(),
+      googleSignIn: getIt(),
     ),
   );
 
@@ -55,12 +63,14 @@ Future<void> configureDependencies() async {
   );
 
   getIt.registerLazySingleton(() => SignInUseCase(getIt()));
+  getIt.registerLazySingleton(() => SignInWithGoogleUseCase(getIt()));
   getIt.registerLazySingleton(() => SignOutUseCase(getIt()));
   getIt.registerLazySingleton(() => CheckAuthStatusUseCase(getIt()));
 
   getIt.registerFactory(
     () => AuthCubit(
       signInUseCase: getIt(),
+      signInWithGoogleUseCase: getIt(),
       signOutUseCase: getIt(),
       checkAuthStatusUseCase: getIt(),
     ),

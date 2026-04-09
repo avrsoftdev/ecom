@@ -1,13 +1,14 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter/foundation.dart';
 
 import '../../features/auth/presentation/pages/login_page.dart';
-import '../../features/home/presentation/pages/home_page.dart';
+import '../../features/navigation/presentation/pages/main_navigation_page.dart';
 import '../../features/product/presentation/pages/product_list_page.dart';
 
 class AppRouter {
   static final router = GoRouter(
-    initialLocation: '/login',
+    initialLocation: '/home',
     debugLogDiagnostics: kDebugMode,
     routes: [
       GoRoute(
@@ -16,7 +17,7 @@ class AppRouter {
       ),
       GoRoute(
         path: '/home',
-        builder: (context, state) => const HomePage(),
+        builder: (context, state) => const MainNavigationPage(),
       ),
       GoRoute(
         path: '/products',
@@ -26,7 +27,17 @@ class AppRouter {
     ],
     // Add redirect logic for authentication
     redirect: (context, state) {
-      // Implement auth guard logic here
+      final isLoggedIn = FirebaseAuth.instance.currentUser != null;
+      final isOnLoginPage = state.matchedLocation == '/login';
+
+      if (!isLoggedIn && !isOnLoginPage) {
+        return '/login';
+      }
+
+      if (isLoggedIn && isOnLoginPage) {
+        return '/home';
+      }
+
       return null;
     },
   );

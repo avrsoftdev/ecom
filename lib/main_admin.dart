@@ -14,9 +14,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   // Initialize Firebase
-  await Firebase.initializeApp(
-    options: DefaultFirebaseOptions.currentPlatform,
-  );
+  await _initializeFirebase();
 
   // Initialize Crashlytics
   FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
@@ -39,4 +37,18 @@ void main() async {
       child: const FreshVeggieAdminApp(),
     ),
   );
+}
+
+Future<FirebaseApp> _initializeFirebase() {
+  if (Firebase.apps.isNotEmpty) {
+    return Future.value(Firebase.app());
+  }
+
+  if (kIsWeb) {
+    return Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+  }
+
+  return Firebase.initializeApp();
 }

@@ -5,17 +5,20 @@ import 'package:equatable/equatable.dart';
 import '../../../../core/usecases/usecase.dart';
 import '../../domain/usecases/check_auth_status_usecase.dart';
 import '../../domain/usecases/sign_in_usecase.dart';
+import '../../domain/usecases/sign_in_with_google_usecase.dart';
 import '../../domain/usecases/sign_out_usecase.dart';
 
 part 'auth_state.dart';
 
 class AuthCubit extends Cubit<AuthState> {
   final SignInUseCase signInUseCase;
+  final SignInWithGoogleUseCase signInWithGoogleUseCase;
   final SignOutUseCase signOutUseCase;
   final CheckAuthStatusUseCase checkAuthStatusUseCase;
 
   AuthCubit({
     required this.signInUseCase,
+    required this.signInWithGoogleUseCase,
     required this.signOutUseCase,
     required this.checkAuthStatusUseCase,
   }) : super(AuthInitial());
@@ -25,6 +28,17 @@ class AuthCubit extends Cubit<AuthState> {
 
     final params = SignInParams(email: email, password: password);
     final result = await signInUseCase(params);
+
+    result.fold(
+      (failure) => emit(AuthError(failure.message)),
+      (userCredential) => emit(Authenticated(userCredential.user!)),
+    );
+  }
+
+  Future<void> signInWithGoogle() async {
+    emit(AuthLoading());
+
+    final result = await signInWithGoogleUseCase(NoParams());
 
     result.fold(
       (failure) => emit(AuthError(failure.message)),

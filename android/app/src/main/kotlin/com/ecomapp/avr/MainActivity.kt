@@ -1,4 +1,4 @@
-package com.example.freshveggie
+package com.ecomapp.avr
 
 import io.flutter.embedding.android.FlutterActivity
 
