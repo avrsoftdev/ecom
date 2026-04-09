@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/di/injection.dart';
+import '../../../../core/widgets/fresh_veggie_header.dart';
 import '../cubits/product_cubit.dart';
 import '../widgets/product_card.dart';
 
@@ -13,9 +14,7 @@ class ProductListPage extends StatelessWidget {
     return BlocProvider(
       create: (context) => ProductCubit(getProductsUseCase: getIt())..getProducts(),
       child: Scaffold(
-        appBar: AppBar(
-          title: const Text('Products'),
-        ),
+        appBar: const FreshVeggieHeader(),
         body: BlocBuilder<ProductCubit, ProductState>(
           builder: (context, state) {
             if (state is ProductLoading) {

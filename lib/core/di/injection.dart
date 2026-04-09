@@ -21,6 +21,7 @@ import '../../features/product/domain/repositories/product_repository.dart';
 import '../../features/product/domain/usecases/get_products_usecase.dart';
 import '../../features/product/presentation/cubits/product_cubit.dart';
 import '../network/network_info.dart';
+import '../theme/theme_cubit.dart';
 
 final getIt = GetIt.instance;
 
@@ -32,6 +33,7 @@ Future<void> configureDependencies() async {
   );
 
   getIt.registerSingleton<SharedPreferences>(sharedPreferences);
+  getIt.registerLazySingleton<ThemeCubit>(() => ThemeCubit(getIt()));
 
   getIt.registerSingleton<FirebaseAuth>(FirebaseAuth.instance);
   getIt.registerSingleton<FirebaseFirestore>(FirebaseFirestore.instance);

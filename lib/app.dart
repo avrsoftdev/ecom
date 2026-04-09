@@ -5,6 +5,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 
 import 'core/theme/app_theme.dart';
+import 'core/theme/theme_cubit.dart';
 import 'core/routes/app_router.dart';
 import 'core/di/injection.dart';
 import 'features/auth/presentation/cubits/auth_cubit.dart';
@@ -21,21 +22,28 @@ class FreshVeggieApp extends StatelessWidget {
       builder: (context, child) {
         return MultiBlocProvider(
           providers: [
+            BlocProvider.value(
+              value: getIt<ThemeCubit>(),
+            ),
             BlocProvider(
               create: (context) => getIt<AuthCubit>()..checkAuthStatus(),
             ),
             // Add other global cubits here
           ],
-          child: MaterialApp.router(
-            title: 'FreshVeggie',
-            debugShowCheckedModeBanner: false,
-            theme: AppTheme.lightTheme,
-            darkTheme: AppTheme.darkTheme,
-            themeMode: ThemeMode.system,
-            localizationsDelegates: context.localizationDelegates,
-            supportedLocales: context.supportedLocales,
-            locale: context.locale,
-            routerConfig: AppRouter.router,
+          child: BlocBuilder<ThemeCubit, ThemeMode>(
+            builder: (context, themeMode) {
+              return MaterialApp.router(
+                title: 'FreshVeggie',
+                debugShowCheckedModeBanner: false,
+                theme: AppTheme.lightTheme,
+                darkTheme: AppTheme.darkTheme,
+                themeMode: themeMode,
+                localizationsDelegates: context.localizationDelegates,
+                supportedLocales: context.supportedLocales,
+                locale: context.locale,
+                routerConfig: AppRouter.router,
+              );
+            },
           ),
         );
       },
@@ -55,21 +63,28 @@ class FreshVeggieAdminApp extends StatelessWidget {
       builder: (context, child) {
         return MultiBlocProvider(
           providers: [
+            BlocProvider.value(
+              value: getIt<ThemeCubit>(),
+            ),
             BlocProvider(
               create: (context) => getIt<AuthCubit>()..checkAuthStatus(),
             ),
             // Add admin-specific cubits here
           ],
-          child: MaterialApp.router(
-            title: 'FreshVeggie Admin',
-            debugShowCheckedModeBanner: false,
-            theme: AppTheme.lightTheme,
-            darkTheme: AppTheme.darkTheme,
-            themeMode: ThemeMode.system,
-            localizationsDelegates: context.localizationDelegates,
-            supportedLocales: context.supportedLocales,
-            locale: context.locale,
-            routerConfig: AppRouter.adminRouter,
+          child: BlocBuilder<ThemeCubit, ThemeMode>(
+            builder: (context, themeMode) {
+              return MaterialApp.router(
+                title: 'FreshVeggie Admin',
+                debugShowCheckedModeBanner: false,
+                theme: AppTheme.lightTheme,
+                darkTheme: AppTheme.darkTheme,
+                themeMode: themeMode,
+                localizationsDelegates: context.localizationDelegates,
+                supportedLocales: context.supportedLocales,
+                locale: context.locale,
+                routerConfig: AppRouter.adminRouter,
+              );
+            },
           ),
         );
       },

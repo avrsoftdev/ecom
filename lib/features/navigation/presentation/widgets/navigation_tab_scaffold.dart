@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/widgets/fresh_veggie_header.dart';
+
 class NavigationTabScaffold extends StatelessWidget {
   const NavigationTabScaffold({
     super.key,
@@ -14,11 +16,10 @@ class NavigationTabScaffold extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Scaffold(
-      appBar: AppBar(
-        title: Text(title),
-        centerTitle: true,
-      ),
+      appBar: const FreshVeggieHeader(),
       body: Center(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -28,7 +29,7 @@ class NavigationTabScaffold extends StatelessWidget {
               Icon(
                 icon,
                 size: 64,
-                color: const Color(0xFF2E7D32),
+                color: colorScheme.primary,
               ),
               const SizedBox(height: 16),
               Text(
@@ -42,7 +43,7 @@ class NavigationTabScaffold extends StatelessWidget {
                 description,
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                      color: const Color(0xFF607066),
+                      color: colorScheme.onSurfaceVariant,
                     ),
               ),
             ],

@@ -47,6 +47,8 @@ class _MainNavigationPageState extends State<MainNavigationPage> {
 
   @override
   Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Scaffold(
       body: IndexedStack(
         index: _currentIndex,
@@ -54,7 +56,7 @@ class _MainNavigationPageState extends State<MainNavigationPage> {
       ),
       bottomNavigationBar: NavigationBarTheme(
         data: NavigationBarThemeData(
-          indicatorColor: const Color(0xFFDDF2D7),
+          indicatorColor: colorScheme.secondaryContainer,
           labelTextStyle: WidgetStateProperty.resolveWith(
             (states) => TextStyle(
               fontSize: 12,
@@ -62,16 +64,16 @@ class _MainNavigationPageState extends State<MainNavigationPage> {
                   ? FontWeight.w700
                   : FontWeight.w500,
               color: states.contains(WidgetState.selected)
-                  ? const Color(0xFF2E7D32)
-                  : const Color(0xFF607066),
+                  ? colorScheme.primary
+                  : colorScheme.onSurfaceVariant,
             ),
           ),
         ),
         child: NavigationBar(
           selectedIndex: _currentIndex,
           height: 72,
-          backgroundColor: Colors.white,
-          surfaceTintColor: Colors.white,
+          backgroundColor: colorScheme.surface,
+          surfaceTintColor: colorScheme.surface,
           destinations: _items
               .map(
                 (item) => NavigationDestination(
