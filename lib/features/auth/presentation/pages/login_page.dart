@@ -90,17 +90,6 @@ class _LoginPageState extends State<LoginPage> {
                                       backgroundColor: const Color(0xFFF4FBF1),
                                       shadowColor: const Color(0x1C2E7D32),
                                     ),
-                                    const SizedBox(height: 28),
-                                    Text(
-                                      'VeggieFresh Market',
-                                      textAlign: TextAlign.center,
-                                      style: GoogleFonts.poppins(
-                                        fontSize: 28,
-                                        fontWeight: FontWeight.w700,
-                                        color: textGreen,
-                                        letterSpacing: -0.4,
-                                      ),
-                                    ),
                                     const SizedBox(height: 8),
                                     Text(
                                       'Welcome back! Sign in to continue.',
@@ -379,18 +368,33 @@ class _BannerCard extends StatelessWidget {
           ),
           Padding(
             padding: const EdgeInsets.fromLTRB(18, 12, 18, 0),
-            child: Image.asset(
-              Images.logo,
-              fit: BoxFit.contain,
-              errorBuilder: (context, error, stackTrace) {
-                return const Center(
-                  child: Icon(
-                    Icons.eco_rounded,
-                    size: 88,
-                    color: Color(0xFF4CAF50),
+            child: Center(
+              child: Container(
+                width: 120,
+                height: 120,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(
+                    color: const Color(0xFF388E3C),
+                    width: 3.0,
                   ),
-                );
-              },
+                ),
+                child: ClipOval(
+                  child: Image.asset(
+                    Images.logo,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) {
+                      return const Center(
+                        child: Icon(
+                          Icons.eco_rounded,
+                          size: 60,
+                          color: Color(0xFF4CAF50),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ),
             ),
           ),
         ],

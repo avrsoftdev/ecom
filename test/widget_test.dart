@@ -14,7 +14,8 @@ import 'package:freshveggie/features/auth/presentation/cubits/auth_cubit.dart';
 import 'package:freshveggie/features/auth/presentation/pages/login_page.dart';
 
 void main() {
-  testWidgets('Login page renders key UI elements', (WidgetTester tester) async {
+  testWidgets('Login page renders key UI elements',
+      (WidgetTester tester) async {
     final authCubit = AuthCubit(
       signInUseCase: SignInUseCase(_FakeAuthRepository()),
       signInWithGoogleUseCase: SignInWithGoogleUseCase(_FakeAuthRepository()),
@@ -34,7 +35,7 @@ void main() {
 
     await tester.pump();
 
-    expect(find.text('VeggieFresh Market'), findsOneWidget);
+    expect(find.text('Bazariyo'), findsOneWidget);
     expect(find.text('Welcome back! Sign in to continue.'), findsOneWidget);
     expect(find.text('Sign In'), findsOneWidget);
     expect(find.text('Forgot Password?'), findsOneWidget);
@@ -53,7 +54,8 @@ class _FakeAuthRepository implements AuthRepository {
   User? get currentUser => null;
 
   @override
-  Future<Either<Failure, UserCredential>> signIn(String email, String password) async {
+  Future<Either<Failure, UserCredential>> signIn(
+      String email, String password) async {
     return Left(const AuthFailure('Not implemented in test.'));
   }
 
@@ -63,7 +65,8 @@ class _FakeAuthRepository implements AuthRepository {
   }
 
   @override
-  Future<Either<Failure, UserCredential>> signUp(String email, String password) async {
+  Future<Either<Failure, UserCredential>> signUp(
+      String email, String password) async {
     return Left(const AuthFailure('Not implemented in test.'));
   }
 
