@@ -3,6 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import 'package:freshveggie/core/widgets/image.dart';
+
 import '../cubits/auth_cubit.dart';
 
 class LoginPage extends StatefulWidget {
@@ -57,7 +59,8 @@ class _LoginPageState extends State<LoginPage> {
               children: [
                 LayoutBuilder(
                   builder: (context, constraints) {
-                    final horizontalPadding = constraints.maxWidth >= 700 ? 32.0 : 22.0;
+                    final horizontalPadding =
+                        constraints.maxWidth >= 700 ? 32.0 : 22.0;
                     final contentWidth = constraints.maxWidth >= 700
                         ? 420.0
                         : (constraints.maxWidth - (horizontalPadding * 2))
@@ -80,7 +83,8 @@ class _LoginPageState extends State<LoginPage> {
                                 key: _formKey,
                                 child: Column(
                                   mainAxisSize: MainAxisSize.min,
-                                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.stretch,
                                   children: [
                                     _BannerCard(
                                       backgroundColor: const Color(0xFFF4FBF1),
@@ -128,7 +132,8 @@ class _LoginPageState extends State<LoginPage> {
                                         splashRadius: 18,
                                         onPressed: () {
                                           setState(() {
-                                            _obscurePassword = !_obscurePassword;
+                                            _obscurePassword =
+                                                !_obscurePassword;
                                           });
                                         },
                                         icon: Icon(
@@ -143,13 +148,16 @@ class _LoginPageState extends State<LoginPage> {
                                     SizedBox(
                                       height: 58,
                                       child: ElevatedButton(
-                                        onPressed: isLoading ? null : _submitEmailSignIn,
+                                        onPressed: isLoading
+                                            ? null
+                                            : _submitEmailSignIn,
                                         style: ElevatedButton.styleFrom(
                                           backgroundColor: darkGreen,
                                           foregroundColor: Colors.white,
                                           elevation: 0,
                                           shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(22),
+                                            borderRadius:
+                                                BorderRadius.circular(22),
                                           ),
                                           textStyle: GoogleFonts.poppins(
                                             fontSize: 17,
@@ -175,9 +183,12 @@ class _LoginPageState extends State<LoginPage> {
                                     const SizedBox(height: 18),
                                     Row(
                                       children: [
-                                        const Expanded(child: Divider(color: Color(0xFFE3E7E1))),
+                                        const Expanded(
+                                            child: Divider(
+                                                color: Color(0xFFE3E7E1))),
                                         Padding(
-                                          padding: const EdgeInsets.symmetric(horizontal: 12),
+                                          padding: const EdgeInsets.symmetric(
+                                              horizontal: 12),
                                           child: Text(
                                             'Or sign in with',
                                             style: GoogleFonts.dmSans(
@@ -187,20 +198,25 @@ class _LoginPageState extends State<LoginPage> {
                                             ),
                                           ),
                                         ),
-                                        const Expanded(child: Divider(color: Color(0xFFE3E7E1))),
+                                        const Expanded(
+                                            child: Divider(
+                                                color: Color(0xFFE3E7E1))),
                                       ],
                                     ),
                                     const SizedBox(height: 18),
                                     Center(
                                       child: _GoogleButton(
                                         isLoading: isLoading,
-                                        onTap: () => context.read<AuthCubit>().signInWithGoogle(),
+                                        onTap: () => context
+                                            .read<AuthCubit>()
+                                            .signInWithGoogle(),
                                       ),
                                     ),
                                     const SizedBox(height: 24),
                                     Center(
                                       child: Wrap(
-                                        crossAxisAlignment: WrapCrossAlignment.center,
+                                        crossAxisAlignment:
+                                            WrapCrossAlignment.center,
                                         children: [
                                           Text(
                                             'New here? ',
@@ -215,14 +231,17 @@ class _LoginPageState extends State<LoginPage> {
                                             style: TextButton.styleFrom(
                                               padding: EdgeInsets.zero,
                                               minimumSize: Size.zero,
-                                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                              tapTargetSize:
+                                                  MaterialTapTargetSize
+                                                      .shrinkWrap,
                                               foregroundColor: textGreen,
                                               textStyle: GoogleFonts.dmSans(
                                                 fontSize: 14,
                                                 fontWeight: FontWeight.w700,
                                               ),
                                             ),
-                                            child: const Text('Create an Account'),
+                                            child:
+                                                const Text('Create an Account'),
                                           ),
                                         ],
                                       ),
@@ -361,7 +380,7 @@ class _BannerCard extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.fromLTRB(18, 12, 18, 0),
             child: Image.asset(
-              'assets/images/vegetable.png',
+              Images.logo,
               fit: BoxFit.contain,
               errorBuilder: (context, error, stackTrace) {
                 return const Center(
