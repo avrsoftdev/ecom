@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:flutter/foundation.dart';
 
 import '../../features/auth/presentation/pages/login_page.dart';
+import '../../features/auth/presentation/pages/register_page.dart';
 import '../../features/navigation/presentation/pages/main_navigation_page.dart';
 import '../../features/product/presentation/pages/product_list_page.dart';
 
@@ -14,6 +15,10 @@ class AppRouter {
       GoRoute(
         path: '/login',
         builder: (context, state) => const LoginPage(),
+      ),
+      GoRoute(
+        path: '/register',
+        builder: (context, state) => const RegisterPage(),
       ),
       GoRoute(
         path: '/home',
@@ -28,13 +33,14 @@ class AppRouter {
     // Add redirect logic for authentication
     redirect: (context, state) {
       final isLoggedIn = FirebaseAuth.instance.currentUser != null;
-      final isOnLoginPage = state.matchedLocation == '/login';
+      final location = state.matchedLocation;
+      final isOnAuthPage = location == '/login' || location == '/register';
 
-      if (!isLoggedIn && !isOnLoginPage) {
+      if (!isLoggedIn && !isOnAuthPage) {
         return '/login';
       }
 
-      if (isLoggedIn && isOnLoginPage) {
+      if (isLoggedIn && isOnAuthPage) {
         return '/home';
       }
 

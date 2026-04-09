@@ -32,10 +32,21 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
-  Future<Either<Failure, UserCredential>> signUp(String email, String password) async {
+  Future<Either<Failure, UserCredential>> signUp(
+    String email,
+    String password, {
+    String? name,
+    String? phone,
+    String? address,
+  }) async {
     try {
       final result = await remoteDataSource.signUpWithEmailAndPassword(email, password);
-      await _persistAuthenticatedUser(result.user!);
+      await _persistAuthenticatedUser(
+        result.user!,
+        name: name,
+        phone: phone,
+        address: address,
+      );
       return Right(result);
     } on FirebaseAuthException catch (e) {
       return Left(AuthFailure(_mapFirebaseErrorToMessage(e)));
@@ -74,13 +85,33 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   User? get currentUser => remoteDataSource.currentUser;
 
-  Future<void> _persistAuthenticatedUser(User user) async {
-    final authUser = AuthUserModel.fromFirebaseUser(user);
+  Future<void> _persistAuthenticatedUser(
+    User user, {
+    String? name,
+    String? phone,
+    String? address,
+  }) async {
+    var authUser = AuthUserModel.fromFirebaseUser(user);
+    
+    // Override with custom values if provided
+    if (name != null || phone != null || address != null) {
+      authUser = AuthUserModel(
+        uid: authUser.uid,
+        email: authUser.email,
+        displayName: name ?? authUser.displayName,
+        photoUrl: authUser.photoUrl,
+        phone: phone,
+        address: address,
+        providerIds: authUser.providerIds,
+      );
+    }
 
     await sharedPreferences.setString('user_id', authUser.uid);
     await sharedPreferences.setString('user_email', authUser.email);
     await sharedPreferences.setString('user_name', authUser.displayName ?? '');
     await sharedPreferences.setString('user_photo', authUser.photoUrl ?? '');
+    if (phone != null) await sharedPreferences.setString('user_phone', phone);
+    if (address != null) await sharedPreferences.setString('user_address', address);
 
     try {
       await remoteDataSource.upsertUserProfile(authUser);

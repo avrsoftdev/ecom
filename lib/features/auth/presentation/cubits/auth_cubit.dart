@@ -7,17 +7,20 @@ import '../../domain/usecases/check_auth_status_usecase.dart';
 import '../../domain/usecases/sign_in_usecase.dart';
 import '../../domain/usecases/sign_in_with_google_usecase.dart';
 import '../../domain/usecases/sign_out_usecase.dart';
+import '../../domain/usecases/sign_up_usecase.dart';
 
 part 'auth_state.dart';
 
 class AuthCubit extends Cubit<AuthState> {
   final SignInUseCase signInUseCase;
+  final SignUpUseCase signUpUseCase;
   final SignInWithGoogleUseCase signInWithGoogleUseCase;
   final SignOutUseCase signOutUseCase;
   final CheckAuthStatusUseCase checkAuthStatusUseCase;
 
   AuthCubit({
     required this.signInUseCase,
+    required this.signUpUseCase,
     required this.signInWithGoogleUseCase,
     required this.signOutUseCase,
     required this.checkAuthStatusUseCase,
@@ -28,6 +31,30 @@ class AuthCubit extends Cubit<AuthState> {
 
     final params = SignInParams(email: email, password: password);
     final result = await signInUseCase(params);
+
+    result.fold(
+      (failure) => emit(AuthError(failure.message)),
+      (userCredential) => emit(Authenticated(userCredential.user!)),
+    );
+  }
+
+  Future<void> signUp(
+    String email,
+    String password, {
+    String? name,
+    String? phone,
+    String? address,
+  }) async {
+    emit(AuthLoading());
+
+    final params = SignUpParams(
+      email: email,
+      password: password,
+      name: name,
+      phone: phone,
+      address: address,
+    );
+    final result = await signUpUseCase(params);
 
     result.fold(
       (failure) => emit(AuthError(failure.message)),

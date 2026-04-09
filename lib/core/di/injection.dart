@@ -14,6 +14,7 @@ import '../../features/auth/domain/usecases/sign_in_usecase.dart';
 import '../../features/auth/domain/usecases/sign_in_with_google_usecase.dart';
 import '../../features/auth/domain/usecases/sign_out_usecase.dart';
 import '../../features/auth/domain/usecases/check_auth_status_usecase.dart';
+import '../../features/auth/domain/usecases/sign_up_usecase.dart';
 import '../../features/auth/presentation/cubits/auth_cubit.dart';
 import '../../features/product/data/datasources/product_remote_datasource.dart';
 import '../../features/product/data/repositories/product_repository_impl.dart';
@@ -65,6 +66,7 @@ Future<void> configureDependencies() async {
   );
 
   getIt.registerLazySingleton(() => SignInUseCase(getIt()));
+  getIt.registerLazySingleton(() => SignUpUseCase(getIt()));
   getIt.registerLazySingleton(() => SignInWithGoogleUseCase(getIt()));
   getIt.registerLazySingleton(() => SignOutUseCase(getIt()));
   getIt.registerLazySingleton(() => CheckAuthStatusUseCase(getIt()));
@@ -72,6 +74,7 @@ Future<void> configureDependencies() async {
   getIt.registerFactory(
     () => AuthCubit(
       signInUseCase: getIt(),
+      signUpUseCase: getIt(),
       signInWithGoogleUseCase: getIt(),
       signOutUseCase: getIt(),
       checkAuthStatusUseCase: getIt(),

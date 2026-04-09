@@ -8,6 +8,7 @@ import 'package:freshveggie/core/error/failures.dart';
 import 'package:freshveggie/features/auth/domain/repositories/auth_repository.dart';
 import 'package:freshveggie/features/auth/domain/usecases/check_auth_status_usecase.dart';
 import 'package:freshveggie/features/auth/domain/usecases/sign_in_usecase.dart';
+import 'package:freshveggie/features/auth/domain/usecases/sign_up_usecase.dart';
 import 'package:freshveggie/features/auth/domain/usecases/sign_in_with_google_usecase.dart';
 import 'package:freshveggie/features/auth/domain/usecases/sign_out_usecase.dart';
 import 'package:freshveggie/features/auth/presentation/cubits/auth_cubit.dart';
@@ -18,6 +19,7 @@ void main() {
       (WidgetTester tester) async {
     final authCubit = AuthCubit(
       signInUseCase: SignInUseCase(_FakeAuthRepository()),
+      signUpUseCase: SignUpUseCase(_FakeAuthRepository()),
       signInWithGoogleUseCase: SignInWithGoogleUseCase(_FakeAuthRepository()),
       signOutUseCase: SignOutUseCase(_FakeAuthRepository()),
       checkAuthStatusUseCase: CheckAuthStatusUseCase(_FakeAuthRepository()),

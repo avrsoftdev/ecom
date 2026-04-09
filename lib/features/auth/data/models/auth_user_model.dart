@@ -7,12 +7,16 @@ class AuthUserModel {
     required this.providerIds,
     this.displayName,
     this.photoUrl,
+    this.phone,
+    this.address,
   });
 
   final String uid;
   final String email;
   final String? displayName;
   final String? photoUrl;
+  final String? phone;
+  final String? address;
   final List<String> providerIds;
 
   factory AuthUserModel.fromFirebaseUser(User user) {
@@ -34,6 +38,8 @@ class AuthUserModel {
       'email': email,
       'display_name': displayName,
       'photo_url': photoUrl,
+      'phone': phone,
+      'address': address,
       'provider_ids': providerIds,
     };
   }
