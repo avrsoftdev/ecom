@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'dart:math' as math;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -47,7 +48,16 @@ class _LoginPageState extends State<LoginPage> {
         }
 
         if (state is Authenticated) {
-          context.go('/home');
+          final role = state.role;
+          if (kIsWeb) {
+            if (role == 'admin') {
+              context.go('/admin/dashboard');
+            } else {
+              context.go('/admin/unauthorized');
+            }
+          } else {
+            context.go('/home');
+          }
         }
       },
       builder: (context, state) {

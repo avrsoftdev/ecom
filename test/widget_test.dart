@@ -7,6 +7,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:freshveggie/core/error/failures.dart';
 import 'package:freshveggie/features/auth/domain/repositories/auth_repository.dart';
 import 'package:freshveggie/features/auth/domain/usecases/check_auth_status_usecase.dart';
+import 'package:freshveggie/features/auth/domain/usecases/get_user_role_usecase.dart';
 import 'package:freshveggie/features/auth/domain/usecases/sign_in_usecase.dart';
 import 'package:freshveggie/features/auth/domain/usecases/sign_up_usecase.dart';
 import 'package:freshveggie/features/auth/domain/usecases/sign_in_with_google_usecase.dart';
@@ -23,6 +24,7 @@ void main() {
       signInWithGoogleUseCase: SignInWithGoogleUseCase(_FakeAuthRepository()),
       signOutUseCase: SignOutUseCase(_FakeAuthRepository()),
       checkAuthStatusUseCase: CheckAuthStatusUseCase(_FakeAuthRepository()),
+      getUserRoleUseCase: GetUserRoleUseCase(_FakeAuthRepository()),
     );
 
     await tester.pumpWidget(
@@ -80,5 +82,10 @@ class _FakeAuthRepository implements AuthRepository {
   @override
   Future<Either<Failure, void>> signOut() async {
     return const Right(null);
+  }
+
+  @override
+  Future<Either<Failure, String?>> getUserRole(String uid) async {
+    return const Right('customer');
   }
 }

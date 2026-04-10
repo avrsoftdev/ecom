@@ -50,6 +50,11 @@ dependencies:
   dartz: ^0.10.1
   google_fonts: ^6.1.0
 
+  # Admin / charts / web uploads
+  fl_chart: ^0.70.2
+  file_picker: ^8.1.7
+  responsive_framework: ^1.5.1
+
   cupertino_icons: ^1.0.9
 
 dev_dependencies:

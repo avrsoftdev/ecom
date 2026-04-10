@@ -9,6 +9,7 @@ abstract class AuthRemoteDataSource {
   Future<UserCredential> signUpWithEmailAndPassword(String email, String password);
   Future<UserCredential> signInWithGoogle();
   Future<void> upsertUserProfile(AuthUserModel user);
+  Future<String?> getUserRole(String uid);
   Future<void> signOut();
   Stream<User?> get authStateChanges;
   User? get currentUser;
@@ -62,11 +63,29 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   }
 
   @override
-  Future<void> upsertUserProfile(AuthUserModel user) {
-    return firestore.collection('users').doc(user.uid).set({
+  Future<void> upsertUserProfile(AuthUserModel user) async {
+    final ref = firestore.collection('users').doc(user.uid);
+    final snap = await ref.get();
+    final data = <String, dynamic>{
       ...user.toMap(),
       'last_sign_in_at': FieldValue.serverTimestamp(),
-    }, SetOptions(merge: true));
+    };
+    if (!snap.exists) {
+      data['created_at'] = FieldValue.serverTimestamp();
+      data['role'] = user.role ?? 'customer';
+    } else if (user.role != null) {
+      data['role'] = user.role;
+    }
+    await ref.set(data, SetOptions(merge: true));
+  }
+
+  @override
+  Future<String?> getUserRole(String uid) async {
+    final doc = await firestore.collection('users').doc(uid).get();
+    final data = doc.data();
+    if (data == null) return 'customer';
+    final r = data['role'] as String?;
+    return r ?? 'customer';
   }
 
   @override

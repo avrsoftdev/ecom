@@ -1,10 +1,8 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
-import 'package:flutter/foundation.dart';
 
 import 'app.dart';
 import 'core/di/injection.dart';
@@ -34,7 +32,7 @@ void main() async {
       supportedLocales: const [Locale('en'), Locale('ar')],
       path: 'assets/translations',
       fallbackLocale: const Locale('en'),
-      child: const FreshVeggieAdminApp(),
+      child: kIsWeb ? const FreshVeggieAdminApp() : const _AdminWebOnlyApp(),
     ),
   );
 }
@@ -51,4 +49,20 @@ Future<FirebaseApp> _initializeFirebase() {
   }
 
   return Firebase.initializeApp();
+}
+
+class _AdminWebOnlyApp extends StatelessWidget {
+  const _AdminWebOnlyApp();
+
+  @override
+  Widget build(BuildContext context) {
+    return const MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: Scaffold(
+        body: Center(
+          child: Text('Admin panel is available on Web only.'),
+        ),
+      ),
+    );
+  }
 }

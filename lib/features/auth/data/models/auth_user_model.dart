@@ -9,6 +9,7 @@ class AuthUserModel {
     this.photoUrl,
     this.phone,
     this.address,
+    this.role,
   });
 
   final String uid;
@@ -17,6 +18,8 @@ class AuthUserModel {
   final String? photoUrl;
   final String? phone;
   final String? address;
+  /// Firestore `users` document role: `admin` or `customer` (default).
+  final String? role;
   final List<String> providerIds;
 
   factory AuthUserModel.fromFirebaseUser(User user) {
@@ -41,6 +44,7 @@ class AuthUserModel {
       'phone': phone,
       'address': address,
       'provider_ids': providerIds,
+      if (role != null) 'role': role,
     };
   }
 }

@@ -11,6 +11,13 @@ class ProductEntity extends Equatable {
   final bool isAvailable;
   final DateTime createdAt;
   final DateTime updatedAt;
+  /// 0–100; effective sale price uses [effectivePrice].
+  final double discountPercent;
+  final bool featured;
+  /// Extra gallery images; if empty, UI falls back to [imageUrl].
+  final List<String> imageUrls;
+  /// Aggregated when orders are marked delivered (admin).
+  final int soldCount;
 
   const ProductEntity({
     required this.id,
@@ -23,7 +30,16 @@ class ProductEntity extends Equatable {
     required this.isAvailable,
     required this.createdAt,
     required this.updatedAt,
+    this.discountPercent = 0,
+    this.featured = false,
+    this.imageUrls = const [],
+    this.soldCount = 0,
   });
+
+  double get effectivePrice {
+    if (discountPercent <= 0) return price;
+    return price * (1 - discountPercent / 100);
+  }
 
   @override
   List<Object?> get props => [
@@ -37,5 +53,9 @@ class ProductEntity extends Equatable {
         isAvailable,
         createdAt,
         updatedAt,
+        discountPercent,
+        featured,
+        imageUrls,
+        soldCount,
       ];
 }

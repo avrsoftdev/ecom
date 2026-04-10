@@ -2,8 +2,10 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:equatable/equatable.dart';
 
+import '../../../../core/auth/auth_role_notifier.dart';
 import '../../../../core/usecases/usecase.dart';
 import '../../domain/usecases/check_auth_status_usecase.dart';
+import '../../domain/usecases/get_user_role_usecase.dart';
 import '../../domain/usecases/sign_in_usecase.dart';
 import '../../domain/usecases/sign_in_with_google_usecase.dart';
 import '../../domain/usecases/sign_out_usecase.dart';
@@ -17,6 +19,7 @@ class AuthCubit extends Cubit<AuthState> {
   final SignInWithGoogleUseCase signInWithGoogleUseCase;
   final SignOutUseCase signOutUseCase;
   final CheckAuthStatusUseCase checkAuthStatusUseCase;
+  final GetUserRoleUseCase getUserRoleUseCase;
 
   AuthCubit({
     required this.signInUseCase,
@@ -24,7 +27,22 @@ class AuthCubit extends Cubit<AuthState> {
     required this.signInWithGoogleUseCase,
     required this.signOutUseCase,
     required this.checkAuthStatusUseCase,
+    required this.getUserRoleUseCase,
   }) : super(AuthInitial());
+
+  Future<void> _emitAuthenticated(User user) async {
+    final roleResult = await getUserRoleUseCase(GetUserRoleParams(uid: user.uid));
+    roleResult.fold(
+      (failure) {
+        AuthRoleNotifier.instance.clear();
+        emit(AuthError(failure.message));
+      },
+      (role) {
+        AuthRoleNotifier.instance.setRole(role);
+        emit(Authenticated(user, role: role));
+      },
+    );
+  }
 
   Future<void> signIn(String email, String password) async {
     emit(AuthLoading());
@@ -32,9 +50,13 @@ class AuthCubit extends Cubit<AuthState> {
     final params = SignInParams(email: email, password: password);
     final result = await signInUseCase(params);
 
-    result.fold(
-      (failure) => emit(AuthError(failure.message)),
-      (userCredential) => emit(Authenticated(userCredential.user!)),
+    await result.fold<Future<void>>(
+      (failure) async {
+        emit(AuthError(failure.message));
+      },
+      (userCredential) async {
+        await _emitAuthenticated(userCredential.user!);
+      },
     );
   }
 
@@ -56,9 +78,13 @@ class AuthCubit extends Cubit<AuthState> {
     );
     final result = await signUpUseCase(params);
 
-    result.fold(
-      (failure) => emit(AuthError(failure.message)),
-      (userCredential) => emit(Authenticated(userCredential.user!)),
+    await result.fold<Future<void>>(
+      (failure) async {
+        emit(AuthError(failure.message));
+      },
+      (userCredential) async {
+        await _emitAuthenticated(userCredential.user!);
+      },
     );
   }
 
@@ -67,9 +93,13 @@ class AuthCubit extends Cubit<AuthState> {
 
     final result = await signInWithGoogleUseCase(NoParams());
 
-    result.fold(
-      (failure) => emit(AuthError(failure.message)),
-      (userCredential) => emit(Authenticated(userCredential.user!)),
+    await result.fold<Future<void>>(
+      (failure) async {
+        emit(AuthError(failure.message));
+      },
+      (userCredential) async {
+        await _emitAuthenticated(userCredential.user!);
+      },
     );
   }
 
@@ -80,19 +110,27 @@ class AuthCubit extends Cubit<AuthState> {
 
     result.fold(
       (failure) => emit(AuthError(failure.message)),
-      (_) => emit(Unauthenticated()),
+      (_) {
+        AuthRoleNotifier.instance.clear();
+        emit(Unauthenticated());
+      },
     );
   }
 
   Future<void> checkAuthStatus() async {
+    emit(AuthLoading());
     final result = await checkAuthStatusUseCase(NoParams());
 
-    result.fold(
-      (failure) => emit(AuthError(failure.message)),
-      (user) {
+    await result.fold<Future<void>>(
+      (failure) async {
+        AuthRoleNotifier.instance.clear();
+        emit(AuthError(failure.message));
+      },
+      (user) async {
         if (user != null) {
-          emit(Authenticated(user));
+          await _emitAuthenticated(user);
         } else {
+          AuthRoleNotifier.instance.clear();
           emit(Unauthenticated());
         }
       },

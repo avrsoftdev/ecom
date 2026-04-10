@@ -14,29 +14,67 @@ class ProductModel extends ProductEntity {
     required super.isAvailable,
     required super.createdAt,
     required super.updatedAt,
+    super.discountPercent = 0,
+    super.featured = false,
+    super.imageUrls = const [],
+    super.soldCount = 0,
   });
 
   factory ProductModel.fromJson(Map<String, dynamic> json) {
+    final imageUrls = (json['imageUrls'] as List<dynamic>?)
+            ?.map((e) => e.toString())
+            .where((e) => e.isNotEmpty)
+            .toList() ??
+        const <String>[];
     return ProductModel(
       id: json['id'] as String,
       name: json['name'] as String,
-      description: json['description'] as String,
-      price: (json['price'] as num).toDouble(),
-      imageUrl: json['imageUrl'] as String,
-      categoryId: json['categoryId'] as String,
-      stock: json['stock'] as int,
-      isAvailable: json['isAvailable'] as bool,
-      createdAt: (json['createdAt'] as Timestamp).toDate(),
-      updatedAt: (json['updatedAt'] as Timestamp).toDate(),
+      description: json['description'] as String? ?? '',
+      price: (json['price'] as num?)?.toDouble() ?? 0,
+      imageUrl: json['imageUrl'] as String? ?? '',
+      categoryId: json['categoryId'] as String? ?? '',
+      stock: (json['stock'] as num?)?.toInt() ?? 0,
+      isAvailable: json['isAvailable'] as bool? ?? true,
+      createdAt: _parseTime(json['createdAt']),
+      updatedAt: _parseTime(json['updatedAt']),
+      discountPercent: (json['discountPercent'] as num?)?.toDouble() ?? 0,
+      featured: json['featured'] as bool? ?? false,
+      imageUrls: imageUrls,
+      soldCount: (json['soldCount'] as num?)?.toInt() ?? 0,
     );
   }
 
+  static DateTime _parseTime(dynamic v) {
+    if (v is Timestamp) return v.toDate();
+    if (v is DateTime) return v;
+    return DateTime.now();
+  }
+
   factory ProductModel.fromFirestore(DocumentSnapshot doc) {
-    final data = doc.data() as Map<String, dynamic>;
+    final data = doc.data() as Map<String, dynamic>? ?? {};
     return ProductModel.fromJson({
       ...data,
       'id': doc.id,
     });
+  }
+
+  factory ProductModel.fromEntity(ProductEntity entity) {
+    return ProductModel(
+      id: entity.id,
+      name: entity.name,
+      description: entity.description,
+      price: entity.price,
+      imageUrl: entity.imageUrl,
+      categoryId: entity.categoryId,
+      stock: entity.stock,
+      isAvailable: entity.isAvailable,
+      createdAt: entity.createdAt,
+      updatedAt: entity.updatedAt,
+      discountPercent: entity.discountPercent,
+      featured: entity.featured,
+      imageUrls: entity.imageUrls,
+      soldCount: entity.soldCount,
+    );
   }
 
   Map<String, dynamic> toJson() {
@@ -51,6 +89,10 @@ class ProductModel extends ProductEntity {
       'isAvailable': isAvailable,
       'createdAt': Timestamp.fromDate(createdAt),
       'updatedAt': Timestamp.fromDate(updatedAt),
+      'discountPercent': discountPercent,
+      'featured': featured,
+      'imageUrls': imageUrls,
+      'soldCount': soldCount,
     };
   }
 
@@ -66,6 +108,10 @@ class ProductModel extends ProductEntity {
       isAvailable: isAvailable,
       createdAt: createdAt,
       updatedAt: updatedAt,
+      discountPercent: discountPercent,
+      featured: featured,
+      imageUrls: imageUrls,
+      soldCount: soldCount,
     );
   }
 }

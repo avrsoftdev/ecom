@@ -19,9 +19,11 @@ class AuthRepositoryImpl implements AuthRepository {
   });
 
   @override
-  Future<Either<Failure, UserCredential>> signIn(String email, String password) async {
+  Future<Either<Failure, UserCredential>> signIn(
+      String email, String password) async {
     try {
-      final result = await remoteDataSource.signInWithEmailAndPassword(email, password);
+      final result =
+          await remoteDataSource.signInWithEmailAndPassword(email, password);
       await _persistAuthenticatedUser(result.user!);
       return Right(result);
     } on FirebaseAuthException catch (e) {
@@ -40,7 +42,8 @@ class AuthRepositoryImpl implements AuthRepository {
     String? address,
   }) async {
     try {
-      final result = await remoteDataSource.signUpWithEmailAndPassword(email, password);
+      final result =
+          await remoteDataSource.signUpWithEmailAndPassword(email, password);
       await _persistAuthenticatedUser(
         result.user!,
         name: name,
@@ -80,6 +83,16 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
+  Future<Either<Failure, String?>> getUserRole(String uid) async {
+    try {
+      final role = await remoteDataSource.getUserRole(uid);
+      return Right(role);
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
   Stream<User?> get authStateChanges => remoteDataSource.authStateChanges;
 
   @override
@@ -92,7 +105,7 @@ class AuthRepositoryImpl implements AuthRepository {
     String? address,
   }) async {
     var authUser = AuthUserModel.fromFirebaseUser(user);
-    
+
     // Override with custom values if provided
     if (name != null || phone != null || address != null) {
       authUser = AuthUserModel(
@@ -111,7 +124,8 @@ class AuthRepositoryImpl implements AuthRepository {
     await sharedPreferences.setString('user_name', authUser.displayName ?? '');
     await sharedPreferences.setString('user_photo', authUser.photoUrl ?? '');
     if (phone != null) await sharedPreferences.setString('user_phone', phone);
-    if (address != null) await sharedPreferences.setString('user_address', address);
+    if (address != null)
+      await sharedPreferences.setString('user_address', address);
 
     try {
       await remoteDataSource.upsertUserProfile(authUser);
@@ -135,6 +149,20 @@ class AuthRepositoryImpl implements AuthRepository {
         return 'No user found for that email.';
       case 'wrong-password':
         return 'Wrong password provided for that user.';
+      case 'invalid-credential':
+        return 'Email or password is incorrect.';
+      case 'invalid-api-key':
+        return 'Invalid Firebase configuration. Check the web API key.';
+      case 'operation-not-allowed':
+        return 'This sign-in method is disabled. Enable it in Firebase Authentication.';
+      case 'unauthorized-domain':
+        return 'This domain is not authorized for Firebase Auth. Add it in the Firebase console.';
+      case 'operation-not-supported-in-this-environment':
+        return 'Operation not supported in this environment. Check browser settings and authorized domains.';
+      case 'user-disabled':
+        return 'This user account has been disabled.';
+      case 'too-many-requests':
+        return 'Too many attempts. Please try again later.';
       case 'email-already-in-use':
         return 'The account already exists for that email.';
       case 'weak-password':
@@ -145,6 +173,10 @@ class AuthRepositoryImpl implements AuthRepository {
         return 'Google sign in was canceled.';
       case 'network-request-failed':
         return 'A network error occurred. Please try again.';
+      case 'configuration-not-found':
+        return 'Firebase project configuration not found.';
+      case 'internal-error':
+        return 'Unexpected error occurred. Please try again.';
       default:
         return 'An error occurred. Please try again.';
     }
