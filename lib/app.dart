@@ -33,7 +33,7 @@ class FreshVeggieApp extends StatelessWidget {
           child: BlocBuilder<ThemeCubit, ThemeMode>(
             builder: (context, themeMode) {
               return MaterialApp.router(
-                title: 'FreshVeggie',
+                title: 'Bajariyo',
                 debugShowCheckedModeBanner: false,
                 theme: AppTheme.lightTheme,
                 darkTheme: AppTheme.darkTheme,
