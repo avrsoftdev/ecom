@@ -55,6 +55,11 @@ dependencies:
   file_picker: ^8.1.7
   responsive_framework: ^1.5.1
 
+  # Home screen UI components
+  carousel_slider: ^5.0.0
+  shimmer: ^3.0.0
+  flutter_staggered_animations: ^1.1.1
+
   cupertino_icons: ^1.0.9
 
 dev_dependencies:

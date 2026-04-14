@@ -4,6 +4,7 @@ import '../../../home/presentation/pages/home_page.dart';
 import 'tabs/cart_page.dart';
 import 'tabs/favourites_page.dart';
 import 'tabs/profile_page.dart';
+import 'tabs/search_page.dart';
 
 class MainNavigationPage extends StatefulWidget {
   const MainNavigationPage({super.key});
@@ -17,6 +18,7 @@ class _MainNavigationPageState extends State<MainNavigationPage> {
 
   static const _pages = [
     HomePage(),
+    SearchPage(),
     CartPage(),
     FavouritesPage(),
     ProfilePage(),
@@ -29,6 +31,11 @@ class _MainNavigationPageState extends State<MainNavigationPage> {
       label: 'Home',
     ),
     BottomNavigationBarItem(
+      icon: Icon(Icons.search_outlined),
+      activeIcon: Icon(Icons.search_rounded),
+      label: 'Search',
+    ),
+    BottomNavigationBarItem(
       icon: Icon(Icons.shopping_cart_outlined),
       activeIcon: Icon(Icons.shopping_cart_rounded),
       label: 'Cart',
@@ -36,7 +43,7 @@ class _MainNavigationPageState extends State<MainNavigationPage> {
     BottomNavigationBarItem(
       icon: Icon(Icons.favorite_border_rounded),
       activeIcon: Icon(Icons.favorite_rounded),
-      label: 'Favourite',
+      label: 'Wishlist',
     ),
     BottomNavigationBarItem(
       icon: Icon(Icons.person_outline_rounded),
