@@ -85,7 +85,7 @@ class HomeShimmer extends StatelessWidget {
                 _buildShimmerContainer(context, width: 150.w, height: 20.h),
                 SizedBox(height: 12.h),
                 SizedBox(
-                  height: 220.h,
+                  height: 260.h,
                   child: ListView.builder(
                     scrollDirection: Axis.horizontal,
                     itemCount: 4,
@@ -109,7 +109,7 @@ class HomeShimmer extends StatelessWidget {
                 _buildShimmerContainer(context, width: 120.w, height: 20.h),
                 SizedBox(height: 12.h),
                 SizedBox(
-                  height: 220.h,
+                  height: 260.h,
                   child: ListView.builder(
                     scrollDirection: Axis.horizontal,
                     itemCount: 4,
@@ -133,7 +133,7 @@ class HomeShimmer extends StatelessWidget {
                 _buildShimmerContainer(context, width: 120.w, height: 20.h),
                 SizedBox(height: 12.h),
                 SizedBox(
-                  height: 220.h,
+                  height: 260.h,
                   child: ListView.builder(
                     scrollDirection: Axis.horizontal,
                     itemCount: 4,
@@ -157,7 +157,7 @@ class HomeShimmer extends StatelessWidget {
                 _buildShimmerContainer(context, width: 150.w, height: 20.h),
                 SizedBox(height: 12.h),
                 SizedBox(
-                  height: 220.h,
+                  height: 260.h,
                   child: ListView.builder(
                     scrollDirection: Axis.horizontal,
                     itemCount: 4,
@@ -200,7 +200,7 @@ class HomeShimmer extends StatelessWidget {
   Widget _buildProductShimmer(BuildContext context) {
     return Container(
       width: 160.w,
-      height: 220.h,
+      height: 260.h,
       decoration: BoxDecoration(
         color: Theme.of(context).colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(12.r),
@@ -225,15 +225,15 @@ class HomeShimmer extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _buildShimmerContainer(context, width: 120.w, height: 12.h),
-                  SizedBox(height: 4.h),
+                  SizedBox(height: 6.h),
                   _buildShimmerContainer(context, width: 80.w, height: 10.h),
-                  SizedBox(height: 4.h),
+                  SizedBox(height: 6.h),
                   _buildShimmerContainer(context, width: 60.w, height: 14.h),
-                  SizedBox(height: 8.h),
+                  const Spacer(),
                   _buildShimmerContainer(
                     context,
                     width: double.infinity,
-                    height: 32.h,
+                    height: 30.h,
                     borderRadius: 6.r,
                   ),
                 ],

@@ -1,22 +1,12 @@
-import 'package:get_it/get_it.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:dio/dio.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:get_it/get_it.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:dio/dio.dart';
-import 'package:connectivity_plus/connectivity_plus.dart';
 
-import '../../features/auth/data/datasources/auth_remote_datasource.dart';
-import '../../features/auth/data/repositories/auth_repository_impl.dart';
-import '../../features/auth/domain/repositories/auth_repository.dart';
-import '../../features/auth/domain/usecases/sign_in_usecase.dart';
-import '../../features/auth/domain/usecases/sign_in_with_google_usecase.dart';
-import '../../features/auth/domain/usecases/sign_out_usecase.dart';
-import '../../features/auth/domain/usecases/check_auth_status_usecase.dart';
-import '../../features/auth/domain/usecases/get_user_role_usecase.dart';
-import '../../features/auth/domain/usecases/sign_up_usecase.dart';
-import '../../features/auth/presentation/cubits/auth_cubit.dart';
 import '../../features/admin/data/datasources/admin_firestore_datasource.dart';
 import '../../features/admin/data/datasources/admin_storage_datasource.dart';
 import '../../features/admin/data/datasources/product_admin_remote_datasource.dart';
@@ -38,6 +28,21 @@ import '../../features/admin/domain/repositories/admin_settings_repository.dart'
 import '../../features/admin/presentation/cubits/dashboard_cubit.dart';
 import '../../features/admin/presentation/cubits/product_admin_cubit.dart';
 import '../../features/admin/presentation/cubits/settings_cubit.dart';
+import '../../features/auth/data/datasources/auth_remote_datasource.dart';
+import '../../features/auth/data/repositories/auth_repository_impl.dart';
+import '../../features/auth/domain/repositories/auth_repository.dart';
+import '../../features/auth/domain/usecases/check_auth_status_usecase.dart';
+import '../../features/auth/domain/usecases/get_user_role_usecase.dart';
+import '../../features/auth/domain/usecases/sign_in_usecase.dart';
+import '../../features/auth/domain/usecases/sign_in_with_google_usecase.dart';
+import '../../features/auth/domain/usecases/sign_out_usecase.dart';
+import '../../features/auth/domain/usecases/sign_up_usecase.dart';
+import '../../features/auth/presentation/cubits/auth_cubit.dart';
+import '../../features/home/data/datasources/home_remote_datasource.dart';
+import '../../features/home/data/repositories/home_repository_impl.dart';
+import '../../features/home/domain/repositories/home_repository.dart';
+import '../../features/home/domain/usecases/get_home_data_usecase.dart';
+import '../../features/home/presentation/cubits/home_cubit.dart';
 import '../../features/product/data/datasources/product_remote_datasource.dart';
 import '../../features/product/data/repositories/product_repository_impl.dart';
 import '../../features/product/domain/repositories/product_repository.dart';
@@ -49,12 +54,7 @@ import '../theme/theme_cubit.dart';
 final getIt = GetIt.instance;
 
 Future<void> configureDependencies() async {
-  // External dependencies
   final sharedPreferences = await SharedPreferences.getInstance();
-  // Temporarily disabled for development
-  // final googleSignIn = GoogleSignIn(
-  //   scopes: const ['email'],
-  // );
   final googleSignIn = GoogleSignIn(
     scopes: const ['email'],
     clientId: 'temp-development-client-id',
@@ -71,12 +71,10 @@ Future<void> configureDependencies() async {
   getIt.registerSingleton<Dio>(Dio());
   getIt.registerSingleton<Connectivity>(Connectivity());
 
-  // Network info
   getIt.registerLazySingleton<NetworkInfo>(
     () => NetworkInfoImpl(getIt()),
   );
 
-  // Auth dependencies
   getIt.registerLazySingleton<AuthRemoteDataSource>(
     () => AuthRemoteDataSourceImpl(
       firebaseAuth: getIt(),
@@ -110,7 +108,23 @@ Future<void> configureDependencies() async {
     ),
   );
 
-  // Product dependencies
+  getIt.registerLazySingleton<HomeRemoteDataSource>(
+    () => HomeRemoteDataSourceImpl(firestore: getIt()),
+  );
+
+  getIt.registerLazySingleton<HomeRepository>(
+    () => HomeRepositoryImpl(
+      remoteDataSource: getIt(),
+      networkInfo: getIt(),
+    ),
+  );
+
+  getIt.registerLazySingleton(() => GetHomeDataUseCase(getIt()));
+
+  getIt.registerFactory(
+    () => HomeCubit(getHomeDataUseCase: getIt()),
+  );
+
   getIt.registerLazySingleton<ProductRemoteDataSource>(
     () => ProductRemoteDataSourceImpl(firestore: getIt()),
   );
@@ -128,17 +142,28 @@ Future<void> configureDependencies() async {
     () => ProductCubit(getProductsUseCase: getIt()),
   );
 
-  // Admin dependencies
-  getIt.registerLazySingleton(() => AdminFirestoreDataSource(firestore: getIt()));
-  getIt.registerLazySingleton<RemoteConfigDataSource>(() => RemoteConfigDataSource());
-  getIt.registerLazySingleton<AdminStorageDataSource>(() => AdminStorageDataSourceImpl(storage: getIt()));
-  getIt.registerLazySingleton(() => ProductAdminRemoteDataSource(firestore: getIt()));
+  getIt.registerLazySingleton(
+    () => AdminFirestoreDataSource(firestore: getIt()),
+  );
+  getIt.registerLazySingleton<RemoteConfigDataSource>(
+    () => RemoteConfigDataSource(),
+  );
+  getIt.registerLazySingleton<AdminStorageDataSource>(
+    () => AdminStorageDataSourceImpl(storage: getIt()),
+  );
+  getIt.registerLazySingleton(
+    () => ProductAdminRemoteDataSource(firestore: getIt()),
+  );
 
   getIt.registerLazySingleton<AdminDashboardRepository>(
     () => AdminDashboardRepositoryImpl(remote: getIt(), networkInfo: getIt()),
   );
   getIt.registerLazySingleton<AdminProductRepository>(
-    () => AdminProductRepositoryImpl(remote: getIt(), storage: getIt(), networkInfo: getIt()),
+    () => AdminProductRepositoryImpl(
+      remote: getIt(),
+      storage: getIt(),
+      networkInfo: getIt(),
+    ),
   );
   getIt.registerLazySingleton<AdminOrderRepository>(
     () => AdminOrderRepositoryImpl(remote: getIt(), networkInfo: getIt()),
@@ -147,13 +172,21 @@ Future<void> configureDependencies() async {
     () => AdminCategoryRepositoryImpl(remote: getIt(), networkInfo: getIt()),
   );
   getIt.registerLazySingleton<AdminBannerRepository>(
-    () => AdminBannerRepositoryImpl(remote: getIt(), storage: getIt(), networkInfo: getIt()),
+    () => AdminBannerRepositoryImpl(
+      remote: getIt(),
+      storage: getIt(),
+      networkInfo: getIt(),
+    ),
   );
   getIt.registerLazySingleton<AdminCustomerRepository>(
     () => AdminCustomerRepositoryImpl(remote: getIt(), networkInfo: getIt()),
   );
   getIt.registerLazySingleton<AdminSettingsRepository>(
-    () => AdminSettingsRepositoryImpl(remote: getIt(), remoteConfig: getIt(), networkInfo: getIt()),
+    () => AdminSettingsRepositoryImpl(
+      remote: getIt(),
+      remoteConfig: getIt(),
+      networkInfo: getIt(),
+    ),
   );
 
   getIt.registerFactory(() => DashboardCubit(getIt()));

@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+
 import '../../domain/entities/banner_entity.dart';
 import '../../domain/entities/category_entity.dart';
 import '../../../product/domain/entities/product_entity.dart';
@@ -13,19 +14,18 @@ abstract class HomeRemoteDataSource {
 }
 
 class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
-  final FirebaseFirestore firestore;
-
   HomeRemoteDataSourceImpl({required this.firestore});
+
+  final FirebaseFirestore firestore;
 
   @override
   Future<List<BannerEntity>> getBanners() async {
     final snapshot = await firestore
         .collection('banners')
         .where('isActive', isEqualTo: true)
-        .orderBy('order')
         .get();
 
-    return snapshot.docs.map((doc) {
+    final banners = snapshot.docs.map((doc) {
       final data = doc.data();
       return BannerEntity(
         id: doc.id,
@@ -37,6 +37,9 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
         isActive: data['isActive'] ?? false,
       );
     }).toList();
+
+    banners.sort((a, b) => a.order.compareTo(b.order));
+    return banners;
   }
 
   @override
@@ -44,10 +47,9 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
     final snapshot = await firestore
         .collection('categories')
         .where('isActive', isEqualTo: true)
-        .orderBy('order')
         .get();
 
-    return snapshot.docs.map((doc) {
+    final categories = snapshot.docs.map((doc) {
       final data = doc.data();
       return CategoryEntity(
         id: doc.id,
@@ -58,54 +60,46 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
         isActive: data['isActive'] ?? false,
       );
     }).toList();
+
+    categories.sort((a, b) => a.order.compareTo(b.order));
+    return categories;
   }
 
   @override
   Future<List<ProductEntity>> getFeaturedProducts() async {
-    final snapshot = await firestore
-        .collection('products')
-        .where('isActive', isEqualTo: true)
-        .where('isFeatured', isEqualTo: true)
-        .orderBy('createdAt', descending: true)
-        .limit(10)
-        .get();
-
-    return _mapProductsFromSnapshot(snapshot);
+    final products = await _getAvailableProducts();
+    final featured = products.where((product) => product.featured).toList();
+    featured.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    return featured.take(10).toList();
   }
 
   @override
   Future<List<ProductEntity>> getNewArrivals() async {
-    final snapshot = await firestore
-        .collection('products')
-        .where('isActive', isEqualTo: true)
-        .orderBy('createdAt', descending: true)
-        .limit(10)
-        .get();
-
-    return _mapProductsFromSnapshot(snapshot);
+    final products = await _getAvailableProducts();
+    products.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    return products.take(10).toList();
   }
 
   @override
   Future<List<ProductEntity>> getDeals() async {
-    final snapshot = await firestore
-        .collection('products')
-        .where('isActive', isEqualTo: true)
-        .where('discountPercentage', isGreaterThan: 0)
-        .orderBy('discountPercentage', descending: true)
-        .limit(10)
-        .get();
-
-    return _mapProductsFromSnapshot(snapshot);
+    final products = await _getAvailableProducts();
+    final deals = products.where((product) => product.discountPercent > 0).toList();
+    deals.sort((a, b) => b.discountPercent.compareTo(a.discountPercent));
+    return deals.take(10).toList();
   }
 
   @override
   Future<List<ProductEntity>> getRecommendedProducts() async {
-    // For now, return popular products. Later this can be personalized
+    final products = await _getAvailableProducts();
+    products.sort((a, b) => b.soldCount.compareTo(a.soldCount));
+    return products.take(10).toList();
+  }
+
+  Future<List<ProductEntity>> _getAvailableProducts() async {
     final snapshot = await firestore
         .collection('products')
-        .where('isActive', isEqualTo: true)
-        .orderBy('rating', descending: true)
-        .limit(10)
+        .where('isAvailable', isEqualTo: true)
+        .limit(40)
         .get();
 
     return _mapProductsFromSnapshot(snapshot);
@@ -127,7 +121,7 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
         updatedAt: (data['updatedAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
         discountPercent: (data['discountPercent'] ?? 0).toDouble(),
         featured: data['featured'] ?? false,
-        imageUrls: List<String>.from(data['imageUrls'] ?? []),
+        imageUrls: List<String>.from(data['imageUrls'] ?? const []),
         soldCount: data['soldCount'] ?? 0,
       );
     }).toList();
