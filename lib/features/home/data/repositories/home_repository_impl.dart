@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:flutter/foundation.dart';
 
 import '../../../../core/error/failures.dart';
 import '../../../../core/network/network_info.dart';
@@ -47,7 +48,9 @@ class HomeRepositoryImpl implements HomeRepository {
   Future<List<T>> _safeLoad<T>(Future<List<T>> Function() loader) async {
     try {
       return await loader();
-    } catch (_) {
+    } catch (e, stackTrace) {
+      debugPrint('HomeRepositoryImpl load failed: $e');
+      debugPrintStack(stackTrace: stackTrace);
       return <T>[];
     }
   }

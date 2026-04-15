@@ -78,8 +78,7 @@ service cloud.firestore {
     
     // Collection list permissions for admin
     match /categories/{categoryId} {
-      allow list: if isAdmin(); // Admins can list all categories
-      allow read: if isAdmin() || (resource.data.isActive == true); // Admins can read all, public only active
+      allow read: if true; // Categories are needed on the public storefront
       allow write: if isAdmin(); // Only admins can write categories
       allow create: if isAdmin();
       allow update: if isAdmin();
@@ -88,8 +87,7 @@ service cloud.firestore {
     
     // Collection list permissions for admin
     match /banners/{bannerId} {
-      allow list: if isAdmin(); // Admins can list all banners
-      allow read: if isAdmin() || (resource.data.isActive == true); // Admins can read all, public only active
+      allow read: if isAdmin() || (resource.data.isActive == true); // Storefront can read active banners
       allow write: if isAdmin(); // Only admins can write banners
       allow create: if isAdmin();
       allow update: if isAdmin();
@@ -98,8 +96,7 @@ service cloud.firestore {
     
     // Collection list permissions for admin
     match /products/{productId} {
-      allow list: if isAdmin(); // Admins can list all products
-      allow read: if isAdmin() || (resource.data.isActive == true); // Admins can read all, public only active
+      allow read: if isAdmin() || (resource.data.isAvailable == true); // Storefront reads available products
       allow write: if isAdmin(); // Only admins can write products
       allow create: if isAdmin();
       allow update: if isAdmin();

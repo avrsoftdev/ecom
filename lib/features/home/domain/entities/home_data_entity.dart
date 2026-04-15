@@ -1,6 +1,6 @@
 import 'package:equatable/equatable.dart';
-import 'banner_entity.dart';
-import 'category_entity.dart';
+import '../../../common/domain/entities/banner_entity.dart';
+import '../../../common/domain/entities/category_entity.dart';
 import '../../../product/domain/entities/product_entity.dart';
 
 class HomeDataEntity extends Equatable {

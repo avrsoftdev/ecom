@@ -1,7 +1,7 @@
-   import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import '../../domain/entities/category_entity.dart';
+import '../../../common/domain/entities/category_entity.dart';
 
 class CategoryItem extends StatelessWidget {
   final CategoryEntity category;
@@ -39,7 +39,7 @@ class CategoryItem extends StatelessWidget {
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(12.r),
                 child: CachedNetworkImage(
-                  imageUrl: category.imageUrl,
+                  imageUrl: category.imageUrl ?? '',
                   fit: BoxFit.cover,
                   placeholder: (context, url) => Container(
                     color: colorScheme.surfaceContainerHighest,

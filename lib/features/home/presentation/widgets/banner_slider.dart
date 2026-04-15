@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:cached_network_image/cached_network_image.dart';
-import '../../domain/entities/banner_entity.dart';
+import '../../../common/domain/entities/banner_entity.dart';
 
 class BannerSlider extends StatefulWidget {
   final List<BannerEntity> banners;
@@ -142,7 +142,7 @@ class _BannerSliderState extends State<BannerSlider> {
                           ),
                         ),
                         // Banner content
-                        if (banner.title.isNotEmpty || banner.description != null)
+                        if (banner.title.isNotEmpty)
                           Positioned(
                             bottom: 16.h,
                             left: 16.w,
@@ -168,25 +168,6 @@ class _BannerSliderState extends State<BannerSlider> {
                                     maxLines: 2,
                                     overflow: TextOverflow.ellipsis,
                                   ),
-                                if (banner.description != null) ...[
-                                  SizedBox(height: 4.h),
-                                  Text(
-                                    banner.description!,
-                                    style: TextStyle(
-                                      color: Colors.white.withValues(alpha: 0.9),
-                                      fontSize: 12.sp,
-                                      shadows: [
-                                        Shadow(
-                                          color: Colors.black.withValues(alpha: 0.5),
-                                          offset: const Offset(0, 1),
-                                          blurRadius: 2,
-                                        ),
-                                      ],
-                                    ),
-                                    maxLines: 2,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ],
                               ],
                             ),
                           ),
