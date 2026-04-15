@@ -86,7 +86,9 @@ class AppRouter {
       ),
       GoRoute(
         path: '/products',
-        builder: (context, state) => const ProductListPage(),
+        builder: (context, state) => ProductListPage(
+          categoryId: state.uri.queryParameters['categoryId'],
+        ),
       ),
     ],
     redirect: (context, state) {

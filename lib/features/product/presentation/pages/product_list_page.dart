@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../../core/di/injection.dart';
 import '../../../../core/widgets/fresh_veggie_header.dart';
@@ -7,14 +8,23 @@ import '../cubits/product_cubit.dart';
 import '../widgets/product_card.dart';
 
 class ProductListPage extends StatelessWidget {
-  const ProductListPage({super.key});
+  const ProductListPage({
+    super.key,
+    this.categoryId,
+  });
+
+  final String? categoryId;
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) => ProductCubit(getProductsUseCase: getIt())..getProducts(),
+      create: (context) => ProductCubit(getProductsUseCase: getIt())
+        ..getProducts(categoryId: categoryId),
       child: Scaffold(
-        appBar: const FreshVeggieHeader(),
+        appBar: FreshVeggieHeader(
+          showBackButton: true,
+          onBackPressed: () => context.go('/home'),
+        ),
         body: BlocBuilder<ProductCubit, ProductState>(
           builder: (context, state) {
             if (state is ProductLoading) {

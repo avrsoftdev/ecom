@@ -76,7 +76,9 @@ class HomePage extends StatelessWidget {
                         final category = homeData.categories[index];
                         return CategoryItem(
                           category: category,
-                          onTap: () => context.go('/products'),
+                          onTap: () => context.go(
+                            '/products?categoryId=${Uri.encodeComponent(category.id)}',
+                          ),
                         );
                       },
                     ),

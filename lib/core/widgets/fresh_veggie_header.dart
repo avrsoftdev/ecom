@@ -8,9 +8,13 @@ class FreshVeggieHeader extends StatelessWidget implements PreferredSizeWidget {
   const FreshVeggieHeader({
     super.key,
     this.title = 'Bajariyo',
+    this.showBackButton = false,
+    this.onBackPressed,
   });
 
   final String title;
+  final bool showBackButton;
+  final VoidCallback? onBackPressed;
 
   @override
   Size get preferredSize => const Size.fromHeight(kToolbarHeight);
@@ -20,6 +24,13 @@ class FreshVeggieHeader extends StatelessWidget implements PreferredSizeWidget {
     return AppBar(
       backgroundColor: const Color(0xFF006400),
       foregroundColor: Colors.white,
+      automaticallyImplyLeading: showBackButton,
+      leading: showBackButton
+          ? IconButton(
+              icon: const Icon(Icons.arrow_back_rounded),
+              onPressed: onBackPressed ?? () => Navigator.of(context).maybePop(),
+            )
+          : null,
       title: Text(
         title,
         style: GoogleFonts.poppins(

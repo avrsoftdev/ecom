@@ -29,9 +29,11 @@ class ProductRemoteDataSourceImpl implements ProductRemoteDataSource {
     int? limit,
     int? offset,
   }) async {
-    Query query = firestore.collection('products');
+    Query<Map<String, dynamic>> query = firestore
+        .collection('products')
+        .where('isAvailable', isEqualTo: true);
 
-    if (categoryId != null) {
+    if (categoryId != null && categoryId.isNotEmpty) {
       query = query.where('categoryId', isEqualTo: categoryId);
     }
 
@@ -42,14 +44,14 @@ class ProductRemoteDataSourceImpl implements ProductRemoteDataSource {
                    .where('name', isLessThan: searchQuery + '\uf8ff');
     }
 
-    query = query.orderBy('createdAt', descending: true);
-
     if (limit != null) {
       query = query.limit(limit);
     }
 
     final snapshot = await query.get();
-    return snapshot.docs.map((doc) => ProductModel.fromFirestore(doc)).toList();
+    final products = snapshot.docs.map((doc) => ProductModel.fromFirestore(doc)).toList();
+    products.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    return products;
   }
 
   @override
@@ -65,10 +67,12 @@ class ProductRemoteDataSourceImpl implements ProductRemoteDataSource {
   Future<List<ProductModel>> getProductsByCategory(String categoryId) async {
     final snapshot = await firestore
         .collection('products')
+        .where('isAvailable', isEqualTo: true)
         .where('categoryId', isEqualTo: categoryId)
-        .orderBy('createdAt', descending: true)
         .get();
-    return snapshot.docs.map((doc) => ProductModel.fromFirestore(doc)).toList();
+    final products = snapshot.docs.map((doc) => ProductModel.fromFirestore(doc)).toList();
+    products.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    return products;
   }
 
   @override
