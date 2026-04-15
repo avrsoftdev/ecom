@@ -49,7 +49,7 @@ class ProductCard extends StatelessWidget {
           children: [
             // Product Image
             Expanded(
-              flex: 3,
+              flex: 11,
               child: Stack(
                 children: [
                   Container(
@@ -142,81 +142,96 @@ class ProductCard extends StatelessWidget {
             ),
             // Product Details
             Expanded(
-              flex: 2,
+              flex: 10,
               child: Padding(
-                padding: EdgeInsets.all(8.w),
+                padding: EdgeInsets.fromLTRB(8.w, 6.h, 8.w, 8.h),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    // Product Name
-                    Text(
-                      product.name,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(
-                        fontSize: 12.sp,
-                        fontWeight: FontWeight.w500,
-                        color: colorScheme.onSurface,
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            product.name,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 12.sp,
+                              fontWeight: FontWeight.w500,
+                              color: colorScheme.onSurface,
+                            ),
+                          ),
+                          SizedBox(height: 4.h),
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.star_rounded,
+                                color: Colors.amber,
+                                size: 12.sp,
+                              ),
+                              SizedBox(width: 2.w),
+                              Text(
+                                '4.5',
+                                style: TextStyle(
+                                  fontSize: 10.sp,
+                                  fontWeight: FontWeight.w500,
+                                  color: colorScheme.onSurfaceVariant,
+                                ),
+                              ),
+                              if (product.soldCount > 0) ...[
+                                SizedBox(width: 2.w),
+                                Expanded(
+                                  child: Text(
+                                    '(${product.soldCount} sold)',
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      fontSize: 10.sp,
+                                      color: colorScheme.onSurfaceVariant,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                          SizedBox(height: 4.h),
+                          Row(
+                            children: [
+                              Flexible(
+                                child: Text(
+                                  'Rs.${discountedPrice.toStringAsFixed(0)}',
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: TextStyle(
+                                    fontSize: 14.sp,
+                                    fontWeight: FontWeight.bold,
+                                    color: colorScheme.primary,
+                                  ),
+                                ),
+                              ),
+                              if (hasDiscount) ...[
+                                SizedBox(width: 4.w),
+                                Flexible(
+                                  child: Text(
+                                    'Rs.${product.price.toStringAsFixed(0)}',
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      fontSize: 11.sp,
+                                      decoration: TextDecoration.lineThrough,
+                                      color: colorScheme.onSurfaceVariant,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ],
                       ),
                     ),
-                    SizedBox(height: 4.h),
-                    // Sold count (using as rating placeholder)
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.star_rounded,
-                          color: Colors.amber,
-                          size: 12.sp,
-                        ),
-                        SizedBox(width: 2.w),
-                        Text(
-                          '4.5',
-                          style: TextStyle(
-                            fontSize: 10.sp,
-                            fontWeight: FontWeight.w500,
-                            color: colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                        if (product.soldCount > 0) ...[
-                          SizedBox(width: 2.w),
-                          Text(
-                            '(${product.soldCount} sold)',
-                            style: TextStyle(
-                              fontSize: 10.sp,
-                              color: colorScheme.onSurfaceVariant,
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-                    SizedBox(height: 4.h),
-                    // Price
-                    Row(
-                      children: [
-                        Text(
-                          'Rs.${discountedPrice.toStringAsFixed(0)}',
-                          style: TextStyle(
-                            fontSize: 14.sp,
-                            fontWeight: FontWeight.bold,
-                            color: colorScheme.primary,
-                          ),
-                        ),
-                        if (hasDiscount) ...[
-                          SizedBox(width: 4.w),
-                          Text(
-                            'Rs.${product.price.toStringAsFixed(0)}',
-                            style: TextStyle(
-                              fontSize: 11.sp,
-                              decoration: TextDecoration.lineThrough,
-                              color: colorScheme.onSurfaceVariant,
-                            ),
-                          ),
-                        ],
-                      ],
-                    ),
-                    SizedBox(height: 8.h),
-                    // Add to Cart Button
+                    SizedBox(height: 6.h),
                     SizedBox(
                       width: double.infinity,
                       height: 32.h,
