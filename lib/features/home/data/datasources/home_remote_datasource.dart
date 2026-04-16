@@ -20,12 +20,14 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
 
   @override
   Future<List<BannerEntity>> getBanners() async {
-    final snapshot = await firestore.collection('banners').get();
+    final snapshot = await firestore
+        .collection('banners')
+        .where('isActive', isEqualTo: true)
+        .get();
 
     final banners = snapshot.docs
         .map((doc) => _mapBanner(doc))
         .whereType<BannerEntity>()
-        .where((banner) => banner.isActive)
         .toList();
 
     banners.sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
