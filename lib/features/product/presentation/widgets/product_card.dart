@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
-import '../../../../core/utils/currency_formatter.dart';
 import '../../domain/entities/product_entity.dart';
 import 'pricing_options_widget.dart';
 

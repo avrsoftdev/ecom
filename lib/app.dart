@@ -8,6 +8,7 @@ import 'core/theme/theme_cubit.dart';
 import 'core/routes/app_router.dart';
 import 'core/di/injection.dart';
 import 'features/auth/presentation/cubits/auth_cubit.dart';
+import 'features/wishlist/presentation/cubits/wishlist_cubit.dart';
 
 class FreshVeggieApp extends StatelessWidget {
   const FreshVeggieApp({super.key});
@@ -26,6 +27,9 @@ class FreshVeggieApp extends StatelessWidget {
             ),
             BlocProvider(
               create: (context) => getIt<AuthCubit>()..checkAuthStatus(),
+            ),
+            BlocProvider(
+              create: (context) => WishlistCubit(),
             ),
             // Add other global cubits here
           ],

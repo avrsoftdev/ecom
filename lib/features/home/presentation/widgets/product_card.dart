@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
-import '../../../../core/utils/currency_formatter.dart';
 import '../../../product/domain/entities/product_entity.dart';
 import '../../../product/presentation/widgets/pricing_options_widget.dart';
+import '../../../wishlist/presentation/widgets/quantity_counter_widget.dart';
 
 class ProductCard extends StatelessWidget {
   final ProductEntity product;
@@ -12,6 +12,9 @@ class ProductCard extends StatelessWidget {
   final VoidCallback onAddToCart;
   final VoidCallback onWishlistToggle;
   final bool isWishlisted;
+  final int quantity;
+  final VoidCallback? onIncrementQuantity;
+  final VoidCallback? onDecrementQuantity;
 
   const ProductCard({
     super.key,
@@ -20,15 +23,15 @@ class ProductCard extends StatelessWidget {
     required this.onAddToCart,
     required this.onWishlistToggle,
     this.isWishlisted = false,
+    this.quantity = 0,
+    this.onIncrementQuantity,
+    this.onDecrementQuantity,
   });
 
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final hasDiscount = product.discountPercent > 0;
-    final discountedPrice = hasDiscount
-        ? product.price * (1 - product.discountPercent / 100)
-        : product.price;
 
     return Container(
       width: 160.w,
@@ -220,32 +223,38 @@ class ProductCard extends StatelessWidget {
                     SizedBox(
                       width: double.infinity,
                       height: 28.h,
-                      child: ElevatedButton(
-                        onPressed: onAddToCart,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: colorScheme.primary,
-                          foregroundColor: colorScheme.onPrimary,
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(6.r),
-                          ),
-                          padding: EdgeInsets.symmetric(horizontal: 8.w),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.add_shopping_cart, size: 12.sp),
-                            SizedBox(width: 4.w),
-                            Text(
-                              'Add',
-                              style: TextStyle(
-                                fontSize: 10.sp,
-                                fontWeight: FontWeight.w600,
+                      child: isWishlisted && quantity > 0
+                          ? QuantityCounterWidget(
+                              quantity: quantity,
+                              onIncrement: onIncrementQuantity ?? () {},
+                              onDecrement: onDecrementQuantity ?? () {},
+                            )
+                          : ElevatedButton(
+                              onPressed: onAddToCart,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: colorScheme.primary,
+                                foregroundColor: colorScheme.onPrimary,
+                                elevation: 0,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(6.r),
+                                ),
+                                padding: EdgeInsets.symmetric(horizontal: 8.w),
+                              ),
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.add_shopping_cart, size: 12.sp),
+                                  SizedBox(width: 4.w),
+                                  Text(
+                                    'Add',
+                                    style: TextStyle(
+                                      fontSize: 10.sp,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
-                          ],
-                        ),
-                      ),
                     ),
                   ],
                 ),

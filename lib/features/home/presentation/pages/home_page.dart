@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/widgets/fresh_veggie_header.dart';
 import '../../../product/domain/entities/product_entity.dart';
+import '../../../wishlist/presentation/cubits/wishlist_cubit.dart';
 import '../cubits/home_cubit.dart';
 import '../widgets/banner_slider.dart';
 import '../widgets/category_item.dart';
@@ -284,11 +285,33 @@ class _ProductSection extends StatelessWidget {
                 separatorBuilder: (_, __) => SizedBox(width: 12.w),
                 itemBuilder: (context, index) {
                   final product = products[index];
-                  return ProductCard(
-                    product: product,
-                    onTap: () => context.go('/products'),
-                    onAddToCart: () {},
-                    onWishlistToggle: () {},
+                  return BlocBuilder<WishlistCubit, WishlistState>(
+                    builder: (context, wishlistState) {
+                      final isWishlisted = wishlistState is WishlistLoaded &&
+                          wishlistState.wishlistItems.containsKey(product.id);
+                      final quantity = wishlistState is WishlistLoaded
+                          ? wishlistState.wishlistItems[product.id] ?? 0
+                          : 0;
+
+                      return ProductCard(
+                        product: product,
+                        onTap: () => context.go('/products'),
+                        onAddToCart: () {
+                          context.read<WishlistCubit>().addToWishlist(product);
+                        },
+                        onWishlistToggle: () {
+                          context.read<WishlistCubit>().toggleWishlist(product);
+                        },
+                        isWishlisted: isWishlisted,
+                        quantity: quantity,
+                        onIncrementQuantity: () {
+                          context.read<WishlistCubit>().incrementQuantity(product.id);
+                        },
+                        onDecrementQuantity: () {
+                          context.read<WishlistCubit>().decrementQuantity(product.id);
+                        },
+                      );
+                    },
                   );
                 },
               ),

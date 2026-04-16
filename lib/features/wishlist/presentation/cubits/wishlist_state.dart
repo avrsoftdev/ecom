@@ -12,7 +12,7 @@ class WishlistInitial extends WishlistState {}
 class WishlistLoading extends WishlistState {}
 
 class WishlistLoaded extends WishlistState {
-  final List<ProductEntity> wishlistItems;
+  final Map<String, int> wishlistItems;
 
   const WishlistLoaded({required this.wishlistItems});
 
@@ -20,7 +20,7 @@ class WishlistLoaded extends WishlistState {
   List<Object?> get props => [wishlistItems];
 
   WishlistLoaded copyWith({
-    List<ProductEntity>? wishlistItems,
+    Map<String, int>? wishlistItems,
   }) {
     return WishlistLoaded(
       wishlistItems: wishlistItems ?? this.wishlistItems,
