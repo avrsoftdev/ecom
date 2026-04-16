@@ -147,14 +147,13 @@ class ProductCard extends StatelessWidget {
             Expanded(
               flex: 10,
               child: Padding(
-                padding: EdgeInsets.fromLTRB(8.w, 6.h, 8.w, 8.h),
+                padding: EdgeInsets.fromLTRB(8.w, 4.h, 8.w, 6.h),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Expanded(
+                    Flexible(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
                             product.name,
@@ -199,7 +198,7 @@ class ProductCard extends StatelessWidget {
                               ],
                             ],
                           ),
-                          SizedBox(height: 4.h),
+                          SizedBox(height: 3.h),
                           Text(
                             '${product.stock} ${product.unitType.displayUnit} available',
                             style: TextStyle(
@@ -207,7 +206,7 @@ class ProductCard extends StatelessWidget {
                               color: colorScheme.onSurfaceVariant,
                             ),
                           ),
-                          SizedBox(height: 4.h),
+                          SizedBox(height: 1.h),
                           PricingOptionsWidget(
                             product: product,
                             onOptionSelected: (quantity, price) {
@@ -217,10 +216,10 @@ class ProductCard extends StatelessWidget {
                         ],
                       ),
                     ),
-                    SizedBox(height: 6.h),
+                    SizedBox(height: 3.h),
                     SizedBox(
                       width: double.infinity,
-                      height: 32.h,
+                      height: 28.h,
                       child: ElevatedButton(
                         onPressed: onAddToCart,
                         style: ElevatedButton.styleFrom(

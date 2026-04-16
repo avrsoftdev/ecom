@@ -26,13 +26,14 @@ class PricingOptionsWidget extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Pricing Options:',
+          'Options:',
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
                 fontWeight: FontWeight.w500,
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
+                fontSize: 9.sp,
               ),
         ),
-        SizedBox(height: 4.h),
+        SizedBox(height: 1.h),
         ...product.pricingTiers.map((tier) => _PricingTierItem(
               tier: tier,
               unitType: product.unitType,
@@ -82,7 +83,7 @@ class _PricingTierItem extends StatelessWidget {
       borderRadius: BorderRadius.circular(4.r),
       child: Container(
         width: double.infinity,
-        padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+        padding: EdgeInsets.symmetric(horizontal: 3.w, vertical: 1.h),
         decoration: BoxDecoration(
           border: Border.all(
             color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.3),
@@ -95,7 +96,7 @@ class _PricingTierItem extends StatelessWidget {
             Expanded(
               child: Text(
                 '${tier.quantity} ${unitType.displayUnit}',
-                style: Theme.of(context).textTheme.bodySmall,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(fontSize: 9.sp),
               ),
             ),
             Text(
@@ -103,6 +104,7 @@ class _PricingTierItem extends StatelessWidget {
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     fontWeight: FontWeight.w600,
                     color: Theme.of(context).primaryColor,
+                    fontSize: 9.sp,
                   ),
             ),
           ],
@@ -128,7 +130,7 @@ class _StandardPriceOption extends StatelessWidget {
       borderRadius: BorderRadius.circular(4.r),
       child: Container(
         width: double.infinity,
-        padding: EdgeInsets.symmetric(horizontal: 8.w, vertical: 4.h),
+        padding: EdgeInsets.symmetric(horizontal: 3.w, vertical: 1.h),
         decoration: BoxDecoration(
           border: Border.all(
             color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.3),
@@ -143,6 +145,7 @@ class _StandardPriceOption extends StatelessWidget {
                 'Standard (1 ${product.unitType.displayUnit})',
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
                       fontStyle: FontStyle.italic,
+                fontSize: 9.sp,
                     ),
               ),
             ),
@@ -151,6 +154,7 @@ class _StandardPriceOption extends StatelessWidget {
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
                     fontWeight: FontWeight.w600,
                     color: Theme.of(context).primaryColor,
+                    fontSize: 9.sp,
                   ),
             ),
           ],
