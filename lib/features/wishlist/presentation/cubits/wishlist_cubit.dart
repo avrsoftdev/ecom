@@ -7,50 +7,68 @@ part 'wishlist_state.dart';
 class WishlistCubit extends Cubit<WishlistState> {
   WishlistCubit() : super(WishlistInitial());
 
-  Map<String, int> _wishlistItems = {};
+  Map<String, ProductEntity> _wishlistProducts = {};
+  Map<String, int> _wishlistQuantities = {};
 
   void addToWishlist(ProductEntity product) {
-    if (_wishlistItems.containsKey(product.id)) {
-      _wishlistItems[product.id] = (_wishlistItems[product.id] ?? 0) + 1;
+    if (_wishlistProducts.containsKey(product.id)) {
+      _wishlistQuantities[product.id] = (_wishlistQuantities[product.id] ?? 0) + 1;
     } else {
-      _wishlistItems[product.id] = 1;
+      _wishlistProducts[product.id] = product;
+      _wishlistQuantities[product.id] = 1;
     }
-    emit(WishlistLoaded(wishlistItems: Map.from(_wishlistItems)));
+    emit(WishlistLoaded(
+      wishlistProducts: Map.from(_wishlistProducts),
+      wishlistQuantities: Map.from(_wishlistQuantities),
+    ));
   }
 
   void removeFromWishlist(String productId) {
-    _wishlistItems.remove(productId);
-    emit(WishlistLoaded(wishlistItems: Map.from(_wishlistItems)));
+    _wishlistProducts.remove(productId);
+    _wishlistQuantities.remove(productId);
+    emit(WishlistLoaded(
+      wishlistProducts: Map.from(_wishlistProducts),
+      wishlistQuantities: Map.from(_wishlistQuantities),
+    ));
   }
 
   void updateQuantity(String productId, int quantity) {
     if (quantity <= 0) {
       removeFromWishlist(productId);
     } else {
-      _wishlistItems[productId] = quantity;
-      emit(WishlistLoaded(wishlistItems: Map.from(_wishlistItems)));
+      _wishlistQuantities[productId] = quantity;
+      emit(WishlistLoaded(
+        wishlistProducts: Map.from(_wishlistProducts),
+        wishlistQuantities: Map.from(_wishlistQuantities),
+      ));
     }
   }
 
   void incrementQuantity(String productId) {
-    _wishlistItems[productId] = (_wishlistItems[productId] ?? 0) + 1;
-    emit(WishlistLoaded(wishlistItems: Map.from(_wishlistItems)));
+    _wishlistQuantities[productId] = (_wishlistQuantities[productId] ?? 0) + 1;
+    emit(WishlistLoaded(
+      wishlistProducts: Map.from(_wishlistProducts),
+      wishlistQuantities: Map.from(_wishlistQuantities),
+    ));
   }
 
   void decrementQuantity(String productId) {
-    if (_wishlistItems.containsKey(productId)) {
-      if (_wishlistItems[productId]! > 1) {
-        _wishlistItems[productId] = _wishlistItems[productId]! - 1;
+    if (_wishlistQuantities.containsKey(productId)) {
+      if (_wishlistQuantities[productId]! > 1) {
+        _wishlistQuantities[productId] = _wishlistQuantities[productId]! - 1;
       } else {
         removeFromWishlist(productId);
         return;
       }
-      emit(WishlistLoaded(wishlistItems: Map.from(_wishlistItems)));
+      emit(WishlistLoaded(
+        wishlistProducts: Map.from(_wishlistProducts),
+        wishlistQuantities: Map.from(_wishlistQuantities),
+      ));
     }
   }
 
   void toggleWishlist(ProductEntity product) {
-    if (_wishlistItems.containsKey(product.id)) {
+    if (_wishlistProducts.containsKey(product.id)) {
       removeFromWishlist(product.id);
     } else {
       addToWishlist(product);
@@ -58,24 +76,36 @@ class WishlistCubit extends Cubit<WishlistState> {
   }
 
   bool isWishlisted(String productId) {
-    return _wishlistItems.containsKey(productId);
+    return _wishlistProducts.containsKey(productId);
   }
 
   int getQuantity(String productId) {
-    return _wishlistItems[productId] ?? 0;
+    return _wishlistQuantities[productId] ?? 0;
+  }
+
+  ProductEntity? getProduct(String productId) {
+    return _wishlistProducts[productId];
   }
 
   void loadWishlist() {
     // For now, just emit loaded state with current items
-    emit(WishlistLoaded(wishlistItems: Map.from(_wishlistItems)));
+    emit(WishlistLoaded(
+      wishlistProducts: Map.from(_wishlistProducts),
+      wishlistQuantities: Map.from(_wishlistQuantities),
+    ));
   }
 
   void clearWishlist() {
-    _wishlistItems.clear();
-    emit(const WishlistLoaded(wishlistItems: {}));
+    _wishlistProducts.clear();
+    _wishlistQuantities.clear();
+    emit(const WishlistLoaded(
+      wishlistProducts: {},
+      wishlistQuantities: {},
+    ));
   }
 
   // Getters
-  Map<String, int> get wishlistItems => Map.from(_wishlistItems);
-  int get wishlistCount => _wishlistItems.values.fold(0, (sum, quantity) => sum + quantity);
+  Map<String, ProductEntity> get wishlistProducts => Map.from(_wishlistProducts);
+  Map<String, int> get wishlistQuantities => Map.from(_wishlistQuantities);
+  int get wishlistCount => _wishlistQuantities.values.fold(0, (sum, quantity) => sum + quantity);
 }

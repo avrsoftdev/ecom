@@ -58,7 +58,7 @@ class MainNavigationPage extends StatelessWidget {
       bottomNavigationBar: BlocBuilder<WishlistCubit, WishlistState>(
         builder: (context, state) {
           final cartCount = state is WishlistLoaded 
-              ? state.wishlistItems.values.fold(0, (sum, quantity) => sum + quantity)
+              ? state.wishlistQuantities.values.fold(0, (sum, quantity) => sum + quantity)
               : 0;
 
           return NavigationBarTheme(

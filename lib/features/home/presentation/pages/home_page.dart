@@ -288,9 +288,9 @@ class _ProductSection extends StatelessWidget {
                   return BlocBuilder<WishlistCubit, WishlistState>(
                     builder: (context, wishlistState) {
                       final isWishlisted = wishlistState is WishlistLoaded &&
-                          wishlistState.wishlistItems.containsKey(product.id);
+                          wishlistState.wishlistProducts.containsKey(product.id);
                       final quantity = wishlistState is WishlistLoaded
-                          ? wishlistState.wishlistItems[product.id] ?? 0
+                          ? wishlistState.wishlistQuantities[product.id] ?? 0
                           : 0;
 
                       return ProductCard(
