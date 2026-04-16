@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../domain/entities/product_entity.dart';
+import '../../domain/entities/product_pricing.dart';
+import '../../domain/entities/product_unit_type.dart';
 
 class ProductModel extends ProductEntity {
   const ProductModel({
@@ -18,6 +20,8 @@ class ProductModel extends ProductEntity {
     super.featured = false,
     super.imageUrls = const [],
     super.soldCount = 0,
+    super.unitType = ProductUnitType.quantity,
+    super.pricingTiers = const [],
   });
 
   factory ProductModel.fromJson(Map<String, dynamic> json) {
@@ -41,6 +45,11 @@ class ProductModel extends ProductEntity {
       featured: json['featured'] as bool? ?? false,
       imageUrls: imageUrls,
       soldCount: (json['soldCount'] as num?)?.toInt() ?? 0,
+      unitType: ProductUnitType.fromCode(json['unitType'] as String? ?? 'QUANTITY'),
+      pricingTiers: (json['pricingTiers'] as List<dynamic>?)
+          ?.map((e) => ProductPricing.fromJson(e as Map<String, dynamic>))
+          .toList() ??
+          [],
     );
   }
 
@@ -74,6 +83,8 @@ class ProductModel extends ProductEntity {
       featured: entity.featured,
       imageUrls: entity.imageUrls,
       soldCount: entity.soldCount,
+      unitType: entity.unitType,
+      pricingTiers: entity.pricingTiers,
     );
   }
 
@@ -93,6 +104,8 @@ class ProductModel extends ProductEntity {
       'featured': featured,
       'imageUrls': imageUrls,
       'soldCount': soldCount,
+      'unitType': unitType.code,
+      'pricingTiers': pricingTiers.map((p) => p.toJson()).toList(),
     };
   }
 
@@ -112,6 +125,8 @@ class ProductModel extends ProductEntity {
       featured: featured,
       imageUrls: imageUrls,
       soldCount: soldCount,
+      unitType: unitType,
+      pricingTiers: pricingTiers,
     );
   }
 }

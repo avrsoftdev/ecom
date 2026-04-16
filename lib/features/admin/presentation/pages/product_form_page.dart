@@ -8,8 +8,11 @@ import 'package:go_router/go_router.dart';
 import '../../../../core/di/injection.dart';
 import '../../../common/domain/entities/category_entity.dart';
 import '../../../product/domain/entities/product_entity.dart';
+import '../../../product/domain/entities/product_pricing.dart';
+import '../../../product/domain/entities/product_unit_type.dart';
 import '../../domain/repositories/admin_category_repository.dart';
 import '../cubits/product_form_cubit.dart';
+import '../widgets/pricing_tiers_widget.dart';
 
 class ProductFormPage extends StatelessWidget {
   const ProductFormPage({super.key, this.productId});
@@ -44,6 +47,8 @@ class _ProductFormViewState extends State<_ProductFormView> {
   late final _category = TextEditingController();
 
   String? _categoryId;
+  ProductUnitType _unitType = ProductUnitType.quantity;
+  List<ProductPricing> _pricingTiers = [];
 
   @override
   void dispose() {
@@ -64,6 +69,8 @@ class _ProductFormViewState extends State<_ProductFormView> {
     _stock.text = d.stock.toString();
     _categoryId = d.categoryId;
     _category.text = d.categoryId;
+    _unitType = d.unitType;
+    _pricingTiers = List.from(d.pricingTiers);
   }
 
   @override
@@ -139,6 +146,35 @@ class _ProductFormViewState extends State<_ProductFormView> {
                         _pushDraft(context);
                       },
                     );
+                  },
+                ),
+                SizedBox(height: 12.h),
+                DropdownButtonFormField<ProductUnitType>(
+                  value: _unitType,
+                  decoration: const InputDecoration(
+                    labelText: 'Unit Type',
+                    border: OutlineInputBorder(),
+                  ),
+                  items: ProductUnitType.values
+                      .map((type) => DropdownMenuItem(
+                            value: type,
+                            child: Text('${type.displayName} (${type.displayUnit})'),
+                          ))
+                      .toList(),
+                  onChanged: (v) {
+                    if (v != null) {
+                      setState(() => _unitType = v);
+                      _pushDraft(context);
+                    }
+                  },
+                ),
+                SizedBox(height: 12.h),
+                PricingTiersWidget(
+                  pricingTiers: _pricingTiers,
+                  unitType: _unitType,
+                  onChanged: (tiers) {
+                    _pricingTiers = tiers;
+                    _pushDraft(context);
                   },
                 ),
                 SizedBox(height: 12.h),
@@ -284,6 +320,8 @@ class _ProductFormViewState extends State<_ProductFormView> {
       featured: featured ?? c.featured,
       imageUrls: urls,
       soldCount: c.soldCount,
+      unitType: _unitType,
+      pricingTiers: _pricingTiers,
     );
   }
 }

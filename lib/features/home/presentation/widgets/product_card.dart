@@ -4,6 +4,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 
 import '../../../../core/utils/currency_formatter.dart';
 import '../../../product/domain/entities/product_entity.dart';
+import '../../../product/presentation/widgets/pricing_options_widget.dart';
 
 class ProductCard extends StatelessWidget {
   final ProductEntity product;
@@ -199,36 +200,19 @@ class ProductCard extends StatelessWidget {
                             ],
                           ),
                           SizedBox(height: 4.h),
-                          Row(
-                            children: [
-                              Flexible(
-                                child: Text(
-                                  formatCurrencyNoDecimals(discountedPrice),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: TextStyle(
-                                    fontSize: 14.sp,
-                                    fontWeight: FontWeight.bold,
-                                    color: colorScheme.primary,
-                                  ),
-                                ),
-                              ),
-                              if (hasDiscount) ...[
-                                SizedBox(width: 4.w),
-                                Flexible(
-                                  child: Text(
-                                    formatCurrencyNoDecimals(product.price),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(
-                                      fontSize: 11.sp,
-                                      decoration: TextDecoration.lineThrough,
-                                      color: colorScheme.onSurfaceVariant,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ],
+                          Text(
+                            '${product.stock} ${product.unitType.displayUnit} available',
+                            style: TextStyle(
+                              fontSize: 10.sp,
+                              color: colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                          SizedBox(height: 4.h),
+                          PricingOptionsWidget(
+                            product: product,
+                            onOptionSelected: (quantity, price) {
+                              // Handle pricing selection
+                            },
                           ),
                         ],
                       ),

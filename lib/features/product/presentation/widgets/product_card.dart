@@ -3,6 +3,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 
 import '../../../../core/utils/currency_formatter.dart';
 import '../../domain/entities/product_entity.dart';
+import 'pricing_options_widget.dart';
 
 class ProductCard extends StatelessWidget {
   final ProductEntity product;
@@ -42,15 +43,11 @@ class ProductCard extends StatelessWidget {
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
                   const SizedBox(height: 8),
-                  Text(
-                    formatCurrency(product.price),
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          color: Theme.of(context).primaryColor,
-                          fontWeight: FontWeight.bold,
-                        ),
+                  PricingOptionsWidget(
+                    product: product,
                   ),
                   Text(
-                    'Stock: ${product.stock}',
+                    'Stock: ${product.stock} ${product.unitType.displayUnit}',
                     style: Theme.of(context).textTheme.bodySmall,
                   ),
                 ],
