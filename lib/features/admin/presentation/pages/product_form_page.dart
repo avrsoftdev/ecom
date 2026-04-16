@@ -71,6 +71,9 @@ class _ProductFormViewState extends State<_ProductFormView> {
     final categories = getIt<AdminCategoryRepository>().watchCategories();
 
     return BlocConsumer<ProductFormCubit, ProductFormState>(
+      listenWhen: (previous, current) =>
+          previous.status != current.status ||
+          previous.draft.id != current.draft.id,
       listener: (context, state) {
         if (state.status == ProductFormStatus.ready || state.status == ProductFormStatus.saved) {
           _sync(state.draft);

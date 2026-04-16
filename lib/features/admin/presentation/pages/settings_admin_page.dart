@@ -53,6 +53,7 @@ class _SettingsViewState extends State<_SettingsView> {
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<SettingsCubit, SettingsState>(
+      listenWhen: (previous, current) => previous.status != current.status,
       listener: (context, state) {
         final s = state.settings;
         if (s != null && (state.status == SettingsStatus.success || state.status == SettingsStatus.saved)) {
