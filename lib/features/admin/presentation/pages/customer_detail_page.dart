@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 
 import '../../../../core/di/injection.dart';
 import '../../../../core/error/failures.dart';
+import '../../../../core/utils/currency_formatter.dart';
 import '../../../common/domain/entities/customer_profile_entity.dart';
 import '../../../common/domain/entities/order_entity.dart';
 import '../../domain/repositories/admin_customer_repository.dart';
@@ -17,7 +18,6 @@ class CustomerDetailPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final repo = getIt<AdminCustomerRepository>();
-    final currency = NumberFormat.simpleCurrency();
 
     return FutureBuilder<Either<Failure, CustomerProfileEntity?>>(
       future: repo.getById(customerId),
@@ -88,7 +88,7 @@ class CustomerDetailPage extends StatelessWidget {
                                   (o) => DataRow(
                                     cells: [
                                       DataCell(Text(o.id.length <= 10 ? o.id : o.id.substring(0, 10))),
-                                      DataCell(Text(currency.format(o.total))),
+                                      DataCell(Text(formatCurrency(o.total))),
                                       DataCell(Text(o.status)),
                                       DataCell(Text(DateFormat.yMMMd().format(o.createdAt))),
                                     ],

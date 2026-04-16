@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 
 import '../../../../core/di/injection.dart';
+import '../../../../core/utils/currency_formatter.dart';
 import '../../domain/repositories/admin_product_repository.dart';
 import '../cubits/product_admin_cubit.dart';
 
@@ -38,8 +38,6 @@ class _AdminProductsViewState extends State<_AdminProductsView> {
 
   @override
   Widget build(BuildContext context) {
-    final currency = NumberFormat.simpleCurrency();
-
     return BlocBuilder<ProductAdminCubit, ProductAdminState>(
       builder: (context, state) {
         return Padding(
@@ -172,7 +170,7 @@ class _AdminProductsViewState extends State<_AdminProductsView> {
                                             cells: [
                                               DataCell(Text(p.name)),
                                               DataCell(Text(p.categoryId)),
-                                              DataCell(Text(currency.format(p.effectivePrice))),
+                                              DataCell(Text(formatCurrency(p.effectivePrice))),
                                               DataCell(Text('${p.discountPercent.toStringAsFixed(0)}%')),
                                               DataCell(Text('${p.stock}')),
                                               DataCell(Icon(p.featured ? Icons.star : Icons.star_border)),

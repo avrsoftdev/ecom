@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
+import '../../../../core/utils/currency_formatter.dart';
 import '../../domain/entities/product_entity.dart';
 
 class ProductCard extends StatelessWidget {
@@ -42,7 +43,7 @@ class ProductCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    '\$${product.price.toStringAsFixed(2)}',
+                    formatCurrency(product.price),
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
                           color: Theme.of(context).primaryColor,
                           fontWeight: FontWeight.bold,

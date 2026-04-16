@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 import '../../../../core/di/injection.dart';
+import '../../../../core/utils/currency_formatter.dart';
 import '../../../common/domain/entities/order_entity.dart';
 import '../../domain/repositories/admin_order_repository.dart';
 
@@ -13,7 +14,6 @@ class OrdersAdminPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final repo = getIt<AdminOrderRepository>();
-    final currency = NumberFormat.simpleCurrency();
 
     return Padding(
       padding: EdgeInsets.all(20.w),
@@ -57,7 +57,7 @@ class OrdersAdminPage extends StatelessWidget {
                               cells: [
                                 DataCell(Text(o.id.length <= 10 ? o.id : o.id.substring(0, 10))),
                                 DataCell(Text(o.customerEmail ?? o.userId)),
-                                DataCell(Text(currency.format(o.total))),
+                                DataCell(Text(formatCurrency(o.total))),
                                 DataCell(Text(o.status)),
                                 DataCell(Text(DateFormat.yMMMd().format(o.createdAt))),
                                 DataCell(

@@ -2,9 +2,9 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:intl/intl.dart';
 
 import '../../../../core/di/injection.dart';
+import '../../../../core/utils/currency_formatter.dart';
 import '../../../common/domain/entities/order_entity.dart';
 import '../../../product/domain/entities/product_entity.dart';
 import '../../domain/entities/dashboard_metrics_entity.dart';
@@ -29,8 +29,6 @@ class _DashboardView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final currency = NumberFormat.simpleCurrency();
-
     return BlocBuilder<DashboardCubit, DashboardState>(
       builder: (context, state) {
         if (state.status == DashboardStatus.loading && state.metrics == null) {
@@ -70,7 +68,7 @@ class _DashboardView extends StatelessWidget {
                       children: [
                         MetricCard(
                           title: 'Total revenue',
-                          value: currency.format(m.totalRevenue),
+                          value: formatCurrency(m.totalRevenue),
                           icon: Icons.payments_rounded,
                         ),
                         MetricCard(
@@ -181,7 +179,7 @@ class _SalesChart extends StatelessWidget {
               showTitles: true,
               reservedSize: 44,
               getTitlesWidget: (v, meta) => Text(
-                v >= 1000 ? '${(v / 1000).toStringAsFixed(1)}k' : v.toStringAsFixed(0),
+                v >= 1000 ? formatCompactCurrency(v) : formatCurrencyNoDecimals(v),
                 style: const TextStyle(fontSize: 10),
               ),
             ),
@@ -239,7 +237,7 @@ class _TopProductsTable extends StatelessWidget {
                   cells: [
                     DataCell(Text(p.name)),
                     DataCell(Text('${p.soldCount}')),
-                    DataCell(Text(NumberFormat.simpleCurrency().format(p.effectivePrice))),
+                    DataCell(Text(formatCurrency(p.effectivePrice))),
                   ],
                 ),
               )
@@ -282,7 +280,7 @@ class _RecentOrdersTable extends StatelessWidget {
                   cells: [
                     DataCell(Text(o.id.length <= 8 ? o.id : o.id.substring(0, 8))),
                     DataCell(Text(o.customerEmail ?? o.userId)),
-                    DataCell(Text(NumberFormat.simpleCurrency().format(o.total))),
+                    DataCell(Text(formatCurrency(o.total))),
                     DataCell(
                       _OrderStatusDropdown(
                         orderId: o.id,

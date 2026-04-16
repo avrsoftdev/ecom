@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+
+import '../../../../core/utils/currency_formatter.dart';
 import '../../../product/domain/entities/product_entity.dart';
 
 class ProductCard extends StatelessWidget {
@@ -201,7 +203,7 @@ class ProductCard extends StatelessWidget {
                             children: [
                               Flexible(
                                 child: Text(
-                                  'Rs.${discountedPrice.toStringAsFixed(0)}',
+                                  formatCurrencyNoDecimals(discountedPrice),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                   style: TextStyle(
@@ -215,7 +217,7 @@ class ProductCard extends StatelessWidget {
                                 SizedBox(width: 4.w),
                                 Flexible(
                                   child: Text(
-                                    'Rs.${product.price.toStringAsFixed(0)}',
+                                    formatCurrencyNoDecimals(product.price),
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                     style: TextStyle(

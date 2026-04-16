@@ -2,10 +2,10 @@ import 'package:dartz/dartz.dart' show Either;
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
-import 'package:intl/intl.dart';
 
 import '../../../../core/di/injection.dart';
 import '../../../../core/error/failures.dart';
+import '../../../../core/utils/currency_formatter.dart';
 import '../../../common/domain/entities/order_entity.dart';
 import '../../domain/repositories/admin_order_repository.dart';
 
@@ -33,7 +33,6 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
 
   @override
   Widget build(BuildContext context) {
-    final currency = NumberFormat.simpleCurrency();
     final repo = getIt<AdminOrderRepository>();
 
     return FutureBuilder<Either<Failure, OrderEntity?>>(
@@ -102,18 +101,18 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                           .map(
                             (i) => ListTile(
                               title: Text(i.name),
-                              subtitle: Text('Qty ${i.quantity} × ${currency.format(i.unitPrice)}'),
-                              trailing: Text(currency.format(i.lineTotal)),
+                              subtitle: Text('Qty ${i.quantity} × ${formatCurrency(i.unitPrice)}'),
+                              trailing: Text(formatCurrency(i.lineTotal)),
                             ),
                           )
                           .toList(),
                     ),
                   ),
                   SizedBox(height: 12.h),
-                  Text('Subtotal: ${currency.format(order.subtotal)}'),
-                  Text('Delivery: ${currency.format(order.deliveryCharge)}'),
-                  Text('Tax: ${currency.format(order.tax)}'),
-                  Text('Total: ${currency.format(order.total)}', style: Theme.of(context).textTheme.titleMedium),
+                  Text('Subtotal: ${formatCurrency(order.subtotal)}'),
+                  Text('Delivery: ${formatCurrency(order.deliveryCharge)}'),
+                  Text('Tax: ${formatCurrency(order.tax)}'),
+                  Text('Total: ${formatCurrency(order.total)}', style: Theme.of(context).textTheme.titleMedium),
                 ],
               ),
             );
