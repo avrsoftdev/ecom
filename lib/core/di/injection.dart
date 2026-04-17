@@ -57,7 +57,6 @@ Future<void> configureDependencies() async {
   final sharedPreferences = await SharedPreferences.getInstance();
   final googleSignIn = GoogleSignIn(
     scopes: const ['email'],
-    clientId: 'temp-development-client-id',
   );
 
   getIt.registerSingleton<SharedPreferences>(sharedPreferences);
