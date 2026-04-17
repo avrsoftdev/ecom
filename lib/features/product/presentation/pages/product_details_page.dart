@@ -10,6 +10,7 @@ import '../../data/repositories/product_repository_impl.dart';
 import '../../data/datasources/product_remote_datasource.dart';
 import '../../../cart/presentation/cubits/cart_cubit.dart';
 import '../../../../core/network/network_info.dart';
+import '../../../../core/utils/currency_formatter.dart';
 
 class ProductDetailsPage extends StatelessWidget {
   final String productId;
@@ -156,7 +157,7 @@ class _ProductInfoSection extends StatelessWidget {
                       Row(
                         children: [
                           Text(
-                            '\$${product.price.toStringAsFixed(2)}',
+                            formatCurrency(product.price),
                             style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                               decoration: TextDecoration.lineThrough,
                               color: Colors.grey,
@@ -164,7 +165,7 @@ class _ProductInfoSection extends StatelessWidget {
                           ),
                           const SizedBox(width: 8),
                           Text(
-                            '\$${product.effectivePrice.toStringAsFixed(2)}',
+                            formatCurrency(product.effectivePrice),
                             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                               color: Colors.red,
                               fontWeight: FontWeight.bold,
@@ -193,7 +194,7 @@ class _ProductInfoSection extends StatelessWidget {
                       ),
                     ] else ...[
                       Text(
-                        '\$${product.price.toStringAsFixed(2)}',
+                        formatCurrency(product.price),
                         style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                           fontWeight: FontWeight.bold,
                         ),
@@ -378,7 +379,7 @@ class _RelatedProductsSection extends StatelessWidget {
                                   Row(
                                     children: [
                                       Text(
-                                        '\$${product.effectivePrice.toStringAsFixed(2)}',
+                                        formatCurrency(product.effectivePrice),
                                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                                           color: Colors.red,
                                           fontWeight: FontWeight.bold,
@@ -386,7 +387,7 @@ class _RelatedProductsSection extends StatelessWidget {
                                       ),
                                       const SizedBox(width: 4),
                                       Text(
-                                        '\$${product.price.toStringAsFixed(2)}',
+                                        formatCurrency(product.price),
                                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                                           decoration: TextDecoration.lineThrough,
                                           color: Colors.grey,
@@ -397,7 +398,7 @@ class _RelatedProductsSection extends StatelessWidget {
                                   ),
                                 ] else ...[
                                   Text(
-                                    '\$${product.price.toStringAsFixed(2)}',
+                                    formatCurrency(product.price),
                                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                                       fontWeight: FontWeight.bold,
                                     ),
