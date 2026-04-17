@@ -173,7 +173,7 @@ class _AdminProductsViewState extends State<_AdminProductsView> {
                                               DataCell(Text(formatCurrency(p.effectivePrice))),
                                               DataCell(Text('${p.discountPercent.toStringAsFixed(0)}%')),
                                               DataCell(Text('${p.stock}')),
-                                              DataCell(Icon(p.featured ? Icons.star : Icons.star_border)),
+                                              DataCell(Icon(p.featured ? Icons.check_circle : Icons.check_circle_outline)),
                                               DataCell(
                                                 Row(
                                                   mainAxisSize: MainAxisSize.min,

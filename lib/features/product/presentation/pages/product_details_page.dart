@@ -11,6 +11,8 @@ import '../../data/datasources/product_remote_datasource.dart';
 import '../../../cart/presentation/cubits/cart_cubit.dart';
 import '../../../../core/network/network_info.dart';
 import '../../../../core/utils/currency_formatter.dart';
+import '../../../home/presentation/widgets/product_card.dart';
+import '../../../wishlist/presentation/cubits/wishlist_cubit.dart';
 
 class ProductDetailsPage extends StatelessWidget {
   final String productId;
@@ -324,94 +326,67 @@ class _RelatedProductsSection extends StatelessWidget {
         ),
         const SizedBox(height: 16),
         SizedBox(
-          height: 200,
+          height: 280,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
             itemCount: relatedProducts.length,
             itemBuilder: (context, index) {
               final product = relatedProducts[index];
-              return GestureDetector(
-                onTap: () {
-                  Navigator.push(
-                    context,
-                    ProductDetailsPage.route(product.id),
+              return BlocBuilder<CartCubit, CartState>(
+                builder: (context, cartState) {
+                  return BlocBuilder<WishlistCubit, WishlistState>(
+                    builder: (context, wishlistState) {
+                      final isWishlisted = wishlistState is WishlistLoaded &&
+                          wishlistState.wishlistProducts.containsKey(product.id);
+                      final cartCubit = context.read<CartCubit>();
+                      final quantity = cartState is CartLoaded
+                          ? cartCubit.quantityForProduct(product.id)
+                          : 0;
+                      final hasTiers = product.pricingTiers.isNotEmpty;
+                      final baseCartItem = cartState is CartLoaded
+                          ? cartCubit.baseItemForProduct(product.id)
+                          : null;
+
+                      return Container(
+                        margin: const EdgeInsets.only(right: 12),
+                        child: ProductCard(
+                          product: product,
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              ProductDetailsPage.route(product.id),
+                            );
+                          },
+                          onAddToCart: () {
+                            if (hasTiers) {
+                              // TODO: Show tier selection for related products
+                              cartCubit.addToCart(product);
+                              return;
+                            }
+                            cartCubit.addToCart(product);
+                          },
+                          onWishlistToggle: () {
+                            context.read<WishlistCubit>().toggleWishlist(product);
+                          },
+                          isWishlisted: isWishlisted,
+                          quantity: quantity,
+                          showQuantityControls: !hasTiers,
+                          onIncrementQuantity: () {
+                            if (baseCartItem != null) {
+                              cartCubit.incrementQuantity(baseCartItem.id);
+                            }
+                          },
+                          onDecrementQuantity: () {
+                            if (baseCartItem != null) {
+                              cartCubit.decrementQuantity(baseCartItem.id);
+                            }
+                          },
+                        ),
+                      );
+                    },
                   );
                 },
-                child: Container(
-                  width: 160,
-                  margin: const EdgeInsets.only(right: 12),
-                  child: Card(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Expanded(
-                          flex: 3,
-                          child: CachedNetworkImage(
-                            imageUrl: product.imageUrl,
-                            width: double.infinity,
-                            fit: BoxFit.cover,
-                            placeholder: (context, url) => const Center(
-                              child: CircularProgressIndicator(),
-                            ),
-                            errorWidget: (context, url, error) => const Center(
-                              child: Icon(Icons.error),
-                            ),
-                          ),
-                        ),
-                        Expanded(
-                          flex: 2,
-                          child: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  product.name,
-                                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                  maxLines: 2,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                                const SizedBox(height: 4),
-                                if (product.discountPercent > 0) ...[
-                                  Row(
-                                    children: [
-                                      Text(
-                                        formatCurrency(product.effectivePrice),
-                                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                          color: Colors.red,
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 4),
-                                      Text(
-                                        formatCurrency(product.price),
-                                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                          decoration: TextDecoration.lineThrough,
-                                          color: Colors.grey,
-                                          fontSize: 10,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ] else ...[
-                                  Text(
-                                    formatCurrency(product.price),
-                                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ],
-                              ],
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
               );
             },
           ),

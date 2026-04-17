@@ -177,40 +177,7 @@ class ProductCard extends StatelessWidget {
                                 color: colorScheme.onSurface,
                               ),
                             ),
-                            SizedBox(height: 2.h),
-                            Row(
-                              children: [
-                                Icon(
-                                  Icons.star_rounded,
-                                  color: Colors.amber,
-                                  size: 12.sp,
-                                ),
-                                SizedBox(width: 2.w),
-                                Text(
-                                  '4.5',
-                                  style: TextStyle(
-                                    fontSize: 10.sp,
-                                    fontWeight: FontWeight.w500,
-                                    color: colorScheme.onSurfaceVariant,
-                                  ),
-                                ),
-                                if (product.soldCount > 0) ...[
-                                  SizedBox(width: 2.w),
-                                  Expanded(
-                                    child: Text(
-                                      '(${product.soldCount} sold)',
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: TextStyle(
-                                        fontSize: 10.sp,
-                                        color: colorScheme.onSurfaceVariant,
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ],
-                            ),
-                            SizedBox(height: 2.h),
+                            SizedBox(height: 4.h),
                             Text(
                               '${product.stock} ${product.unitType.displayUnit} available',
                               maxLines: 1,
