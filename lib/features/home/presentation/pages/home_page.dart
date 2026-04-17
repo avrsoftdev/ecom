@@ -2,12 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 
 import '../../../../core/utils/currency_formatter.dart';
 import '../../../../core/widgets/fresh_veggie_header.dart';
 import '../../../cart/presentation/cubits/cart_cubit.dart';
 import '../../../product/domain/entities/product_entity.dart';
 import '../../../product/domain/entities/product_pricing.dart';
+import '../../../product/presentation/cubits/product_details_cubit.dart';
+import '../../../product/presentation/pages/product_details_page.dart';
+import '../../../product/data/repositories/product_repository_impl.dart';
+import '../../../product/data/datasources/product_remote_datasource.dart';
+import '../../../../core/network/network_info.dart';
 import '../../../wishlist/presentation/cubits/wishlist_cubit.dart';
 import '../cubits/home_cubit.dart';
 import '../widgets/banner_slider.dart';
@@ -317,7 +324,24 @@ class _ProductSection extends StatelessWidget {
 
                           return ProductCard(
                             product: product,
-                            onTap: () => context.go('/products'),
+                            onTap: () => Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => BlocProvider(
+                                  create: (context) => ProductDetailsCubit(
+                                    productRepository: ProductRepositoryImpl(
+                                      remoteDataSource: ProductRemoteDataSourceImpl(
+                                        firestore: FirebaseFirestore.instance,
+                                      ),
+                                      networkInfo: NetworkInfoImpl(
+                                        Connectivity(),
+                                      ),
+                                    ),
+                                  )..getProductDetails(product.id),
+                                  child: ProductDetailsView(),
+                                ),
+                              ),
+                            ),
                             onAddToCart: () {
                               if (hasTiers) {
                                 HomePage._showTierSelectionSheet(context, product);
