@@ -3,8 +3,11 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../core/utils/currency_formatter.dart';
 import '../../../../core/widgets/fresh_veggie_header.dart';
+import '../../../cart/presentation/cubits/cart_cubit.dart';
 import '../../../product/domain/entities/product_entity.dart';
+import '../../../product/domain/entities/product_pricing.dart';
 import '../../../wishlist/presentation/cubits/wishlist_cubit.dart';
 import '../cubits/home_cubit.dart';
 import '../widgets/banner_slider.dart';
@@ -15,6 +18,18 @@ import '../widgets/section_header.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
+
+  static Future<void> _showTierSelectionSheet(
+    BuildContext context,
+    ProductEntity product,
+  ) {
+    return showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (sheetContext) => _TierSelectionSheet(product: product),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -285,30 +300,49 @@ class _ProductSection extends StatelessWidget {
                 separatorBuilder: (_, __) => SizedBox(width: 12.w),
                 itemBuilder: (context, index) {
                   final product = products[index];
-                  return BlocBuilder<WishlistCubit, WishlistState>(
-                    builder: (context, wishlistState) {
-                      final isWishlisted = wishlistState is WishlistLoaded &&
-                          wishlistState.wishlistProducts.containsKey(product.id);
-                      final quantity = wishlistState is WishlistLoaded
-                          ? wishlistState.wishlistQuantities[product.id] ?? 0
-                          : 0;
+                  return BlocBuilder<CartCubit, CartState>(
+                    builder: (context, cartState) {
+                      return BlocBuilder<WishlistCubit, WishlistState>(
+                        builder: (context, wishlistState) {
+                          final isWishlisted = wishlistState is WishlistLoaded &&
+                              wishlistState.wishlistProducts.containsKey(product.id);
+                          final cartCubit = context.read<CartCubit>();
+                          final quantity = cartState is CartLoaded
+                              ? cartCubit.quantityForProduct(product.id)
+                              : 0;
+                          final hasTiers = product.pricingTiers.isNotEmpty;
+                          final baseCartItem = cartState is CartLoaded
+                              ? cartCubit.baseItemForProduct(product.id)
+                              : null;
 
-                      return ProductCard(
-                        product: product,
-                        onTap: () => context.go('/products'),
-                        onAddToCart: () {
-                          context.read<WishlistCubit>().addToWishlist(product);
-                        },
-                        onWishlistToggle: () {
-                          context.read<WishlistCubit>().toggleWishlist(product);
-                        },
-                        isWishlisted: isWishlisted,
-                        quantity: quantity,
-                        onIncrementQuantity: () {
-                          context.read<WishlistCubit>().incrementQuantity(product.id);
-                        },
-                        onDecrementQuantity: () {
-                          context.read<WishlistCubit>().decrementQuantity(product.id);
+                          return ProductCard(
+                            product: product,
+                            onTap: () => context.go('/products'),
+                            onAddToCart: () {
+                              if (hasTiers) {
+                                HomePage._showTierSelectionSheet(context, product);
+                                return;
+                              }
+
+                              cartCubit.addToCart(product);
+                            },
+                            onWishlistToggle: () {
+                              context.read<WishlistCubit>().toggleWishlist(product);
+                            },
+                            isWishlisted: isWishlisted,
+                            quantity: quantity,
+                            showQuantityControls: !hasTiers,
+                            onIncrementQuantity: () {
+                              if (baseCartItem != null) {
+                                cartCubit.incrementQuantity(baseCartItem.id);
+                              }
+                            },
+                            onDecrementQuantity: () {
+                              if (baseCartItem != null) {
+                                cartCubit.decrementQuantity(baseCartItem.id);
+                              }
+                            },
+                          );
                         },
                       );
                     },
@@ -318,6 +352,127 @@ class _ProductSection extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class _TierSelectionSheet extends StatelessWidget {
+  const _TierSelectionSheet({
+    required this.product,
+  });
+
+  final ProductEntity product;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return SafeArea(
+      child: Padding(
+        padding: EdgeInsets.fromLTRB(16.w, 0, 16.w, 16.h),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              product.name,
+              style: TextStyle(
+                fontSize: 20.sp,
+                fontWeight: FontWeight.w700,
+                color: colorScheme.onSurface,
+              ),
+            ),
+            SizedBox(height: 6.h),
+            Text(
+              'Choose a tier to add to cart',
+              style: TextStyle(
+                fontSize: 13.sp,
+                color: colorScheme.onSurfaceVariant,
+              ),
+            ),
+            SizedBox(height: 16.h),
+            ...product.pricingTiers.map(
+              (tier) => Padding(
+                padding: EdgeInsets.only(bottom: 12.h),
+                child: _TierCard(
+                  product: product,
+                  tier: tier,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _TierCard extends StatelessWidget {
+  const _TierCard({
+    required this.product,
+    required this.tier,
+  });
+
+  final ProductEntity product;
+  final ProductPricing tier;
+
+  String get _tierLabel => '${tier.quantity} ${product.unitType.displayUnit}';
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.all(16.w),
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        borderRadius: BorderRadius.circular(20.r),
+        border: Border.all(
+          color: colorScheme.outline.withValues(alpha: 0.2),
+        ),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '${product.name} - $_tierLabel',
+                  style: TextStyle(
+                    fontSize: 15.sp,
+                    fontWeight: FontWeight.w700,
+                    color: colorScheme.onSurface,
+                  ),
+                ),
+                SizedBox(height: 6.h),
+                Text(
+                  formatCurrency(tier.price),
+                  style: TextStyle(
+                    fontSize: 16.sp,
+                    fontWeight: FontWeight.w700,
+                    color: colorScheme.primary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          SizedBox(width: 12.w),
+          ElevatedButton(
+            onPressed: () {
+              context.read<CartCubit>().addToCart(
+                    product,
+                    tierId: tier.tierId,
+                    tierLabel: _tierLabel,
+                    tierPrice: tier.price,
+                  );
+              Navigator.of(context).pop();
+            },
+            child: const Text('Add'),
+          ),
+        ],
       ),
     );
   }

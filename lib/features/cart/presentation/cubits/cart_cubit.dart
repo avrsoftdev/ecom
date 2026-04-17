@@ -10,9 +10,14 @@ class CartCubit extends Cubit<CartState> {
 
   List<CartItemEntity> _items = [];
 
-  void addToCart(ProductEntity product) {
+  void addToCart(
+    ProductEntity product, {
+    String? tierId,
+    String? tierLabel,
+    double? tierPrice,
+  }) {
     final existingItemIndex = _items.indexWhere(
-      (item) => item.product.id == product.id,
+      (item) => item.product.id == product.id && item.tierId == tierId,
     );
 
     if (existingItemIndex != -1) {
@@ -21,11 +26,16 @@ class CartCubit extends Cubit<CartState> {
         quantity: _items[existingItemIndex].quantity + 1,
       );
     } else {
+      final unitPrice = tierPrice ?? product.effectivePrice;
+
       // Add new item
       final newItem = CartItemEntity(
         id: DateTime.now().millisecondsSinceEpoch.toString(),
         product: product,
         quantity: 1,
+        tierId: tierId,
+        tierLabel: tierLabel,
+        unitPrice: unitPrice,
         addedAt: DateTime.now(),
       );
       _items.add(newItem);
@@ -34,22 +44,46 @@ class CartCubit extends Cubit<CartState> {
     _emitLoadedState();
   }
 
-  void removeFromCart(String productId) {
-    _items.removeWhere((item) => item.product.id == productId);
+  void removeFromCart(String cartItemId) {
+    _items.removeWhere((item) => item.id == cartItemId);
     _emitLoadedState();
   }
 
-  void updateQuantity(String productId, int quantity) {
+  void updateQuantity(String cartItemId, int quantity) {
     if (quantity <= 0) {
-      removeFromCart(productId);
+      removeFromCart(cartItemId);
       return;
     }
 
-    final index = _items.indexWhere((item) => item.product.id == productId);
+    final index = _items.indexWhere((item) => item.id == cartItemId);
     if (index != -1) {
       _items[index] = _items[index].copyWith(quantity: quantity);
       _emitLoadedState();
     }
+  }
+
+  void incrementQuantity(String cartItemId) {
+    final index = _items.indexWhere((item) => item.id == cartItemId);
+    if (index == -1) return;
+
+    _items[index] = _items[index].copyWith(
+      quantity: _items[index].quantity + 1,
+    );
+    _emitLoadedState();
+  }
+
+  void decrementQuantity(String cartItemId) {
+    final index = _items.indexWhere((item) => item.id == cartItemId);
+    if (index == -1) return;
+
+    final currentItem = _items[index];
+    if (currentItem.quantity <= 1) {
+      removeFromCart(cartItemId);
+      return;
+    }
+
+    _items[index] = currentItem.copyWith(quantity: currentItem.quantity - 1);
+    _emitLoadedState();
   }
 
   void clearCart() {
@@ -82,6 +116,18 @@ class CartCubit extends Cubit<CartState> {
   // Getters
   List<CartItemEntity> get items => List.from(_items);
   int get itemCount => _items.fold<int>(0, (sum, item) => sum + item.quantity);
+  CartItemEntity? baseItemForProduct(String productId) {
+    for (final item in _items) {
+      if (item.product.id == productId && item.tierId == null) {
+        return item;
+      }
+    }
+    return null;
+  }
+
+  int quantityForProduct(String productId) => _items
+      .where((item) => item.product.id == productId && item.tierId == null)
+      .fold<int>(0, (sum, item) => sum + item.quantity);
   double get cartTotal => _items.fold<double>(
         0.0,
         (sum, item) => sum + item.totalPrice,

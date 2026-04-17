@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
+import '../../../../core/utils/currency_formatter.dart';
 import '../../../product/domain/entities/product_entity.dart';
-import '../../../product/presentation/widgets/pricing_options_widget.dart';
 import '../../../wishlist/presentation/widgets/quantity_counter_widget.dart';
 
 class ProductCard extends StatelessWidget {
@@ -13,6 +13,7 @@ class ProductCard extends StatelessWidget {
   final VoidCallback onWishlistToggle;
   final bool isWishlisted;
   final int quantity;
+  final bool showQuantityControls;
   final VoidCallback? onIncrementQuantity;
   final VoidCallback? onDecrementQuantity;
 
@@ -24,6 +25,7 @@ class ProductCard extends StatelessWidget {
     required this.onWishlistToggle,
     this.isWishlisted = false,
     this.quantity = 0,
+    this.showQuantityControls = true,
     this.onIncrementQuantity,
     this.onDecrementQuantity,
   });
@@ -32,6 +34,12 @@ class ProductCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
     final hasDiscount = product.discountPercent > 0;
+    final hasTiers = product.pricingTiers.isNotEmpty;
+    final lowestTierPrice = hasTiers
+        ? product.pricingTiers
+            .map((tier) => tier.price)
+            .reduce((value, element) => value < element ? value : element)
+        : null;
 
     return Container(
       width: 160.w,
@@ -150,80 +158,112 @@ class ProductCard extends StatelessWidget {
             Expanded(
               flex: 10,
               child: Padding(
-                padding: EdgeInsets.fromLTRB(8.w, 4.h, 8.w, 6.h),
+                padding: EdgeInsets.fromLTRB(8.w, 4.h, 8.w, 2.h),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Flexible(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            product.name,
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              fontSize: 12.sp,
-                              fontWeight: FontWeight.w500,
-                              color: colorScheme.onSurface,
-                            ),
-                          ),
-                          SizedBox(height: 4.h),
-                          Row(
-                            children: [
-                              Icon(
-                                Icons.star_rounded,
-                                color: Colors.amber,
-                                size: 12.sp,
+                      child: ClipRect(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              product.name,
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: 11.sp,
+                                fontWeight: FontWeight.w500,
+                                color: colorScheme.onSurface,
                               ),
-                              SizedBox(width: 2.w),
+                            ),
+                            SizedBox(height: 2.h),
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.star_rounded,
+                                  color: Colors.amber,
+                                  size: 12.sp,
+                                ),
+                                SizedBox(width: 2.w),
+                                Text(
+                                  '4.5',
+                                  style: TextStyle(
+                                    fontSize: 10.sp,
+                                    fontWeight: FontWeight.w500,
+                                    color: colorScheme.onSurfaceVariant,
+                                  ),
+                                ),
+                                if (product.soldCount > 0) ...[
+                                  SizedBox(width: 2.w),
+                                  Expanded(
+                                    child: Text(
+                                      '(${product.soldCount} sold)',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                        fontSize: 10.sp,
+                                        color: colorScheme.onSurfaceVariant,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ),
+                            SizedBox(height: 2.h),
+                            Text(
+                              '${product.stock} ${product.unitType.displayUnit} available',
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: 10.sp,
+                                color: colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                            SizedBox(height: 3.h),
+                            Text(
+                              hasTiers
+                                  ? '${product.pricingTiers.length} tiers from ${formatCurrency(lowestTierPrice!)}'
+                                  : formatCurrency(product.effectivePrice),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(
+                                fontSize: 11.sp,
+                                fontWeight: FontWeight.w700,
+                                color: colorScheme.primary,
+                              ),
+                            ),
+                            if (hasTiers) ...[
+                              SizedBox(height: 2.h),
                               Text(
-                                '4.5',
+                                'Tap Add to choose a tier',
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                                 style: TextStyle(
-                                  fontSize: 10.sp,
-                                  fontWeight: FontWeight.w500,
+                                  fontSize: 9.sp,
                                   color: colorScheme.onSurfaceVariant,
                                 ),
                               ),
-                              if (product.soldCount > 0) ...[
-                                SizedBox(width: 2.w),
-                                Expanded(
-                                  child: Text(
-                                    '(${product.soldCount} sold)',
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                    style: TextStyle(
-                                      fontSize: 10.sp,
-                                      color: colorScheme.onSurfaceVariant,
-                                    ),
-                                  ),
+                            ] else if (hasDiscount) ...[
+                              SizedBox(height: 2.h),
+                              Text(
+                                formatCurrency(product.price),
+                                style: TextStyle(
+                                  fontSize: 9.sp,
+                                  color: colorScheme.onSurfaceVariant,
+                                  decoration: TextDecoration.lineThrough,
                                 ),
-                              ],
+                              ),
                             ],
-                          ),
-                          SizedBox(height: 3.h),
-                          Text(
-                            '${product.stock} ${product.unitType.displayUnit} available',
-                            style: TextStyle(
-                              fontSize: 10.sp,
-                              color: colorScheme.onSurfaceVariant,
-                            ),
-                          ),
-                          SizedBox(height: 1.h),
-                          PricingOptionsWidget(
-                            product: product,
-                            onOptionSelected: (quantity, price) {
-                              // Handle pricing selection
-                            },
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
-                    SizedBox(height: 3.h),
+                    SizedBox(height: 2.h),
                     SizedBox(
                       width: double.infinity,
-                      height: 28.h,
-                      child: isWishlisted && quantity > 0
+                      height: 24.h,
+                      child: showQuantityControls && quantity > 0
                           ? QuantityCounterWidget(
                               quantity: quantity,
                               onIncrement: onIncrementQuantity ?? () {},

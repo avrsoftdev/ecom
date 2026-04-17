@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../../common/domain/entities/banner_entity.dart';
 import '../../../common/domain/entities/category_entity.dart';
+import '../../../product/data/models/product_model.dart';
 import '../../../product/domain/entities/product_entity.dart';
 
 abstract class HomeRemoteDataSource {
@@ -134,34 +135,7 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
 
   ProductEntity? _mapProduct(QueryDocumentSnapshot<Map<String, dynamic>> doc) {
     try {
-      final data = doc.data();
-      final imageUrls = _asStringList(data['imageUrls']);
-      final primaryImage = _asString(data['imageUrl']).isNotEmpty
-          ? _asString(data['imageUrl'])
-          : (imageUrls.isNotEmpty ? imageUrls.first : '');
-
-      return ProductEntity(
-        id: doc.id,
-        name: _asString(data['name']),
-        description: _asString(data['description']),
-        price: _asDouble(data['price']),
-        imageUrl: primaryImage,
-        categoryId: _asString(data['categoryId']),
-        stock: _asInt(data['stock']),
-        isAvailable: _asBool(
-          data['isAvailable'],
-          fallback: _asBool(data['isActive'], fallback: true),
-        ),
-        createdAt: _asDateTime(data['createdAt']) ?? DateTime.now(),
-        updatedAt: _asDateTime(data['updatedAt']) ?? DateTime.now(),
-        discountPercent: _asDouble(data['discountPercent']),
-        featured: _asBool(
-          data['featured'],
-          fallback: _asBool(data['isFeatured']),
-        ),
-        imageUrls: imageUrls,
-        soldCount: _asInt(data['soldCount']),
-      );
+      return ProductModel.fromFirestore(doc).toEntity();
     } catch (_) {
       return null;
     }

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../wishlist/presentation/cubits/wishlist_cubit.dart';
+import '../../../cart/presentation/cubits/cart_cubit.dart';
 import '../../../wishlist/presentation/widgets/cart_icon_with_badge.dart';
 
 class MainNavigationPage extends StatelessWidget {
@@ -55,10 +55,10 @@ class MainNavigationPage extends StatelessWidget {
 
     return Scaffold(
       body: navigationShell,
-      bottomNavigationBar: BlocBuilder<WishlistCubit, WishlistState>(
+      bottomNavigationBar: BlocBuilder<CartCubit, CartState>(
         builder: (context, state) {
-          final cartCount = state is WishlistLoaded 
-              ? state.wishlistQuantities.values.fold(0, (sum, quantity) => sum + quantity)
+          final cartCount = state is CartLoaded
+              ? state.totalItems
               : 0;
 
           return NavigationBarTheme(

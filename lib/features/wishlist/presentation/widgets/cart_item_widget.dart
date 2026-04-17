@@ -2,20 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 
-import '../../../product/domain/entities/product_entity.dart';
+import '../../../../core/utils/currency_formatter.dart';
+import '../../../cart/domain/entities/cart_item_entity.dart';
 import 'quantity_counter_widget.dart';
 
 class CartItemWidget extends StatelessWidget {
-  final ProductEntity product;
-  final int quantity;
+  final CartItemEntity item;
   final VoidCallback onRemove;
   final VoidCallback onIncrement;
   final VoidCallback onDecrement;
 
   const CartItemWidget({
     super.key,
-    required this.product,
-    required this.quantity,
+    required this.item,
     required this.onRemove,
     required this.onIncrement,
     required this.onDecrement,
@@ -24,11 +23,9 @@ class CartItemWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    final hasDiscount = product.discountPercent > 0;
-    final discountedPrice = hasDiscount
-        ? product.price * (1 - product.discountPercent / 100)
-        : product.price;
-    final itemTotal = discountedPrice * quantity;
+    final product = item.product;
+    final quantity = item.quantity;
+    final itemTotal = item.totalPrice;
 
     return Container(
       margin: EdgeInsets.only(bottom: 16.h),
@@ -94,7 +91,7 @@ class CartItemWidget extends StatelessWidget {
                     children: [
                       Expanded(
                         child: Text(
-                          product.name,
+                          item.displayName,
                           style: TextStyle(
                             fontSize: 14.sp,
                             fontWeight: FontWeight.w600,
@@ -124,7 +121,9 @@ class CartItemWidget extends StatelessWidget {
                   
                   // Stock Info
                   Text(
-                    '${product.stock} ${product.unitType.displayUnit} available',
+                    item.tierLabel == null
+                        ? '${product.stock} ${product.unitType.displayUnit} available'
+                        : 'Selected tier: ${item.tierLabel}',
                     style: TextStyle(
                       fontSize: 12.sp,
                       color: colorScheme.onSurfaceVariant,
@@ -140,20 +139,8 @@ class CartItemWidget extends StatelessWidget {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          if (hasDiscount) ...[
-                            Text(
-                              'Rs${product.price.toStringAsFixed(2)}',
-                              style: TextStyle(
-                                fontSize: 11.sp,
-                                color: colorScheme.onSurfaceVariant,
-                                decoration: TextDecoration.lineThrough,
-                                decorationColor: colorScheme.onSurfaceVariant,
-                              ),
-                            ),
-                            SizedBox(height: 2.h),
-                          ],
                           Text(
-                            'Rs${discountedPrice.toStringAsFixed(2)}',
+                            formatCurrency(item.unitPrice),
                             style: TextStyle(
                               fontSize: 14.sp,
                               fontWeight: FontWeight.w700,
@@ -178,7 +165,7 @@ class CartItemWidget extends StatelessWidget {
                   Align(
                     alignment: Alignment.centerRight,
                     child: Text(
-                      'Total: Rs${itemTotal.toStringAsFixed(2)}',
+                      'Total: ${formatCurrency(itemTotal)}',
                       style: TextStyle(
                         fontSize: 13.sp,
                         fontWeight: FontWeight.w600,

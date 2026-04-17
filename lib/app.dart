@@ -8,6 +8,7 @@ import 'core/theme/theme_cubit.dart';
 import 'core/routes/app_router.dart';
 import 'core/di/injection.dart';
 import 'features/auth/presentation/cubits/auth_cubit.dart';
+import 'features/cart/presentation/cubits/cart_cubit.dart';
 import 'features/wishlist/presentation/cubits/wishlist_cubit.dart';
 
 class FreshVeggieApp extends StatelessWidget {
@@ -30,6 +31,9 @@ class FreshVeggieApp extends StatelessWidget {
             ),
             BlocProvider(
               create: (context) => WishlistCubit(),
+            ),
+            BlocProvider(
+              create: (context) => CartCubit()..loadCart(),
             ),
             // Add other global cubits here
           ],

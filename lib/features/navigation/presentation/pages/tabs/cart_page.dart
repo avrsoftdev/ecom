@@ -3,9 +3,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../../core/utils/currency_formatter.dart';
 import '../../../../../core/widgets/fresh_veggie_header.dart';
-import '../../../../product/domain/entities/product_entity.dart';
-import '../../../../wishlist/presentation/cubits/wishlist_cubit.dart';
+import '../../../../cart/presentation/cubits/cart_cubit.dart';
 import '../../../../wishlist/presentation/widgets/cart_item_widget.dart';
 
 class CartPage extends StatelessWidget {
@@ -17,22 +17,21 @@ class CartPage extends StatelessWidget {
 
     return Scaffold(
       appBar: const FreshVeggieHeader(),
-      body: BlocBuilder<WishlistCubit, WishlistState>(
+      body: BlocBuilder<CartCubit, CartState>(
         builder: (context, state) {
-          if (state is WishlistInitial || state is WishlistLoading) {
+          if (state is CartInitial || state is CartLoading) {
             return const Center(
               child: CircularProgressIndicator(),
             );
           }
 
-          if (state is! WishlistLoaded) {
+          if (state is! CartLoaded) {
             return const SizedBox.shrink();
           }
 
-          final wishlistProducts = state.wishlistProducts;
-          final wishlistQuantities = state.wishlistQuantities;
+          final cartItems = state.items;
           
-          if (wishlistProducts.isEmpty) {
+          if (cartItems.isEmpty) {
             return _EmptyCartView(colorScheme: colorScheme);
           }
 
@@ -65,7 +64,7 @@ class CartPage extends StatelessWidget {
                         borderRadius: BorderRadius.circular(999.r),
                       ),
                       child: Text(
-                        '${wishlistProducts.length} items',
+                        '${state.totalItems} items',
                         style: TextStyle(
                           fontSize: 12.sp,
                           fontWeight: FontWeight.w600,
@@ -81,23 +80,20 @@ class CartPage extends StatelessWidget {
               Expanded(
                 child: ListView.builder(
                   padding: EdgeInsets.symmetric(horizontal: 16.w),
-                  itemCount: wishlistProducts.length,
+                  itemCount: cartItems.length,
                   itemBuilder: (context, index) {
-                    final productId = wishlistProducts.keys.elementAt(index);
-                    final product = wishlistProducts[productId]!;
-                    final quantity = wishlistQuantities[productId]!;
+                    final item = cartItems[index];
                     
                     return CartItemWidget(
-                      product: product,
-                      quantity: quantity,
+                      item: item,
                       onRemove: () {
-                        context.read<WishlistCubit>().removeFromWishlist(productId);
+                        context.read<CartCubit>().removeFromCart(item.id);
                       },
                       onIncrement: () {
-                        context.read<WishlistCubit>().incrementQuantity(productId);
+                        context.read<CartCubit>().incrementQuantity(item.id);
                       },
                       onDecrement: () {
-                        context.read<WishlistCubit>().decrementQuantity(productId);
+                        context.read<CartCubit>().decrementQuantity(item.id);
                       },
                     );
                   },
@@ -116,8 +112,8 @@ class CartPage extends StatelessWidget {
                   ),
                 ),
                 child: _CartSummary(
-                  wishlistQuantities: wishlistQuantities,
-                  wishlistProducts: wishlistProducts,
+                  totalItems: state.totalItems,
+                  subtotal: state.totalPrice,
                   colorScheme: colorScheme,
                 ),
               ),
@@ -127,8 +123,7 @@ class CartPage extends StatelessWidget {
       ),
     );
   }
-
-  }
+}
 
 class _EmptyCartView extends StatelessWidget {
   const _EmptyCartView({
@@ -196,32 +191,17 @@ class _EmptyCartView extends StatelessWidget {
 
 class _CartSummary extends StatelessWidget {
   const _CartSummary({
-    required this.wishlistQuantities,
-    required this.wishlistProducts,
+    required this.totalItems,
+    required this.subtotal,
     required this.colorScheme,
   });
 
-  final Map<String, int> wishlistQuantities;
-  final Map<String, ProductEntity> wishlistProducts;
+  final int totalItems;
+  final double subtotal;
   final ColorScheme colorScheme;
 
   @override
   Widget build(BuildContext context) {
-    // Calculate total items and subtotal based on actual product data
-    final totalItems = wishlistQuantities.values.fold(0, (sum, quantity) => sum + quantity);
-    double subtotal = 0.0;
-    
-    for (final entry in wishlistQuantities.entries) {
-      final productId = entry.key;
-      final quantity = entry.value;
-      final product = wishlistProducts[productId];
-      
-      if (product != null) {
-        final effectivePrice = product.effectivePrice;
-        subtotal += effectivePrice * quantity;
-      }
-    }
-    
     final deliveryFee = 40.0;
     final total = subtotal + deliveryFee;
 
@@ -238,7 +218,7 @@ class _CartSummary extends StatelessWidget {
               ),
             ),
             Text(
-              'Rs${subtotal.toStringAsFixed(2)}',
+              formatCurrency(subtotal),
               style: TextStyle(
                 fontSize: 14.sp,
                 fontWeight: FontWeight.w600,
@@ -259,7 +239,7 @@ class _CartSummary extends StatelessWidget {
               ),
             ),
             Text(
-              'Rs${deliveryFee.toStringAsFixed(2)}',
+              formatCurrency(deliveryFee),
               style: TextStyle(
                 fontSize: 14.sp,
                 fontWeight: FontWeight.w600,
@@ -283,7 +263,7 @@ class _CartSummary extends StatelessWidget {
               ),
             ),
             Text(
-              'Rs${total.toStringAsFixed(2)}',
+              formatCurrency(total),
               style: TextStyle(
                 fontSize: 16.sp,
                 fontWeight: FontWeight.w700,

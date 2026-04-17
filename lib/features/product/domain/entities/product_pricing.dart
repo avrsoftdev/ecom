@@ -12,6 +12,7 @@ class ProductPricing extends Equatable {
   });
 
   double get pricePerUnit => quantity > 0 ? price / quantity : 0;
+  String get tierId => '${quantity.toStringAsFixed(3)}_${price.toStringAsFixed(2)}';
 
   @override
   List<Object?> get props => [quantity, price, description];
