@@ -14,6 +14,7 @@ import '../../../../core/network/network_info.dart';
 import '../../../../core/utils/currency_formatter.dart';
 import '../../../home/presentation/widgets/product_card.dart';
 import '../../../wishlist/presentation/cubits/wishlist_cubit.dart';
+import '../widgets/tier_selection_sheet.dart';
 
 class ProductDetailsPage extends StatelessWidget {
   final String productId;
@@ -549,8 +550,7 @@ class _RelatedProductsSection extends StatelessWidget {
                           },
                           onAddToCart: () {
                             if (hasTiers) {
-                              // TODO: Show tier selection for related products
-                              cartCubit.addToCart(product);
+                              TierSelectionSheet.show(context, product);
                               return;
                             }
                             cartCubit.addToCart(product);
@@ -560,7 +560,7 @@ class _RelatedProductsSection extends StatelessWidget {
                           },
                           isWishlisted: isWishlisted,
                           quantity: quantity,
-                          showQuantityControls: !hasTiers,
+                          showQuantityControls: quantity > 0,
                           onIncrementQuantity: () {
                             if (baseCartItem != null) {
                               cartCubit.incrementQuantity(baseCartItem.id);
