@@ -116,17 +116,17 @@ class CartCubit extends Cubit<CartState> {
   // Getters
   List<CartItemEntity> get items => List.from(_items);
   int get itemCount => _items.fold<int>(0, (sum, item) => sum + item.quantity);
-  CartItemEntity? baseItemForProduct(String productId) {
+  CartItemEntity? baseItemForProduct(String productId, {String? tierId}) {
     for (final item in _items) {
-      if (item.product.id == productId && item.tierId == null) {
+      if (item.product.id == productId && item.tierId == tierId) {
         return item;
       }
     }
     return null;
   }
 
-  int quantityForProduct(String productId) => _items
-      .where((item) => item.product.id == productId && item.tierId == null)
+  int quantityForProduct(String productId, {String? tierId}) => _items
+      .where((item) => item.product.id == productId && item.tierId == tierId)
       .fold<int>(0, (sum, item) => sum + item.quantity);
   double get cartTotal => _items.fold<double>(
         0.0,
