@@ -48,6 +48,12 @@ import '../../features/product/data/repositories/product_repository_impl.dart';
 import '../../features/product/domain/repositories/product_repository.dart';
 import '../../features/product/domain/usecases/get_products_usecase.dart';
 import '../../features/product/presentation/cubits/product_cubit.dart';
+import '../../features/cart/presentation/cubits/cart_cubit.dart';
+import '../../features/location/data/datasources/location_remote_datasource.dart';
+import '../../features/location/data/repositories/location_repository_impl.dart';
+import '../../features/location/domain/repositories/location_repository.dart';
+import '../../features/location/domain/usecases/get_location_usecase.dart';
+import '../../features/location/presentation/cubits/location_cubit.dart';
 import '../network/network_info.dart';
 import '../theme/theme_cubit.dart';
 
@@ -191,4 +197,19 @@ Future<void> configureDependencies() async {
   getIt.registerFactory(() => DashboardCubit(getIt()));
   getIt.registerFactory(() => ProductAdminCubit(getIt()));
   getIt.registerFactory(() => SettingsCubit(getIt()));
+  getIt.registerFactory(() => CartCubit());
+
+  // Location
+  getIt.registerLazySingleton<LocationRemoteDataSource>(
+    () => LocationRemoteDataSourceImpl(),
+  );
+  getIt.registerLazySingleton<LocationRepository>(
+    () => LocationRepositoryImpl(getIt()),
+  );
+  getIt.registerLazySingleton(
+    () => GetCurrentLocationAddressUseCase(getIt()),
+  );
+  getIt.registerFactory(
+    () => LocationCubit(getLocationUseCase: getIt()),
+  );
 }

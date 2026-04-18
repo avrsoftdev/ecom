@@ -10,6 +10,7 @@ import 'core/di/injection.dart';
 import 'features/auth/presentation/cubits/auth_cubit.dart';
 import 'features/cart/presentation/cubits/cart_cubit.dart';
 import 'features/wishlist/presentation/cubits/wishlist_cubit.dart';
+import 'features/location/presentation/cubits/location_cubit.dart';
 
 class FreshVeggieApp extends StatelessWidget {
   const FreshVeggieApp({super.key});
@@ -33,7 +34,10 @@ class FreshVeggieApp extends StatelessWidget {
               create: (context) => WishlistCubit(),
             ),
             BlocProvider(
-              create: (context) => CartCubit()..loadCart(),
+              create: (context) => getIt<CartCubit>()..loadCart(),
+            ),
+            BlocProvider(
+              create: (context) => getIt<LocationCubit>()..fetchLocation(),
             ),
             // Add other global cubits here
           ],
