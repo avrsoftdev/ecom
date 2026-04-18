@@ -14,6 +14,7 @@ import '../../data/repositories/product_repository_impl.dart';
 import '../../data/datasources/product_remote_datasource.dart';
 import '../../../../core/network/network_info.dart';
 import '../../../home/presentation/widgets/product_card.dart';
+import '../widgets/tier_selection_sheet.dart';
 import '../../../cart/presentation/cubits/cart_cubit.dart';
 import '../../../wishlist/presentation/cubits/wishlist_cubit.dart';
 
@@ -92,8 +93,7 @@ class ProductListPage extends StatelessWidget {
                               },
                               onAddToCart: () {
                                 if (hasTiers) {
-                                  // TODO: Show tier selection for product list
-                                  cartCubit.addToCart(product);
+                                  TierSelectionSheet.show(context, product);
                                   return;
                                 }
                                 cartCubit.addToCart(product);
