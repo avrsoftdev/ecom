@@ -71,13 +71,7 @@ class HomePage extends StatelessWidget {
                     ),
                   ),
                 ),
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: EdgeInsets.fromLTRB(16.w, 20.h, 16.w, 0),
-                    child: _WelcomeCard(totalCategories: homeData.categories.length),
-                  ),
-                ),
-                SliverToBoxAdapter(
+                                SliverToBoxAdapter(
                   child: Padding(
                     padding: EdgeInsets.only(top: 24.h),
                     child: SectionHeader(
@@ -139,127 +133,6 @@ class HomePage extends StatelessWidget {
   }
 }
 
-class _WelcomeCard extends StatelessWidget {
-  const _WelcomeCard({
-    required this.totalCategories,
-  });
-
-  final int totalCategories;
-
-  @override
-  Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return Container(
-      padding: EdgeInsets.all(20.w),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(24.r),
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            Color(0xFF1B5E20),
-            Color(0xFF43A047),
-            Color(0xFF81C784),
-          ],
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: colorScheme.shadow.withValues(alpha: 0.12),
-            blurRadius: 18,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.18),
-              borderRadius: BorderRadius.circular(999.r),
-            ),
-            child: Text(
-              'Farm fresh daily',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 12.sp,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-          SizedBox(height: 16.h),
-          Text(
-            'Fresh groceries delivered with a modern market feel.',
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 24.sp,
-              fontWeight: FontWeight.w800,
-              height: 1.15,
-            ),
-          ),
-          SizedBox(height: 10.h),
-          Text(
-            'Browse $totalCategories curated categories, seasonal deals, and featured picks built for the new home experience.',
-            style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.92),
-              fontSize: 13.sp,
-              height: 1.5,
-            ),
-          ),
-          SizedBox(height: 18.h),
-          Wrap(
-            spacing: 12.w,
-            runSpacing: 12.h,
-            children: const [
-              _HighlightPill(icon: Icons.bolt_rounded, label: 'Fast delivery'),
-              _HighlightPill(icon: Icons.eco_rounded, label: 'Organic picks'),
-              _HighlightPill(icon: Icons.local_offer_rounded, label: 'Daily deals'),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _HighlightPill extends StatelessWidget {
-  const _HighlightPill({
-    required this.icon,
-    required this.label,
-  });
-
-  final IconData icon;
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 10.h),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.14),
-        borderRadius: BorderRadius.circular(999.r),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 16.sp, color: Colors.white),
-          SizedBox(width: 6.w),
-          Text(
-            label,
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 12.sp,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
 
 class _ProductSection extends StatelessWidget {
   const _ProductSection({
