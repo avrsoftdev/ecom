@@ -53,8 +53,12 @@ class HomePage extends StatelessWidget {
             child: CustomScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
               slivers: [
-                SliverToBoxAdapter(
-                  child: Padding(
+                SliverAppBar(
+                  pinned: true,
+                  backgroundColor: Theme.of(context).scaffoldBackgroundColor,
+                  elevation: 0,
+                  toolbarHeight: 95.h,
+                  flexibleSpace: Padding(
                     padding: EdgeInsets.only(top: 16.h, bottom: 8.h),
                     child: BlocProvider(
                       create: (context) => getIt<SearchSuggestionCubit>(),
@@ -275,6 +279,7 @@ class _ProductSection extends StatelessWidget {
     );
   }
 }
+
 
 class _HomeErrorView extends StatelessWidget {
   const _HomeErrorView({

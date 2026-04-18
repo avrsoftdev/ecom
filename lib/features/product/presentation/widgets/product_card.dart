@@ -21,6 +21,13 @@ class ProductCard extends StatelessWidget {
       },
       child: Card(
         margin: const EdgeInsets.all(8.0),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: BorderSide(
+            color: Theme.of(context).colorScheme.primary,
+            width: 2,
+          ),
+        ),
         child: Padding(
           padding: const EdgeInsets.all(16.0),
           child: Row(

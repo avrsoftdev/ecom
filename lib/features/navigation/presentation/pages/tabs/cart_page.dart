@@ -107,7 +107,8 @@ class CartPage extends StatelessWidget {
                   color: colorScheme.surface,
                   border: Border(
                     top: BorderSide(
-                      color: colorScheme.outline.withValues(alpha: 0.2),
+                      color: colorScheme.primary,
+                      width: 2,
                     ),
                   ),
                 ),

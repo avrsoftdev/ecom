@@ -34,7 +34,8 @@ class CategoryItem extends StatelessWidget {
                   color: colorScheme.surfaceContainerHighest,
                   borderRadius: BorderRadius.circular(12.r),
                   border: Border.all(
-                    color: colorScheme.outline.withValues(alpha: 0.2),
+                    color: colorScheme.primary,
+                    width: 2,
                   ),
                 ),
                 child: ClipRRect(

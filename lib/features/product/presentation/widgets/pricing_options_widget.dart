@@ -86,7 +86,8 @@ class _PricingTierItem extends StatelessWidget {
         padding: EdgeInsets.symmetric(horizontal: 3.w, vertical: 1.h),
         decoration: BoxDecoration(
           border: Border.all(
-            color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.3),
+            color: Theme.of(context).colorScheme.primary,
+            width: 1,
           ),
           borderRadius: BorderRadius.circular(4.r),
         ),
@@ -133,7 +134,8 @@ class _StandardPriceOption extends StatelessWidget {
         padding: EdgeInsets.symmetric(horizontal: 3.w, vertical: 1.h),
         decoration: BoxDecoration(
           border: Border.all(
-            color: Theme.of(context).colorScheme.outline.withValues(alpha: 0.3),
+            color: Theme.of(context).colorScheme.primary,
+            width: 1,
           ),
           borderRadius: BorderRadius.circular(4.r),
         ),

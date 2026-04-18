@@ -105,7 +105,8 @@ class _TierCard extends StatelessWidget {
             color: colorScheme.surface,
             borderRadius: BorderRadius.circular(20.r),
             border: Border.all(
-              color: colorScheme.outline.withValues(alpha: 0.2),
+              color: colorScheme.primary,
+              width: 2,
             ),
           ),
           child: Row(

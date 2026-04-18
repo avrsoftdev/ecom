@@ -20,6 +20,13 @@ class MetricCard extends StatelessWidget {
     final cs = Theme.of(context).colorScheme;
     return Card(
       clipBehavior: Clip.antiAlias,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(
+          color: cs.primary,
+          width: 2,
+        ),
+      ),
       child: Padding(
         padding: EdgeInsets.all(16.w),
         child: Column(
