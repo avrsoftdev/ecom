@@ -16,6 +16,7 @@ import '../../features/navigation/presentation/pages/tabs/favourites_page.dart';
 import '../../features/navigation/presentation/pages/tabs/profile_page.dart';
 import '../../features/navigation/presentation/pages/tabs/search_page.dart';
 import '../../features/product/presentation/pages/product_list_page.dart';
+import '../../features/checkout/presentation/pages/checkout_page.dart';
 
 class AppRouter {
   static final router = GoRouter(
@@ -89,6 +90,10 @@ class AppRouter {
         builder: (context, state) => ProductListPage(
           categoryId: state.uri.queryParameters['categoryId'],
         ),
+      ),
+      GoRoute(
+        path: '/checkout',
+        builder: (context, state) => const CheckoutPage(),
       ),
     ],
     redirect: (context, state) {

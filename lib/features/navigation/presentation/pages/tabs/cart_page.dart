@@ -278,7 +278,7 @@ class _CartSummary extends StatelessWidget {
           height: 48.h,
           child: ElevatedButton(
             onPressed: totalItems > 0 ? () {
-              // Proceed to checkout
+              context.push('/checkout');
             } : null,
             style: ElevatedButton.styleFrom(
               backgroundColor: colorScheme.primary,

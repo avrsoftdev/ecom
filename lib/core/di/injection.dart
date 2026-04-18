@@ -54,6 +54,7 @@ import '../../features/location/data/repositories/location_repository_impl.dart'
 import '../../features/location/domain/repositories/location_repository.dart';
 import '../../features/location/domain/usecases/get_location_usecase.dart';
 import '../../features/location/presentation/cubits/location_cubit.dart';
+import '../../features/checkout/presentation/cubits/checkout_cubit.dart';
 import '../network/network_info.dart';
 import '../theme/theme_cubit.dart';
 
@@ -211,5 +212,8 @@ Future<void> configureDependencies() async {
   );
   getIt.registerFactory(
     () => LocationCubit(getLocationUseCase: getIt()),
+  );
+  getIt.registerFactory(
+    () => CheckoutCubit(),
   );
 }
