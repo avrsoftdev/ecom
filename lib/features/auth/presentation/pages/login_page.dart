@@ -5,7 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-import 'package:freshveggie/core/widgets/image.dart';
+import 'package:Bajariyo/core/widgets/image.dart';
 
 import '../cubits/auth_cubit.dart';
 
