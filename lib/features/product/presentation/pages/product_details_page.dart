@@ -6,6 +6,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 
 import '../cubits/product_details_cubit.dart';
 import '../../domain/entities/product_entity.dart';
+import '../../domain/entities/product_pricing.dart';
 import '../../data/repositories/product_repository_impl.dart';
 import '../../data/datasources/product_remote_datasource.dart';
 import '../../../cart/presentation/cubits/cart_cubit.dart';
@@ -43,8 +44,21 @@ class ProductDetailsPage extends StatelessWidget {
   }
 }
 
-class ProductDetailsView extends StatelessWidget {
+class ProductDetailsView extends StatefulWidget {
   const ProductDetailsView({super.key});
+
+  @override
+  State<ProductDetailsView> createState() => _ProductDetailsViewState();
+}
+
+class _ProductDetailsViewState extends State<ProductDetailsView> {
+  ProductPricing? _selectedTier;
+
+  @override
+  void initState() {
+    super.initState();
+    // We'll set the default tier in the build method when we have access to the product
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -85,12 +99,25 @@ class ProductDetailsView extends StatelessWidget {
               ),
             );
           } else if (state is ProductDetailsLoaded) {
+            // Set default tier to tier 1 if not already set
+            if (_selectedTier == null && state.product.pricingTiers.isNotEmpty) {
+              _selectedTier = state.product.pricingTiers.first;
+            }
+            
             return SingleChildScrollView(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _ProductImageSection(product: state.product),
-                  _ProductInfoSection(product: state.product),
+                  _ProductInfoSection(
+                    product: state.product,
+                    selectedTier: _selectedTier,
+                    onTierSelected: (tier) {
+                      setState(() {
+                        _selectedTier = tier;
+                      });
+                    },
+                  ),
                   _RelatedProductsSection(
                     relatedProducts: state.relatedProducts,
                   ),
@@ -131,8 +158,14 @@ class _ProductImageSection extends StatelessWidget {
 
 class _ProductInfoSection extends StatelessWidget {
   final ProductEntity product;
+  final ProductPricing? selectedTier;
+  final Function(ProductPricing) onTierSelected;
 
-  const _ProductInfoSection({required this.product});
+  const _ProductInfoSection({
+    required this.product,
+    this.selectedTier,
+    required this.onTierSelected,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -155,7 +188,15 @@ class _ProductInfoSection extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 8),
-                    if (product.discountPercent > 0) ...[
+                    if (selectedTier != null) ...[
+                      Text(
+                        formatCurrency(selectedTier!.price),
+                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.blue,
+                        ),
+                      ),
+                    ] else if (product.discountPercent > 0) ...[
                       Row(
                         children: [
                           Text(
@@ -267,11 +308,37 @@ class _ProductInfoSection extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 24),
+          // Tier selection card for products with tiers
+          if (product.pricingTiers.isNotEmpty) ...[
+            _TierSelectionCard(
+              product: product,
+              selectedTier: selectedTier,
+              onTierSelected: onTierSelected,
+            ),
+            const SizedBox(height: 16),
+          ],
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
               onPressed: product.stock > 0 ? () {
-                // Add to cart logic
+                final hasTiers = product.pricingTiers.isNotEmpty;
+                if (hasTiers && selectedTier != null) {
+                  // Add to cart logic for tiered products
+                  context.read<CartCubit>().addToCart(
+                    product,
+                    tierId: selectedTier!.tierId,
+                    tierLabel: '${selectedTier!.quantity} ${product.unitType.displayUnit}',
+                    tierPrice: selectedTier!.price,
+                  );
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Product added to cart!'),
+                      duration: Duration(seconds: 2),
+                    ),
+                  );
+                  return;
+                }
+                // Add to cart logic for non-tiered products
                 context.read<CartCubit>().addToCart(product);
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
@@ -295,6 +362,128 @@ class _ProductInfoSection extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _TierSelectionCard extends StatelessWidget {
+  final ProductEntity product;
+  final ProductPricing? selectedTier;
+  final Function(ProductPricing) onTierSelected;
+
+  const _TierSelectionCard({
+    required this.product,
+    this.selectedTier,
+    required this.onTierSelected,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(12.0),
+      decoration: BoxDecoration(
+        color: colorScheme.surface,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: colorScheme.outline.withValues(alpha: 0.2),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Select Tier',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 8),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: product.pricingTiers.map(
+                (tier) => Padding(
+                  padding: const EdgeInsets.only(right: 8.0),
+                  child: _CompactTierOption(
+                    product: product,
+                    tier: tier,
+                    isSelected: selectedTier?.tierId == tier.tierId,
+                    onTap: () => onTierSelected(tier),
+                  ),
+                ),
+              ).toList(),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CompactTierOption extends StatelessWidget {
+  final ProductEntity product;
+  final ProductPricing tier;
+  final bool isSelected;
+  final VoidCallback onTap;
+
+  const _CompactTierOption({
+    required this.product,
+    required this.tier,
+    required this.isSelected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(6),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 8.0),
+        decoration: BoxDecoration(
+          color: isSelected ? colorScheme.primary : colorScheme.surface,
+          borderRadius: BorderRadius.circular(6),
+          border: Border.all(
+            color: isSelected ? colorScheme.primary : colorScheme.outline.withValues(alpha: 0.3),
+            width: isSelected ? 2 : 1,
+          ),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            Text(
+              '${tier.quantity}',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: isSelected ? colorScheme.onPrimary : colorScheme.onSurface,
+              ),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              product.unitType.displayUnit,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                fontSize: 10,
+                color: isSelected ? colorScheme.onPrimary.withValues(alpha: 0.8) : colorScheme.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              formatCurrency(tier.price),
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                fontWeight: FontWeight.bold,
+                color: isSelected ? colorScheme.onPrimary : colorScheme.primary,
+                fontSize: 11,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
