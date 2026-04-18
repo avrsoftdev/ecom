@@ -47,7 +47,10 @@ import '../../features/product/data/datasources/product_remote_datasource.dart';
 import '../../features/product/data/repositories/product_repository_impl.dart';
 import '../../features/product/domain/repositories/product_repository.dart';
 import '../../features/product/domain/usecases/get_products_usecase.dart';
+import '../../features/product/domain/usecases/search_products_usecase.dart';
 import '../../features/product/presentation/cubits/product_cubit.dart';
+import '../../features/search/presentation/cubits/search_cubit.dart';
+import '../../features/search/presentation/cubits/search_suggestion_cubit.dart';
 import '../../features/cart/presentation/cubits/cart_cubit.dart';
 import '../../features/location/data/datasources/location_remote_datasource.dart';
 import '../../features/location/data/repositories/location_repository_impl.dart';
@@ -143,9 +146,21 @@ Future<void> configureDependencies() async {
   );
 
   getIt.registerLazySingleton(() => GetProductsUseCase(getIt()));
+  getIt.registerLazySingleton(() => SearchProductsUseCase(getIt()));
 
   getIt.registerFactory(
     () => ProductCubit(getProductsUseCase: getIt()),
+  );
+
+  getIt.registerFactory(
+    () => SearchCubit(searchProductsUseCase: getIt()),
+  );
+
+  getIt.registerFactory(
+    () => SearchSuggestionCubit(
+      searchProductsUseCase: getIt(),
+      categoryRepository: getIt(),
+    ),
   );
 
   getIt.registerLazySingleton(

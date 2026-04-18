@@ -29,9 +29,8 @@ class ProductRemoteDataSourceImpl implements ProductRemoteDataSource {
     int? limit,
     int? offset,
   }) async {
-    Query<Map<String, dynamic>> query = firestore
-        .collection('products')
-        .where('isAvailable', isEqualTo: true);
+    Query<Map<String, dynamic>> query =
+        firestore.collection('products').where('isAvailable', isEqualTo: true);
 
     if (categoryId != null && categoryId.isNotEmpty) {
       query = query.where('categoryId', isEqualTo: categoryId);
@@ -39,9 +38,12 @@ class ProductRemoteDataSourceImpl implements ProductRemoteDataSource {
 
     if (searchQuery != null && searchQuery.isNotEmpty) {
       // Note: Firestore doesn't support full-text search natively
-      // This is a simplified implementation
-      query = query.where('name', isGreaterThanOrEqualTo: searchQuery)
-                   .where('name', isLessThan: searchQuery + '\uf8ff');
+      // This is a simplified implementation using prefix matching
+      // IMPORTANT: This requires a composite index on (isAvailable, name)
+      query = query
+          .where('name', isGreaterThanOrEqualTo: searchQuery)
+          .where('name', isLessThan: searchQuery + '\uf8ff')
+          .orderBy('name');
     }
 
     if (limit != null) {
@@ -49,8 +51,13 @@ class ProductRemoteDataSourceImpl implements ProductRemoteDataSource {
     }
 
     final snapshot = await query.get();
-    final products = snapshot.docs.map((doc) => ProductModel.fromFirestore(doc)).toList();
-    products.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    final products =
+        snapshot.docs.map((doc) => ProductModel.fromFirestore(doc)).toList();
+
+    if (searchQuery == null || searchQuery.isEmpty) {
+      products.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    }
+
     return products;
   }
 
@@ -70,21 +77,25 @@ class ProductRemoteDataSourceImpl implements ProductRemoteDataSource {
         .where('isAvailable', isEqualTo: true)
         .where('categoryId', isEqualTo: categoryId)
         .get();
-    final products = snapshot.docs.map((doc) => ProductModel.fromFirestore(doc)).toList();
+    final products =
+        snapshot.docs.map((doc) => ProductModel.fromFirestore(doc)).toList();
     products.sort((a, b) => b.createdAt.compareTo(a.createdAt));
     return products;
   }
 
   @override
   Future<List<ProductModel>> searchProducts(String query) async {
-    // Simplified search implementation
+    // Simplified search implementation using prefix matching
+    // IMPORTANT: This requires a composite index on (isAvailable, name)
     final snapshot = await firestore
         .collection('products')
+        .where('isAvailable', isEqualTo: true)
         .where('name', isGreaterThanOrEqualTo: query)
         .where('name', isLessThan: query + '\uf8ff')
         .orderBy('name')
         .limit(20)
         .get();
+
     return snapshot.docs.map((doc) => ProductModel.fromFirestore(doc)).toList();
   }
 }

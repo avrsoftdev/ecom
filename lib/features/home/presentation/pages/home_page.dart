@@ -18,14 +18,16 @@ import '../../../wishlist/presentation/cubits/wishlist_cubit.dart';
 import '../cubits/home_cubit.dart';
 import '../widgets/banner_slider.dart';
 import '../widgets/category_item.dart';
+import '../widgets/home_search_field.dart';
 import '../widgets/home_shimmer.dart';
+import '../../../search/presentation/cubits/search_suggestion_cubit.dart';
+import '../../../../core/di/injection.dart';
 import '../widgets/product_card.dart';
 import '../widgets/section_header.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
 
-  
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -53,18 +55,45 @@ class HomePage extends StatelessWidget {
               slivers: [
                 SliverToBoxAdapter(
                   child: Padding(
+                    padding: EdgeInsets.only(top: 16.h, bottom: 8.h),
+                    child: BlocProvider(
+                      create: (context) => getIt<SearchSuggestionCubit>(),
+                      child: HomeSearchField(
+                        onSearch: (query) {
+                          context.go('/search?q=${Uri.encodeComponent(query)}');
+                        },
+                        onProductSelect: (product) {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  ProductDetailsPage(productId: product.id),
+                            ),
+                          );
+                        },
+                        onCategorySelect: (category) {
+                          context.go(
+                              '/products?categoryId=${Uri.encodeComponent(category.id)}');
+                        },
+                      ),
+                    ),
+                  ),
+                ),
+                SliverToBoxAdapter(
+                  child: Padding(
                     padding: EdgeInsets.only(top: 12.h),
                     child: BannerSlider(
                       banners: homeData.banners,
                     ),
                   ),
                 ),
-                                SliverToBoxAdapter(
+                SliverToBoxAdapter(
                   child: Padding(
                     padding: EdgeInsets.only(top: 24.h),
                     child: SectionHeader(
                       title: 'Shop by category',
-                      subtitle: 'Fresh produce picked for your everyday kitchen.',
+                      subtitle:
+                          'Fresh produce picked for your everyday kitchen.',
                       showViewAll: false,
                     ),
                   ),
@@ -73,7 +102,8 @@ class HomePage extends StatelessWidget {
                   child: SizedBox(
                     height: 120.h,
                     child: ListView.separated(
-                      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 16.h),
+                      padding: EdgeInsets.symmetric(
+                          horizontal: 16.w, vertical: 16.h),
                       scrollDirection: Axis.horizontal,
                       itemCount: homeData.categories.length,
                       separatorBuilder: (_, __) => SizedBox(width: 4.w),
@@ -120,7 +150,6 @@ class HomePage extends StatelessWidget {
     );
   }
 }
-
 
 class _ProductSection extends StatelessWidget {
   const _ProductSection({
@@ -172,8 +201,10 @@ class _ProductSection extends StatelessWidget {
                     builder: (context, cartState) {
                       return BlocBuilder<WishlistCubit, WishlistState>(
                         builder: (context, wishlistState) {
-                          final isWishlisted = wishlistState is WishlistLoaded &&
-                              wishlistState.wishlistProducts.containsKey(product.id);
+                          final isWishlisted =
+                              wishlistState is WishlistLoaded &&
+                                  wishlistState.wishlistProducts
+                                      .containsKey(product.id);
                           final cartCubit = context.read<CartCubit>();
                           final quantity = cartState is CartLoaded
                               ? cartCubit.quantityForProduct(product.id)
@@ -191,7 +222,8 @@ class _ProductSection extends StatelessWidget {
                                 builder: (context) => BlocProvider(
                                   create: (context) => ProductDetailsCubit(
                                     productRepository: ProductRepositoryImpl(
-                                      remoteDataSource: ProductRemoteDataSourceImpl(
+                                      remoteDataSource:
+                                          ProductRemoteDataSourceImpl(
                                         firestore: FirebaseFirestore.instance,
                                       ),
                                       networkInfo: NetworkInfoImpl(
@@ -212,7 +244,9 @@ class _ProductSection extends StatelessWidget {
                               cartCubit.addToCart(product);
                             },
                             onWishlistToggle: () {
-                              context.read<WishlistCubit>().toggleWishlist(product);
+                              context
+                                  .read<WishlistCubit>()
+                                  .toggleWishlist(product);
                             },
                             isWishlisted: isWishlisted,
                             quantity: quantity,
@@ -241,7 +275,6 @@ class _ProductSection extends StatelessWidget {
     );
   }
 }
-
 
 class _HomeErrorView extends StatelessWidget {
   const _HomeErrorView({

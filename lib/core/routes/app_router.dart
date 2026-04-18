@@ -55,7 +55,9 @@ class AppRouter {
             routes: [
               GoRoute(
                 path: '/search',
-                builder: (context, state) => const SearchPage(),
+                builder: (context, state) => SearchPage(
+                  initialQuery: state.uri.queryParameters['q'],
+                ),
               ),
             ],
           ),
