@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../theme/theme_cubit.dart';
+import '../../features/location/presentation/cubits/location_cubit.dart';
+import '../../features/location/presentation/cubits/location_state.dart';
 
 class FreshVeggieHeader extends StatelessWidget implements PreferredSizeWidget {
   const FreshVeggieHeader({
@@ -31,13 +34,56 @@ class FreshVeggieHeader extends StatelessWidget implements PreferredSizeWidget {
               onPressed: onBackPressed ?? () => Navigator.of(context).maybePop(),
             )
           : null,
-      title: Text(
-        title,
-        style: GoogleFonts.poppins(
-          textStyle: (Theme.of(context).appBarTheme.titleTextStyle ??
-                  Theme.of(context).textTheme.titleLarge)
-              ?.copyWith(color: Colors.white),
-        ),
+      title: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            title,
+            style: GoogleFonts.poppins(
+              textStyle: (Theme.of(context).appBarTheme.titleTextStyle ??
+                      Theme.of(context).textTheme.titleLarge)
+                  ?.copyWith(color: Colors.white),
+            ),
+          ),
+          if (!showBackButton) ...[
+            SizedBox(height: 2.h),
+            BlocBuilder<LocationCubit, LocationState>(
+              builder: (context, state) {
+                if (state is LocationLoaded) {
+                  return Text(
+                    state.address,
+                    style: GoogleFonts.poppins(
+                      fontSize: 10.sp,
+                      color: Colors.white70,
+                      fontWeight: FontWeight.w400,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  );
+                } else if (state is LocationLoading) {
+                  return Text(
+                    'Getting location...',
+                    style: GoogleFonts.poppins(
+                      fontSize: 10.sp,
+                      color: Colors.white70,
+                      fontWeight: FontWeight.w400,
+                    ),
+                  );
+                } else if (state is LocationError) {
+                  return Text(
+                    'Location unavailable',
+                    style: GoogleFonts.poppins(
+                      fontSize: 10.sp,
+                      color: Colors.white70,
+                      fontWeight: FontWeight.w400,
+                    ),
+                  );
+                }
+                return const SizedBox.shrink();
+              },
+            ),
+          ],
+        ],
       ),
       centerTitle: true,
       actions: [
