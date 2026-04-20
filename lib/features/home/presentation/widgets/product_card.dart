@@ -74,30 +74,41 @@ class ProductCard extends StatelessWidget {
                     ),
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(12.r),
-                      child: CachedNetworkImage(
-                        imageUrl: product.imageUrl,
-                        fit: BoxFit.cover,
-                        placeholder: (context, url) => Container(
-                          color: colorScheme.surfaceContainerHighest,
-                          child: Center(
-                            child: Icon(
-                              Icons.image_outlined,
-                              color: colorScheme.onSurfaceVariant,
-                              size: 32.sp,
+                      child: product.imageUrl.isNotEmpty
+                          ? CachedNetworkImage(
+                              imageUrl: product.imageUrl,
+                              fit: BoxFit.cover,
+                              placeholder: (context, url) => Container(
+                                color: colorScheme.surfaceContainerHighest,
+                                child: Center(
+                                  child: Icon(
+                                    Icons.image_outlined,
+                                    color: colorScheme.onSurfaceVariant,
+                                    size: 32.sp,
+                                  ),
+                                ),
+                              ),
+                              errorWidget: (context, url, error) => Container(
+                                color: colorScheme.surfaceContainerHighest,
+                                child: Center(
+                                  child: Icon(
+                                    Icons.broken_image_outlined,
+                                    color: colorScheme.error,
+                                    size: 32.sp,
+                                  ),
+                                ),
+                              ),
+                            )
+                          : Container(
+                              color: colorScheme.surfaceContainerHighest,
+                              child: Center(
+                                child: Icon(
+                                  Icons.image_outlined,
+                                  color: colorScheme.onSurfaceVariant,
+                                  size: 32.sp,
+                                ),
+                              ),
                             ),
-                          ),
-                        ),
-                        errorWidget: (context, url, error) => Container(
-                          color: colorScheme.surfaceContainerHighest,
-                          child: Center(
-                            child: Icon(
-                              Icons.broken_image_outlined,
-                              color: colorScheme.error,
-                              size: 32.sp,
-                            ),
-                          ),
-                        ),
-                      ),
                     ),
                   ),
                   // Wishlist Button
@@ -162,68 +173,67 @@ class ProductCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Flexible(
-                      child: ClipRect(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              product.name,
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                fontSize: 11.sp,
-                                fontWeight: FontWeight.w500,
-                                color: colorScheme.onSurface,
-                              ),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            product.name,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 11.sp,
+                              fontWeight: FontWeight.w500,
+                              color: colorScheme.onSurface,
                             ),
-                            SizedBox(height: 4.h),
+                          ),
+                          SizedBox(height: 2.h),
+                          Text(
+                            '${product.stock} ${product.unitType.displayUnit} available',
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 10.sp,
+                              color: colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                          SizedBox(height: 2.h),
+                          Text(
+                            hasTiers
+                                ? '${product.pricingTiers.length} tiers from ${formatCurrency(lowestTierPrice!)}'
+                                : formatCurrency(product.effectivePrice),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 11.sp,
+                              fontWeight: FontWeight.w700,
+                              color: colorScheme.primary,
+                            ),
+                          ),
+                          if (hasTiers) ...[
+                            SizedBox(height: 1.h),
                             Text(
-                              '${product.stock} ${product.unitType.displayUnit} available',
+                              'Tap Add to choose a tier',
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: TextStyle(
-                                fontSize: 10.sp,
+                                fontSize: 9.sp,
                                 color: colorScheme.onSurfaceVariant,
                               ),
                             ),
-                            SizedBox(height: 3.h),
+                          ] else if (hasDiscount) ...[
+                            SizedBox(height: 1.h),
                             Text(
-                              hasTiers
-                                  ? '${product.pricingTiers.length} tiers from ${formatCurrency(lowestTierPrice!)}'
-                                  : formatCurrency(product.effectivePrice),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
+                              formatCurrency(product.price),
                               style: TextStyle(
-                                fontSize: 11.sp,
-                                fontWeight: FontWeight.w700,
-                                color: colorScheme.primary,
+                                fontSize: 9.sp,
+                                color: colorScheme.onSurfaceVariant,
+                                decoration: TextDecoration.lineThrough,
                               ),
                             ),
-                            if (hasTiers) ...[
-                              SizedBox(height: 2.h),
-                              Text(
-                                'Tap Add to choose a tier',
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                  fontSize: 9.sp,
-                                  color: colorScheme.onSurfaceVariant,
-                                ),
-                              ),
-                            ] else if (hasDiscount) ...[
-                              SizedBox(height: 2.h),
-                              Text(
-                                formatCurrency(product.price),
-                                style: TextStyle(
-                                  fontSize: 9.sp,
-                                  color: colorScheme.onSurfaceVariant,
-                                  decoration: TextDecoration.lineThrough,
-                                ),
-                              ),
-                            ],
                           ],
-                        ),
+                        ],
                       ),
                     ),
                     SizedBox(height: 2.h),
