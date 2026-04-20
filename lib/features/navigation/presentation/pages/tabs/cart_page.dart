@@ -7,6 +7,7 @@ import '../../../../../core/utils/currency_formatter.dart';
 import '../../../../../core/widgets/fresh_veggie_header.dart';
 import '../../../../cart/presentation/cubits/cart_cubit.dart';
 import '../../../../wishlist/presentation/widgets/cart_item_widget.dart';
+import '../../../../checkout/presentation/pages/checkout_page.dart';
 
 class CartPage extends StatelessWidget {
   const CartPage({super.key});
@@ -279,7 +280,12 @@ class _CartSummary extends StatelessWidget {
           height: 48.h,
           child: ElevatedButton(
             onPressed: totalItems > 0 ? () {
-              context.push('/checkout');
+              showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                backgroundColor: Colors.transparent,
+                builder: (context) => const CheckoutBottomSheet(),
+              );
             } : null,
             style: ElevatedButton.styleFrom(
               backgroundColor: colorScheme.primary,

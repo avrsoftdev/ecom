@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
-import 'package:go_router/go_router.dart';
 
 import '../../../../core/di/injection.dart';
-import '../../../../core/widgets/fresh_veggie_header.dart';
 import '../../../auth/presentation/cubits/auth_cubit.dart';
 import '../../../location/presentation/cubits/location_cubit.dart';
 import '../../../location/presentation/cubits/location_state.dart';
@@ -12,31 +10,93 @@ import '../cubits/checkout_cubit.dart';
 import '../cubits/checkout_state.dart';
 import '../../domain/entities/checkout_contact_entity.dart';
 
+class CheckoutBottomSheet extends StatelessWidget {
+  const CheckoutBottomSheet({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final screenHeight = MediaQuery.of(context).size.height;
+    
+    return BlocProvider(
+      create: (context) => getIt<CheckoutCubit>()..startCheckout(),
+      child: Container(
+        height: screenHeight * 0.6,
+        decoration: BoxDecoration(
+          color: Theme.of(context).scaffoldBackgroundColor,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20.r)),
+        ),
+        child: Column(
+          children: [
+            _buildHandle(context),
+            _buildHeader(context),
+            Expanded(
+              child: BlocBuilder<CheckoutCubit, CheckoutState>(
+                builder: (context, state) {
+                  if (state is CheckoutInitial) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  if (state is CheckoutContactStep) {
+                    return _ContactStepView(contact: state.contact);
+                  }
+                  return const SizedBox.shrink();
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHandle(BuildContext context) {
+    return Container(
+      margin: EdgeInsets.only(top: 8.h, bottom: 4.h),
+      width: 40.w,
+      height: 4.h,
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
+        borderRadius: BorderRadius.circular(2.r),
+      ),
+    );
+  }
+
+  Widget _buildHeader(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    
+    return Container(
+      padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              'Checkout',
+              style: TextStyle(
+                fontSize: 20.sp,
+                fontWeight: FontWeight.w600,
+                color: colorScheme.onSurface,
+              ),
+            ),
+          ),
+          IconButton(
+            onPressed: () => Navigator.of(context).pop(),
+            icon: Icon(
+              Icons.close_rounded,
+              color: colorScheme.onSurface,
+              size: 24.sp,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class CheckoutPage extends StatelessWidget {
   const CheckoutPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => getIt<CheckoutCubit>()..startCheckout(),
-      child: Scaffold(
-        appBar: const FreshVeggieHeader(
-          title: 'Checkout',
-          showBackButton: true,
-        ),
-        body: BlocBuilder<CheckoutCubit, CheckoutState>(
-          builder: (context, state) {
-            if (state is CheckoutInitial) {
-              return const Center(child: CircularProgressIndicator());
-            }
-            if (state is CheckoutContactStep) {
-              return _ContactStepView(contact: state.contact);
-            }
-            return const SizedBox.shrink();
-          },
-        ),
-      ),
-    );
+    return const CheckoutBottomSheet();
   }
 }
 
@@ -51,7 +111,11 @@ class _ContactStepView extends StatefulWidget {
 
 class _ContactStepViewState extends State<_ContactStepView> {
   late TextEditingController _nameController;
-  late TextEditingController _addressController;
+  late TextEditingController _houseFlatBuildingController;
+  late TextEditingController _streetAreaColonyController;
+  late TextEditingController _cityController;
+  late TextEditingController _stateController;
+  late TextEditingController _pincodeController;
   late TextEditingController _landmarkController;
   late TextEditingController _phoneController;
 
@@ -59,7 +123,11 @@ class _ContactStepViewState extends State<_ContactStepView> {
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: widget.contact.name);
-    _addressController = TextEditingController(text: widget.contact.address);
+    _houseFlatBuildingController = TextEditingController(text: widget.contact.houseFlatBuilding);
+    _streetAreaColonyController = TextEditingController(text: widget.contact.streetAreaColony);
+    _cityController = TextEditingController(text: widget.contact.city);
+    _stateController = TextEditingController(text: widget.contact.state);
+    _pincodeController = TextEditingController(text: widget.contact.pincode);
     _landmarkController = TextEditingController(text: widget.contact.landmark);
     _phoneController = TextEditingController(text: widget.contact.phoneNumber);
   }
@@ -69,7 +137,11 @@ class _ContactStepViewState extends State<_ContactStepView> {
     super.didUpdateWidget(oldWidget);
     if (widget.contact != oldWidget.contact) {
       _nameController.text = widget.contact.name;
-      _addressController.text = widget.contact.address;
+      _houseFlatBuildingController.text = widget.contact.houseFlatBuilding;
+      _streetAreaColonyController.text = widget.contact.streetAreaColony;
+      _cityController.text = widget.contact.city;
+      _stateController.text = widget.contact.state;
+      _pincodeController.text = widget.contact.pincode;
       _landmarkController.text = widget.contact.landmark;
       _phoneController.text = widget.contact.phoneNumber;
     }
@@ -78,7 +150,11 @@ class _ContactStepViewState extends State<_ContactStepView> {
   @override
   void dispose() {
     _nameController.dispose();
-    _addressController.dispose();
+    _houseFlatBuildingController.dispose();
+    _streetAreaColonyController.dispose();
+    _cityController.dispose();
+    _stateController.dispose();
+    _pincodeController.dispose();
     _landmarkController.dispose();
     _phoneController.dispose();
     super.dispose();
@@ -107,7 +183,6 @@ class _ContactStepViewState extends State<_ContactStepView> {
               Expanded(
                 child: _OptionCard(
                   title: 'Myself',
-                  subtitle: 'Use my profile',
                   icon: Icons.person_outline_rounded,
                   isSelected: widget.contact.isForSelf,
                   onTap: () {
@@ -134,7 +209,6 @@ class _ContactStepViewState extends State<_ContactStepView> {
               Expanded(
                 child: _OptionCard(
                   title: 'Someone Else',
-                  subtitle: 'Enter manually',
                   icon: Icons.people_outline_rounded,
                   isSelected: !widget.contact.isForSelf,
                   onTap: () {
@@ -164,13 +238,57 @@ class _ContactStepViewState extends State<_ContactStepView> {
           ),
           SizedBox(height: 12.h),
           _buildTextField(
-            controller: _addressController,
-            label: 'Address',
-            icon: Icons.location_on_outlined,
-            maxLines: 3,
+            controller: _houseFlatBuildingController,
+            label: 'House / Flat / Building No.',
+            icon: Icons.home_outlined,
             onChanged: (val) => context.read<CheckoutCubit>().updateContact(
-                  widget.contact.copyWith(address: val),
+                  widget.contact.copyWith(houseFlatBuilding: val),
                 ),
+          ),
+          SizedBox(height: 12.h),
+          _buildTextField(
+            controller: _streetAreaColonyController,
+            label: 'Street / Area / Colony Name',
+            icon: Icons.location_on_outlined,
+            onChanged: (val) => context.read<CheckoutCubit>().updateContact(
+                  widget.contact.copyWith(streetAreaColony: val),
+                ),
+          ),
+          SizedBox(height: 12.h),
+          _buildTextField(
+            controller: _cityController,
+            label: 'City',
+            icon: Icons.location_city_outlined,
+            onChanged: (val) => context.read<CheckoutCubit>().updateContact(
+                  widget.contact.copyWith(city: val),
+                ),
+          ),
+          SizedBox(height: 12.h),
+          Row(
+            children: [
+              Expanded(
+                child: _buildTextField(
+                  controller: _stateController,
+                  label: 'State',
+                  icon: Icons.map_outlined,
+                  onChanged: (val) => context.read<CheckoutCubit>().updateContact(
+                        widget.contact.copyWith(state: val),
+                      ),
+                ),
+              ),
+              SizedBox(width: 12.w),
+              Expanded(
+                child: _buildTextField(
+                  controller: _pincodeController,
+                  label: 'Pincode',
+                  icon: Icons.pin_outlined,
+                  keyboardType: TextInputType.number,
+                  onChanged: (val) => context.read<CheckoutCubit>().updateContact(
+                        widget.contact.copyWith(pincode: val),
+                      ),
+                ),
+              ),
+            ],
           ),
           SizedBox(height: 12.h),
           _buildTextField(
@@ -197,7 +315,14 @@ class _ContactStepViewState extends State<_ContactStepView> {
             height: 50.h,
             child: ElevatedButton(
               onPressed: () {
-                // Next step in checkout
+                // Close the bottom sheet and show success
+                Navigator.of(context).pop();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Order placed successfully!'),
+                    backgroundColor: Colors.green,
+                  ),
+                );
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: colorScheme.primary,
@@ -257,14 +382,12 @@ class _ContactStepViewState extends State<_ContactStepView> {
 
 class _OptionCard extends StatelessWidget {
   final String title;
-  final String subtitle;
   final IconData icon;
   final bool isSelected;
   final VoidCallback onTap;
 
   const _OptionCard({
     required this.title,
-    required this.subtitle,
     required this.icon,
     required this.isSelected,
     required this.onTap,
@@ -278,7 +401,7 @@ class _OptionCard extends StatelessWidget {
       onTap: onTap,
       borderRadius: BorderRadius.circular(12.r),
       child: Container(
-        padding: EdgeInsets.symmetric(vertical: 12.h, horizontal: 8.w),
+        padding: EdgeInsets.symmetric(vertical: 8.h, horizontal: 8.w),
         decoration: BoxDecoration(
           color: isSelected
               ? colorScheme.primaryContainer.withValues(alpha: 0.3)
@@ -291,16 +414,17 @@ class _OptionCard extends StatelessWidget {
             width: 1.5,
           ),
         ),
-        child: Column(
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
               icon,
-              size: 28.sp,
+              size: 20.sp,
               color: isSelected
                   ? colorScheme.primary
                   : colorScheme.onSurfaceVariant,
             ),
-            SizedBox(height: 8.h),
+            SizedBox(width: 8.w),
             Text(
               title,
               textAlign: TextAlign.center,
@@ -308,18 +432,6 @@ class _OptionCard extends StatelessWidget {
                 fontSize: 14.sp,
                 fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
                 color: isSelected ? colorScheme.primary : colorScheme.onSurface,
-              ),
-            ),
-            SizedBox(height: 2.h),
-            Text(
-              subtitle,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 11.sp,
-                fontWeight: FontWeight.w400,
-                color: isSelected
-                    ? colorScheme.primary.withValues(alpha: 0.8)
-                    : colorScheme.onSurfaceVariant,
               ),
             ),
           ],

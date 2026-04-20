@@ -16,7 +16,11 @@ class CheckoutCubit extends Cubit<CheckoutState> {
   void setOrderForSelf(String name, String address) {
     emit(CheckoutContactStep(CheckoutContactEntity(
       name: name,
-      address: address,
+      houseFlatBuilding: '',
+      streetAreaColony: address,
+      city: '',
+      state: '',
+      pincode: '',
       landmark: '',
       phoneNumber: '',
       isForSelf: true,
@@ -26,7 +30,11 @@ class CheckoutCubit extends Cubit<CheckoutState> {
   void setOrderForSomeoneElse() {
     emit(CheckoutContactStep(const CheckoutContactEntity(
       name: '',
-      address: '',
+      houseFlatBuilding: '',
+      streetAreaColony: '',
+      city: '',
+      state: '',
+      pincode: '',
       landmark: '',
       phoneNumber: '',
       isForSelf: false,
