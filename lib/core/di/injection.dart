@@ -229,6 +229,10 @@ Future<void> configureDependencies() async {
     () => LocationCubit(getLocationUseCase: getIt()),
   );
   getIt.registerFactory(
-    () => CheckoutCubit(),
+    () => CheckoutCubit(
+      sharedPreferences: getIt(),
+      firestore: getIt(),
+      firebaseAuth: getIt(),
+    ),
   );
 }

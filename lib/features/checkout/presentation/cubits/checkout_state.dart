@@ -12,9 +12,13 @@ class CheckoutInitial extends CheckoutState {}
 
 class CheckoutContactStep extends CheckoutState {
   final CheckoutContactEntity contact;
+  final List<CheckoutContactEntity> savedContacts;
 
-  const CheckoutContactStep(this.contact);
+  const CheckoutContactStep(
+    this.contact, {
+    this.savedContacts = const [],
+  });
 
   @override
-  List<Object?> get props => [contact];
+  List<Object?> get props => [contact, savedContacts];
 }

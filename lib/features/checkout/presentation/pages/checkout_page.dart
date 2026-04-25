@@ -39,7 +39,10 @@ class CheckoutBottomSheet extends StatelessWidget {
                     return const Center(child: CircularProgressIndicator());
                   }
                   if (state is CheckoutContactStep) {
-                    return _ContactStepView(contact: state.contact);
+                    return _ContactStepView(
+                      contact: state.contact,
+                      savedContacts: state.savedContacts,
+                    );
                   }
                   return const SizedBox.shrink();
                 },
@@ -105,8 +108,12 @@ class CheckoutPage extends StatelessWidget {
 
 class _ContactStepView extends StatefulWidget {
   final CheckoutContactEntity contact;
+  final List<CheckoutContactEntity> savedContacts;
 
-  const _ContactStepView({required this.contact});
+  const _ContactStepView({
+    required this.contact,
+    required this.savedContacts,
+  });
 
   @override
   State<_ContactStepView> createState() => _ContactStepViewState();
@@ -223,6 +230,29 @@ class _ContactStepViewState extends State<_ContactStepView> {
             ],
           ),
           SizedBox(height: 24.h),
+          if (widget.savedContacts.isNotEmpty) ...[
+            Text(
+              'Saved Details',
+              style: TextStyle(
+                fontSize: 16.sp,
+                fontWeight: FontWeight.w600,
+                color: colorScheme.onSurface,
+              ),
+            ),
+            SizedBox(height: 12.h),
+            ...widget.savedContacts.map(
+              (contact) => Padding(
+                padding: EdgeInsets.only(bottom: 10.h),
+                child: _SavedDetailsCard(
+                  contact: contact,
+                  onTap: () {
+                    context.read<CheckoutCubit>().useSavedContact(contact);
+                  },
+                ),
+              ),
+            ),
+            SizedBox(height: 14.h),
+          ],
           Text(
             'Delivery Details',
             style: TextStyle(
@@ -406,6 +436,7 @@ class _ContactStepViewState extends State<_ContactStepView> {
         _stateController.text.trim(),
         _pincodeController.text.trim(),
       ].where((v) => v.isNotEmpty).join(', ');
+      final checkoutContact = _currentContact();
 
       await FirebaseFirestore.instance.collection('orders').add({
         'userId': user.uid,
@@ -434,9 +465,11 @@ class _ContactStepViewState extends State<_ContactStepView> {
         'customerEmail': user.email ?? '',
         'shippingAddress': shippingAddress,
         'phone': _phoneController.text.trim(),
+        'checkoutContact': checkoutContact.toJson(),
       });
 
       if (!mounted) return;
+      await context.read<CheckoutCubit>().saveContactForLater(checkoutContact);
       context.read<CartCubit>().clearCart();
       Navigator.of(context).pop();
       ScaffoldMessenger.of(context).showSnackBar(
@@ -455,6 +488,125 @@ class _ContactStepViewState extends State<_ContactStepView> {
         setState(() => _isPlacingOrder = false);
       }
     }
+  }
+
+  CheckoutContactEntity _currentContact() {
+    return CheckoutContactEntity(
+      name: _nameController.text.trim(),
+      houseFlatBuilding: _houseFlatBuildingController.text.trim(),
+      streetAreaColony: _streetAreaColonyController.text.trim(),
+      city: _cityController.text.trim(),
+      state: _stateController.text.trim(),
+      pincode: _pincodeController.text.trim(),
+      landmark: _landmarkController.text.trim(),
+      phoneNumber: _phoneController.text.trim(),
+      isForSelf: widget.contact.isForSelf,
+    );
+  }
+}
+
+class _SavedDetailsCard extends StatelessWidget {
+  final CheckoutContactEntity contact;
+  final VoidCallback onTap;
+
+  const _SavedDetailsCard({
+    required this.contact,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+    final subtitle = [
+      contact.houseFlatBuilding,
+      contact.streetAreaColony,
+      contact.landmark,
+      contact.city,
+      contact.state,
+      contact.pincode,
+    ].where((value) => value.trim().isNotEmpty).join(', ');
+
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8.r),
+      child: Container(
+        padding: EdgeInsets.all(12.w),
+        decoration: BoxDecoration(
+          color: colorScheme.surface,
+          borderRadius: BorderRadius.circular(8.r),
+          border: Border.all(
+            color: colorScheme.outline.withValues(alpha: 0.25),
+          ),
+        ),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Container(
+              width: 36.w,
+              height: 36.w,
+              decoration: BoxDecoration(
+                color: colorScheme.primaryContainer.withValues(alpha: 0.35),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.bookmark_border_rounded,
+                color: colorScheme.primary,
+                size: 20.sp,
+              ),
+            ),
+            SizedBox(width: 12.w),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    contact.name.trim().isEmpty ? 'Saved delivery details' : contact.name,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      color: colorScheme.onSurface,
+                      fontSize: 14.sp,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  if (subtitle.isNotEmpty) ...[
+                    SizedBox(height: 4.h),
+                    Text(
+                      subtitle,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: colorScheme.onSurfaceVariant,
+                        fontSize: 12.sp,
+                        height: 1.25,
+                      ),
+                    ),
+                  ],
+                  if (contact.phoneNumber.trim().isNotEmpty) ...[
+                    SizedBox(height: 4.h),
+                    Text(
+                      contact.phoneNumber,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        color: colorScheme.onSurfaceVariant,
+                        fontSize: 12.sp,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            SizedBox(width: 8.w),
+            Icon(
+              Icons.chevron_right_rounded,
+              color: colorScheme.onSurfaceVariant,
+              size: 22.sp,
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 

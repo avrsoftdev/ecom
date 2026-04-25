@@ -66,6 +66,20 @@ class CheckoutContactEntity extends Equatable {
     return '$houseFlatBuilding, $streetAreaColony, $city, $state - $pincode';
   }
 
+  Map<String, dynamic> toJson() {
+    return {
+      'name': name,
+      'houseFlatBuilding': houseFlatBuilding,
+      'streetAreaColony': streetAreaColony,
+      'city': city,
+      'state': state,
+      'pincode': pincode,
+      'landmark': landmark,
+      'phoneNumber': phoneNumber,
+      'isForSelf': isForSelf,
+    };
+  }
+
   @override
   List<Object?> get props => [
         name,

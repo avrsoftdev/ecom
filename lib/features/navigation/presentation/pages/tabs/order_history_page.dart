@@ -7,6 +7,7 @@ import '../../../../../core/utils/currency_formatter.dart';
 import '../../../../../core/widgets/fresh_veggie_header.dart';
 import '../../../../admin/domain/repositories/admin_customer_repository.dart';
 import '../../../../common/domain/entities/order_entity.dart';
+import '../../../../common/domain/entities/order_item_entity.dart';
 
 class OrderHistoryPage extends StatelessWidget {
   const OrderHistoryPage({super.key});
@@ -156,38 +157,129 @@ class _OrderCard extends StatelessWidget {
                 ),
           ),
           const SizedBox(height: 8),
-          ...order.items.map(
-            (item) => Padding(
-              padding: const EdgeInsets.only(bottom: 8),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          _buildItemTitle(item.quantity, item.unitType, item.name),
-                          style: Theme.of(context).textTheme.bodyMedium,
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          'Unit price: ${formatCurrency(item.unitPrice)}',
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: colorScheme.onSurfaceVariant,
-                              ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Text(
-                    formatCurrency(item.lineTotal),
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
-                  ),
-                ],
+          Container(
+            decoration: BoxDecoration(
+              color: colorScheme.surfaceContainerLowest,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: colorScheme.outlineVariant),
+            ),
+            child: Column(
+              children: [
+                _OrderItemsHeader(colorScheme: colorScheme),
+                ...order.items.map(
+                  (item) => _OrderItemRow(item: item),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _OrderItemsHeader extends StatelessWidget {
+  const _OrderItemsHeader({required this.colorScheme});
+
+  final ColorScheme colorScheme;
+
+  @override
+  Widget build(BuildContext context) {
+    final labelStyle = Theme.of(context).textTheme.labelMedium?.copyWith(
+          fontWeight: FontWeight.w700,
+          color: colorScheme.onSurfaceVariant,
+        );
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: colorScheme.surfaceContainerHigh,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(14)),
+      ),
+      child: Row(
+        children: [
+          SizedBox(
+            width: 56,
+            child: Text('Qty', style: labelStyle),
+          ),
+          Expanded(
+            flex: 3,
+            child: Text('Item', style: labelStyle),
+          ),
+          SizedBox(
+            width: 84,
+            child: Text(
+              'Unit Price',
+              style: labelStyle,
+              textAlign: TextAlign.right,
+            ),
+          ),
+          SizedBox(
+            width: 72,
+            child: Text(
+              'Amt',
+              style: labelStyle,
+              textAlign: TextAlign.right,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _OrderItemRow extends StatelessWidget {
+  const _OrderItemRow({required this.item});
+
+  final OrderItemEntity item;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        border: Border(
+          top: BorderSide(color: colorScheme.outlineVariant.withValues(alpha: 0.5)),
+        ),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 56,
+            child: Text(
+              _buildQtyLabel(item.quantity, item.unitType),
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ),
+          Expanded(
+            flex: 3,
+            child: Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: Text(
+                item.name,
+                style: Theme.of(context).textTheme.bodyMedium,
               ),
+            ),
+          ),
+          SizedBox(
+            width: 84,
+            child: Text(
+              formatCurrency(item.unitPrice),
+              textAlign: TextAlign.right,
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ),
+          SizedBox(
+            width: 72,
+            child: Text(
+              formatCurrency(item.lineTotal),
+              textAlign: TextAlign.right,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
             ),
           ),
         ],
@@ -337,11 +429,11 @@ String _titleCase(String value) {
   return value[0].toUpperCase() + value.substring(1);
 }
 
-String _buildItemTitle(int quantity, String? unitType, String name) {
+String _buildQtyLabel(int quantity, String? unitType) {
   final cleanUnitType = unitType?.trim();
   if (cleanUnitType == null || cleanUnitType.isEmpty) {
-    return '$quantity x $name';
+    return '$quantity';
   }
 
-  return '$quantity $cleanUnitType x $name';
+  return '$quantity $cleanUnitType';
 }
