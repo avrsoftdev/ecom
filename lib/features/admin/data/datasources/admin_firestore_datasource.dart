@@ -113,17 +113,16 @@ class AdminFirestoreDataSource {
     String? customerQuery,
     int limit = 50,
   }) {
-    Query<Map<String, dynamic>> q =
-        firestore.collection('orders').orderBy('createdAt', descending: true).limit(limit);
+    Query<Map<String, dynamic>> q = firestore.collectionGroup('orders').limit(limit);
     if (status != null && status.isNotEmpty && status != 'all') {
-      q = firestore
-          .collection('orders')
-          .where('status', isEqualTo: status)
-          .orderBy('createdAt', descending: true)
-          .limit(limit);
+      q = q.where('status', isEqualTo: status);
     }
     return q.snapshots().map((s) {
       var list = s.docs.map(OrderModel.fromFirestore).toList();
+      list.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+      if (list.length > limit) {
+        list = list.take(limit).toList();
+      }
       if (customerQuery != null && customerQuery.isNotEmpty) {
         final qy = customerQuery.toLowerCase();
         list = list
@@ -140,14 +139,21 @@ class AdminFirestoreDataSource {
   }
 
   Future<OrderModel?> getOrderById(String id) async {
-    final doc = await firestore.collection('orders').doc(id).get();
-    if (!doc.exists) return null;
-    return OrderModel.fromFirestore(doc);
+    final rootDoc = await firestore.collection('orders').doc(id).get();
+    if (rootDoc.exists) {
+      return OrderModel.fromFirestore(rootDoc);
+    }
+    final nested = await firestore.collectionGroup('orders').where(FieldPath.documentId, isEqualTo: id).limit(1).get();
+    if (nested.docs.isEmpty) return null;
+    return OrderModel.fromFirestore(nested.docs.first);
   }
 
   Future<void> updateOrderStatus(String orderId, String newStatus, OrderModel current) async {
     final batch = firestore.batch();
-    final ref = firestore.collection('orders').doc(orderId);
+    final ref = await _resolveOrderRef(orderId);
+    if (ref == null) {
+      throw StateError('Order not found');
+    }
     batch.set(
       ref,
       {
@@ -172,6 +178,24 @@ class AdminFirestoreDataSource {
     }
 
     await batch.commit();
+  }
+
+  Future<DocumentReference<Map<String, dynamic>>?> _resolveOrderRef(String orderId) async {
+    final rootRef = firestore.collection('orders').doc(orderId);
+    final rootSnap = await rootRef.get();
+    if (rootSnap.exists) {
+      return rootRef;
+    }
+
+    final nested = await firestore
+        .collectionGroup('orders')
+        .where(FieldPath.documentId, isEqualTo: orderId)
+        .limit(1)
+        .get();
+    if (nested.docs.isEmpty) {
+      return null;
+    }
+    return nested.docs.first.reference;
   }
 
   Stream<List<CategoryModel>> watchCategories() {

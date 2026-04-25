@@ -60,6 +60,7 @@ class OrderModel extends OrderEntity {
                 quantity: e.quantity,
                 unitPrice: e.unitPrice,
                 lineTotal: e.lineTotal,
+                unitType: e.unitType,
               ).toJson())
           .toList(),
       'subtotal': subtotal,

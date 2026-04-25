@@ -31,6 +31,10 @@ class AuthCubit extends Cubit<AuthState> {
   }) : super(AuthInitial());
 
   Future<void> _emitAuthenticated(User user) async {
+    // Refresh the auth token so newly assigned custom claims are available
+    // to Firestore rules without requiring a manual sign-out/sign-in cycle.
+    await user.getIdToken(true);
+
     final roleResult = await getUserRoleUseCase(GetUserRoleParams(uid: user.uid));
     roleResult.fold(
       (failure) {

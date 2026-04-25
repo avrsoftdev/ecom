@@ -13,6 +13,7 @@ import '../../features/home/presentation/pages/home_page.dart';
 import '../../features/navigation/presentation/pages/main_navigation_page.dart';
 import '../../features/navigation/presentation/pages/tabs/cart_page.dart';
 import '../../features/navigation/presentation/pages/tabs/favourites_page.dart';
+import '../../features/navigation/presentation/pages/tabs/order_history_page.dart';
 import '../../features/navigation/presentation/pages/tabs/profile_page.dart';
 import '../../features/navigation/presentation/pages/tabs/search_page.dart';
 import '../../features/product/presentation/pages/product_list_page.dart';
@@ -54,10 +55,8 @@ class AppRouter {
           StatefulShellBranch(
             routes: [
               GoRoute(
-                path: '/search',
-                builder: (context, state) => SearchPage(
-                  initialQuery: state.uri.queryParameters['q'],
-                ),
+                path: '/orders',
+                builder: (context, state) => const OrderHistoryPage(),
               ),
             ],
           ),
@@ -91,6 +90,12 @@ class AppRouter {
         path: '/products',
         builder: (context, state) => ProductListPage(
           categoryId: state.uri.queryParameters['categoryId'],
+        ),
+      ),
+      GoRoute(
+        path: '/search',
+        builder: (context, state) => SearchPage(
+          initialQuery: state.uri.queryParameters['q'],
         ),
       ),
       GoRoute(

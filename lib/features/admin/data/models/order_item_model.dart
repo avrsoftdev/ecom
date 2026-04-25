@@ -7,6 +7,7 @@ class OrderItemModel extends OrderItemEntity {
     required super.quantity,
     required super.unitPrice,
     required super.lineTotal,
+    super.unitType,
   });
 
   factory OrderItemModel.fromJson(Map<String, dynamic> json) {
@@ -16,6 +17,7 @@ class OrderItemModel extends OrderItemEntity {
       quantity: (json['quantity'] as num?)?.toInt() ?? 0,
       unitPrice: (json['unitPrice'] as num?)?.toDouble() ?? 0,
       lineTotal: (json['lineTotal'] as num?)?.toDouble() ?? 0,
+      unitType: json['unitType'] as String?,
     );
   }
 
@@ -25,5 +27,6 @@ class OrderItemModel extends OrderItemEntity {
         'quantity': quantity,
         'unitPrice': unitPrice,
         'lineTotal': lineTotal,
+        'unitType': unitType,
       };
 }

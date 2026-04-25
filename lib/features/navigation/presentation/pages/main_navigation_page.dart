@@ -21,9 +21,9 @@ class MainNavigationPage extends StatelessWidget {
         label: 'Home',
       ),
       NavigationDestination(
-        icon: Icon(Icons.search_outlined),
-        selectedIcon: Icon(Icons.search_rounded),
-        label: 'Search',
+        icon: Icon(Icons.receipt_long_outlined),
+        selectedIcon: Icon(Icons.receipt_long_rounded),
+        label: 'Orders',
       ),
       NavigationDestination(
         icon: CartIconWithBadge(

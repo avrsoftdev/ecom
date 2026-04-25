@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
 import '../../../../core/di/injection.dart';
 import '../../../auth/presentation/cubits/auth_cubit.dart';
+import '../../../cart/presentation/cubits/cart_cubit.dart';
 import '../../../location/presentation/cubits/location_cubit.dart';
 import '../../../location/presentation/cubits/location_state.dart';
 import '../cubits/checkout_cubit.dart';
@@ -118,6 +121,7 @@ class _ContactStepViewState extends State<_ContactStepView> {
   late TextEditingController _pincodeController;
   late TextEditingController _landmarkController;
   late TextEditingController _phoneController;
+  bool _isPlacingOrder = false;
 
   @override
   void initState() {
@@ -314,16 +318,7 @@ class _ContactStepViewState extends State<_ContactStepView> {
             width: double.infinity,
             height: 50.h,
             child: ElevatedButton(
-              onPressed: () {
-                // Close the bottom sheet and show success
-                Navigator.of(context).pop();
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Order placed successfully!'),
-                    backgroundColor: Colors.green,
-                  ),
-                );
-              },
+              onPressed: _isPlacingOrder ? null : _placeOrder,
               style: ElevatedButton.styleFrom(
                 backgroundColor: colorScheme.primary,
                 foregroundColor: colorScheme.onPrimary,
@@ -332,7 +327,7 @@ class _ContactStepViewState extends State<_ContactStepView> {
                 ),
               ),
               child: Text(
-                'Continue',
+                _isPlacingOrder ? 'Placing order...' : 'Continue',
                 style: TextStyle(
                   fontSize: 16.sp,
                   fontWeight: FontWeight.w600,
@@ -377,6 +372,89 @@ class _ContactStepViewState extends State<_ContactStepView> {
         ),
       ),
     );
+  }
+
+  Future<void> _placeOrder() async {
+    final cartState = context.read<CartCubit>().state;
+    if (cartState is! CartLoaded || cartState.items.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Your cart is empty')),
+      );
+      return;
+    }
+
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please login to place order')),
+      );
+      return;
+    }
+
+    setState(() => _isPlacingOrder = true);
+    try {
+      const deliveryCharge = 40.0;
+      const taxRate = 0.0;
+      final subtotal = cartState.totalPrice;
+      final tax = subtotal * taxRate;
+      final total = subtotal + deliveryCharge + tax;
+      final shippingAddress = [
+        _houseFlatBuildingController.text.trim(),
+        _streetAreaColonyController.text.trim(),
+        _landmarkController.text.trim(),
+        _cityController.text.trim(),
+        _stateController.text.trim(),
+        _pincodeController.text.trim(),
+      ].where((v) => v.isNotEmpty).join(', ');
+
+      await FirebaseFirestore.instance.collection('orders').add({
+        'userId': user.uid,
+        'items': cartState.items
+            .map(
+              (item) => {
+                'productId': item.product.id,
+                'name': item.product.name,
+                'quantity': item.quantity,
+                'unitPrice': item.unitPrice,
+                'lineTotal': item.totalPrice,
+                'unitType': item.product.unitType.displayUnit,
+              },
+            )
+            .toList(),
+        'subtotal': subtotal,
+        'deliveryCharge': deliveryCharge,
+        'tax': tax,
+        'total': total,
+        'status': 'pending',
+        'createdAt': FieldValue.serverTimestamp(),
+        'updatedAt': FieldValue.serverTimestamp(),
+        'customerName': _nameController.text.trim().isEmpty
+            ? (user.displayName ?? '')
+            : _nameController.text.trim(),
+        'customerEmail': user.email ?? '',
+        'shippingAddress': shippingAddress,
+        'phone': _phoneController.text.trim(),
+      });
+
+      if (!mounted) return;
+      context.read<CartCubit>().clearCart();
+      Navigator.of(context).pop();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Order placed successfully!'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to place order. Please try again.')),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isPlacingOrder = false);
+      }
+    }
   }
 }
 
