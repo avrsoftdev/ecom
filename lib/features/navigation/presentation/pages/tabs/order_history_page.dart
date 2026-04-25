@@ -250,7 +250,7 @@ class _OrderItemRow extends StatelessWidget {
           SizedBox(
             width: 56,
             child: Text(
-              _buildQtyLabel(item.quantity, item.unitType),
+              '${item.quantity}',
               style: Theme.of(context).textTheme.bodySmall,
             ),
           ),
@@ -427,13 +427,4 @@ class _EmptyOrderState extends StatelessWidget {
 String _titleCase(String value) {
   if (value.isEmpty) return 'Pending';
   return value[0].toUpperCase() + value.substring(1);
-}
-
-String _buildQtyLabel(int quantity, String? unitType) {
-  final cleanUnitType = unitType?.trim();
-  if (cleanUnitType == null || cleanUnitType.isEmpty) {
-    return '$quantity';
-  }
-
-  return '$quantity $cleanUnitType';
 }
