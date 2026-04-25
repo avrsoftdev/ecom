@@ -52,6 +52,7 @@ import '../../features/product/presentation/cubits/product_cubit.dart';
 import '../../features/search/presentation/cubits/search_cubit.dart';
 import '../../features/search/presentation/cubits/search_suggestion_cubit.dart';
 import '../../features/cart/presentation/cubits/cart_cubit.dart';
+import '../../features/wishlist/presentation/cubits/wishlist_cubit.dart';
 import '../../features/location/data/datasources/location_remote_datasource.dart';
 import '../../features/location/data/repositories/location_repository_impl.dart';
 import '../../features/location/domain/repositories/location_repository.dart';
@@ -214,6 +215,9 @@ Future<void> configureDependencies() async {
   getIt.registerFactory(() => ProductAdminCubit(getIt()));
   getIt.registerFactory(() => SettingsCubit(getIt()));
   getIt.registerFactory(() => CartCubit());
+  getIt.registerFactory(
+    () => WishlistCubit(sharedPreferences: getIt()),
+  );
 
   // Location
   getIt.registerLazySingleton<LocationRemoteDataSource>(

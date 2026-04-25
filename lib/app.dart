@@ -31,7 +31,7 @@ class FreshVeggieApp extends StatelessWidget {
               create: (context) => getIt<AuthCubit>()..checkAuthStatus(),
             ),
             BlocProvider(
-              create: (context) => WishlistCubit(),
+              create: (context) => getIt<WishlistCubit>()..loadWishlist(),
             ),
             BlocProvider(
               create: (context) => getIt<CartCubit>()..loadCart(),
