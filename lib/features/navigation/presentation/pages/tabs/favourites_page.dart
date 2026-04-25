@@ -25,9 +25,15 @@ class FavouritesPage extends StatelessWidget {
       appBar: const FreshVeggieHeader(),
       body: BlocBuilder<WishlistCubit, WishlistState>(
         builder: (context, state) {
-          if (state is WishlistInitial) {
+          if (state is WishlistInitial || state is WishlistLoading) {
             return const Center(
               child: CircularProgressIndicator(),
+            );
+          }
+
+          if (state is WishlistError) {
+            return Center(
+              child: Text(state.message),
             );
           }
 
@@ -174,7 +180,7 @@ class _EmptyWishlistView extends StatelessWidget {
             ),
             SizedBox(height: 16.h),
             Text(
-              'Your wishlist is empty',
+              'Your Wishlist is Empty',
               style: TextStyle(
                 fontSize: 20.sp,
                 fontWeight: FontWeight.w600,

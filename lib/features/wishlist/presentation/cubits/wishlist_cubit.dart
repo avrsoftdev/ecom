@@ -5,7 +5,13 @@ import '../../../product/domain/entities/product_entity.dart';
 part 'wishlist_state.dart';
 
 class WishlistCubit extends Cubit<WishlistState> {
-  WishlistCubit() : super(WishlistInitial());
+  WishlistCubit()
+      : super(
+          const WishlistLoaded(
+            wishlistProducts: {},
+            wishlistQuantities: {},
+          ),
+        );
 
   Map<String, ProductEntity> _wishlistProducts = {};
   Map<String, int> _wishlistQuantities = {};
