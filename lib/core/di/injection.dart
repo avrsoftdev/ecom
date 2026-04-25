@@ -214,7 +214,9 @@ Future<void> configureDependencies() async {
   getIt.registerFactory(() => DashboardCubit(getIt()));
   getIt.registerFactory(() => ProductAdminCubit(getIt()));
   getIt.registerFactory(() => SettingsCubit(getIt()));
-  getIt.registerFactory(() => CartCubit());
+  getIt.registerFactory(
+    () => CartCubit(sharedPreferences: getIt()),
+  );
   getIt.registerFactory(
     () => WishlistCubit(sharedPreferences: getIt()),
   );
