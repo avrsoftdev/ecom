@@ -16,6 +16,7 @@ class ProductCard extends StatelessWidget {
   final bool showQuantityControls;
   final VoidCallback? onIncrementQuantity;
   final VoidCallback? onDecrementQuantity;
+  final String? selectedTierLabel;
 
   const ProductCard({
     super.key,
@@ -28,6 +29,7 @@ class ProductCard extends StatelessWidget {
     this.showQuantityControls = true,
     this.onIncrementQuantity,
     this.onDecrementQuantity,
+    this.selectedTierLabel,
   });
 
   @override
@@ -35,6 +37,7 @@ class ProductCard extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final hasDiscount = product.discountPercent > 0;
     final hasTiers = product.pricingTiers.isNotEmpty;
+    final hasSelectedTier = hasTiers && quantity > 0 && selectedTierLabel != null;
     final lowestTierPrice = hasTiers
         ? product.pricingTiers
             .map((tier) => tier.price)
@@ -214,7 +217,9 @@ class ProductCard extends StatelessWidget {
                           if (hasTiers) ...[
                             SizedBox(height: 1.h),
                             Text(
-                              'Tap Add to choose a tier',
+                              hasSelectedTier
+                                  ? 'Selected: $selectedTierLabel'
+                                  : 'Tap Add to choose a tier',
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                               style: TextStyle(

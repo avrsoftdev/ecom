@@ -155,15 +155,21 @@ class _SearchPageState extends State<SearchPage> {
                                         wishlistState.wishlistProducts
                                             .containsKey(product.id);
                                 final cartCubit = context.read<CartCubit>();
-                                final quantity = cartState is CartLoaded
-                                    ? cartCubit.quantityForProduct(product.id)
-                                    : 0;
-
-                                final baseCartItem = cartState is CartLoaded
-                                    ? cartCubit.baseItemForProduct(product.id)
-                                    : null;
                                 final hasTiers =
                                     product.pricingTiers.isNotEmpty;
+                                final displayCartItem = cartState is CartLoaded
+                                    ? (hasTiers
+                                        ? cartCubit
+                                            .preferredDisplayItemForProduct(
+                                            product.id,
+                                          )
+                                        : cartCubit.baseItemForProduct(
+                                            product.id,
+                                          ))
+                                    : null;
+                                final quantity = cartState is CartLoaded
+                                    ? cartCubit.totalQuantityForProduct(product.id)
+                                    : 0;
 
                                 return ProductCard(
                                   product: product,
@@ -194,6 +200,7 @@ class _SearchPageState extends State<SearchPage> {
                                       .read<WishlistCubit>()
                                       .toggleWishlist(product),
                                   quantity: quantity,
+                                  selectedTierLabel: displayCartItem?.tierLabel,
                                   onAddToCart: () {
                                     if (hasTiers) {
                                       TierSelectionSheet.show(context, product);
@@ -201,17 +208,25 @@ class _SearchPageState extends State<SearchPage> {
                                     }
                                     cartCubit.addToCart(product);
                                   },
-                                  showQuantityControls: !hasTiers,
+                                  showQuantityControls: true,
                                   onIncrementQuantity: () {
-                                    if (baseCartItem != null) {
+                                    if (hasTiers) {
+                                      TierSelectionSheet.show(context, product);
+                                      return;
+                                    }
+                                    if (displayCartItem != null) {
                                       cartCubit
-                                          .incrementQuantity(baseCartItem.id);
+                                          .incrementQuantity(displayCartItem.id);
                                     }
                                   },
                                   onDecrementQuantity: () {
-                                    if (baseCartItem != null) {
+                                    if (hasTiers) {
+                                      TierSelectionSheet.show(context, product);
+                                      return;
+                                    }
+                                    if (displayCartItem != null) {
                                       cartCubit
-                                          .decrementQuantity(baseCartItem.id);
+                                          .decrementQuantity(displayCartItem.id);
                                     }
                                   },
                                 );

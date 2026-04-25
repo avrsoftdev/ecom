@@ -59,13 +59,17 @@ class ProductListPage extends StatelessWidget {
                           final isWishlisted = wishlistState is WishlistLoaded &&
                               wishlistState.wishlistProducts.containsKey(product.id);
                           final cartCubit = context.read<CartCubit>();
-                          final quantity = cartState is CartLoaded
-                              ? cartCubit.quantityForProduct(product.id)
-                              : 0;
                           final hasTiers = product.pricingTiers.isNotEmpty;
-                          final baseCartItem = cartState is CartLoaded
-                              ? cartCubit.baseItemForProduct(product.id)
+                          final displayCartItem = cartState is CartLoaded
+                              ? (hasTiers
+                                  ? cartCubit.preferredDisplayItemForProduct(
+                                      product.id,
+                                    )
+                                  : cartCubit.baseItemForProduct(product.id))
                               : null;
+                          final quantity = cartState is CartLoaded
+                              ? cartCubit.totalQuantityForProduct(product.id)
+                              : 0;
 
                           return Align(
                             alignment: Alignment.topCenter,
@@ -103,15 +107,24 @@ class ProductListPage extends StatelessWidget {
                               },
                               isWishlisted: isWishlisted,
                               quantity: quantity,
-                              showQuantityControls: !hasTiers,
+                              showQuantityControls: true,
+                              selectedTierLabel: displayCartItem?.tierLabel,
                               onIncrementQuantity: () {
-                                if (baseCartItem != null) {
-                                  cartCubit.incrementQuantity(baseCartItem.id);
+                                if (hasTiers) {
+                                  TierSelectionSheet.show(context, product);
+                                  return;
+                                }
+                                if (displayCartItem != null) {
+                                  cartCubit.incrementQuantity(displayCartItem.id);
                                 }
                               },
                               onDecrementQuantity: () {
-                                if (baseCartItem != null) {
-                                  cartCubit.decrementQuantity(baseCartItem.id);
+                                if (hasTiers) {
+                                  TierSelectionSheet.show(context, product);
+                                  return;
+                                }
+                                if (displayCartItem != null) {
+                                  cartCubit.decrementQuantity(displayCartItem.id);
                                 }
                               },
                             ),

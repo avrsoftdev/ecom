@@ -71,7 +71,10 @@ class CartCubit extends Cubit<CartState> {
 
     final index = _items.indexWhere((item) => item.id == cartItemId);
     if (index != -1) {
-      _items[index] = _items[index].copyWith(quantity: quantity);
+      _items[index] = _items[index].copyWith(
+        quantity: quantity,
+        addedAt: DateTime.now(),
+      );
       _emitLoadedState();
       _persistCart();
     }
@@ -83,6 +86,7 @@ class CartCubit extends Cubit<CartState> {
 
     _items[index] = _items[index].copyWith(
       quantity: _items[index].quantity + 1,
+      addedAt: DateTime.now(),
     );
     _emitLoadedState();
     _persistCart();
@@ -98,7 +102,10 @@ class CartCubit extends Cubit<CartState> {
       return;
     }
 
-    _items[index] = currentItem.copyWith(quantity: currentItem.quantity - 1);
+    _items[index] = currentItem.copyWith(
+      quantity: currentItem.quantity - 1,
+      addedAt: DateTime.now(),
+    );
     _emitLoadedState();
     _persistCart();
   }
@@ -166,9 +173,36 @@ class CartCubit extends Cubit<CartState> {
     return null;
   }
 
+  CartItemEntity? preferredDisplayItemForProduct(String productId) {
+    final matchingItems = _items
+        .where((item) => item.product.id == productId)
+        .toList(growable: false);
+
+    if (matchingItems.isEmpty) {
+      return null;
+    }
+
+    final tierItems = matchingItems
+        .where((item) => item.isTierItem)
+        .toList(growable: false);
+
+    if (tierItems.isNotEmpty) {
+      final sortedTierItems = [...tierItems]
+        ..sort((a, b) => b.addedAt.compareTo(a.addedAt));
+      return sortedTierItems.first;
+    }
+
+    return matchingItems.first;
+  }
+
   int quantityForProduct(String productId, {String? tierId}) => _items
       .where((item) => item.product.id == productId && item.tierId == tierId)
       .fold<int>(0, (sum, item) => sum + item.quantity);
+
+  int totalQuantityForProduct(String productId) => _items
+      .where((item) => item.product.id == productId)
+      .fold<int>(0, (sum, item) => sum + item.quantity);
+  
   double get cartTotal => _items.fold<double>(
         0.0,
         (sum, item) => sum + item.totalPrice,
