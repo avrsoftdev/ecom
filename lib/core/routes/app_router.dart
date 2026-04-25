@@ -16,6 +16,8 @@ import '../../features/navigation/presentation/pages/tabs/favourites_page.dart';
 import '../../features/navigation/presentation/pages/tabs/order_history_page.dart';
 import '../../features/navigation/presentation/pages/tabs/profile_page.dart';
 import '../../features/navigation/presentation/pages/tabs/search_page.dart';
+import '../../features/navigation/presentation/pages/help_center_page.dart';
+import '../../features/navigation/presentation/pages/privacy_policy_page.dart';
 import '../../features/product/presentation/pages/product_list_page.dart';
 import '../../features/checkout/presentation/pages/checkout_page.dart';
 
@@ -101,6 +103,14 @@ class AppRouter {
       GoRoute(
         path: '/checkout',
         builder: (context, state) => const CheckoutPage(),
+      ),
+      GoRoute(
+        path: '/profile/help-center',
+        builder: (context, state) => const HelpCenterPage(),
+      ),
+      GoRoute(
+        path: '/profile/privacy-policy',
+        builder: (context, state) => const PrivacyPolicyPage(),
       ),
     ],
     redirect: (context, state) {

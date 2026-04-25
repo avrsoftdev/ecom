@@ -80,19 +80,14 @@ class ProfilePage extends StatelessWidget {
                             icon: Icons.help_center_rounded,
                             title: 'Help center',
                             subtitle: 'Get support for orders and account',
-                            onTap: () => _showInfo(
-                              context,
-                              'Help center will be available soon.',
-                            ),
+                            onTap: () => context.push('/profile/help-center'),
                           ),
                           _ActionCard(
                             icon: Icons.policy_rounded,
-                            title: 'Privacy & terms',
+                            title: 'Privacy policy',
                             subtitle: 'Review app policies and guidelines',
-                            onTap: () => _showInfo(
-                              context,
-                              'Policy pages will be available soon.',
-                            ),
+                            onTap: () =>
+                                context.push('/profile/privacy-policy'),
                           ),
                           const SizedBox(height: 20),
                           const _SectionTitle('Security'),
@@ -477,12 +472,6 @@ class _LoggedOutState extends StatelessWidget {
       ),
     );
   }
-}
-
-void _showInfo(BuildContext context, String message) {
-  ScaffoldMessenger.of(context)
-    ..hideCurrentSnackBar()
-    ..showSnackBar(SnackBar(content: Text(message)));
 }
 
 String _displayName({
