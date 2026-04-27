@@ -6,6 +6,9 @@ import 'package:flutter/foundation.dart'
     show defaultTargetPlatform, kIsWeb, TargetPlatform;
 
 class DefaultFirebaseOptions {
+  static const String googleWebClientId =
+      '14234085234-uotespbo6irc706klsdv35s9ebuq4m58.apps.googleusercontent.com';
+
   static FirebaseOptions get currentPlatform {
     if (kIsWeb) {
       return web;
@@ -39,11 +42,11 @@ class DefaultFirebaseOptions {
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'your-android-api-key',
-    appId: 'your-android-app-id',
-    messagingSenderId: 'your-sender-id',
-    projectId: 'your-project-id',
-    storageBucket: 'your-project.appspot.com',
+    apiKey: 'AIzaSyDYZjcGYvye-WRLMo9YfAB7Q4VbFeEqLgQ',
+    appId: '1:14234085234:android:7f87c42ed6a91c06dd1feb',
+    messagingSenderId: '14234085234',
+    projectId: 'ecomapp-22701',
+    storageBucket: 'ecomapp-22701.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(

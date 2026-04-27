@@ -59,6 +59,7 @@ import '../../features/location/domain/repositories/location_repository.dart';
 import '../../features/location/domain/usecases/get_location_usecase.dart';
 import '../../features/location/presentation/cubits/location_cubit.dart';
 import '../../features/checkout/presentation/cubits/checkout_cubit.dart';
+import '../../firebase_options.dart';
 import '../network/network_info.dart';
 import '../theme/theme_cubit.dart';
 
@@ -68,6 +69,7 @@ Future<void> configureDependencies() async {
   final sharedPreferences = await SharedPreferences.getInstance();
   final googleSignIn = GoogleSignIn(
     scopes: const ['email'],
+    serverClientId: DefaultFirebaseOptions.googleWebClientId,
   );
 
   getIt.registerSingleton<SharedPreferences>(sharedPreferences);

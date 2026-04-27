@@ -1,4 +1,4 @@
-package com.ecomapp.avr
+package com.bajariyo.avr
 
 import io.flutter.embedding.android.FlutterActivity
 

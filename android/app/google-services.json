@@ -7,12 +7,17 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:14234085234:android:b053976c11e40291dd1feb",
+        "mobilesdk_app_id": "1:14234085234:android:7f87c42ed6a91c06dd1feb",
         "android_client_info": {
-          "package_name": "com.ecomapp.avr"
+          "package_name": "com.bajariyo.avr"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "14234085234-uotespbo6irc706klsdv35s9ebuq4m58.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyDYZjcGYvye-WRLMo9YfAB7Q4VbFeEqLgQ"
@@ -20,7 +25,78 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "14234085234-uotespbo6irc706klsdv35s9ebuq4m58.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:14234085234:android:586df895c7a7b837dd1feb",
+        "android_client_info": {
+          "package_name": "com.bajariyoadmin.avr"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "14234085234-uotespbo6irc706klsdv35s9ebuq4m58.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDYZjcGYvye-WRLMo9YfAB7Q4VbFeEqLgQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "14234085234-uotespbo6irc706klsdv35s9ebuq4m58.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:14234085234:android:b053976c11e40291dd1feb",
+        "android_client_info": {
+          "package_name": "com.ecomapp.avr"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "14234085234-fugur7buhu3rdjgiai8uitasrr0e9131.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.ecomapp.avr",
+            "certificate_hash": "952d20f83ed7ed5af161c2901c93fdf063de1ab0"
+          }
+        },
+        {
+          "client_id": "14234085234-uotespbo6irc706klsdv35s9ebuq4m58.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDYZjcGYvye-WRLMo9YfAB7Q4VbFeEqLgQ"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "14234085234-uotespbo6irc706klsdv35s9ebuq4m58.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }
