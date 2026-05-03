@@ -6,6 +6,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 
 import '../../../../core/di/injection.dart';
 import '../../../../core/services/notification_service.dart';
+import '../../../../core/services/admin_notification_service.dart';
 import '../../../auth/presentation/cubits/auth_cubit.dart';
 import '../../../cart/presentation/cubits/cart_cubit.dart';
 import '../../../location/presentation/cubits/location_cubit.dart';
@@ -442,7 +443,7 @@ class _ContactStepViewState extends State<_ContactStepView> {
       // Get FCM token for push notifications
       final fcmToken = await NotificationService().getFCMToken();
 
-      await FirebaseFirestore.instance.collection('orders').add({
+      final orderDoc = await FirebaseFirestore.instance.collection('orders').add({
         'userId': user.uid,
         'fcmToken': fcmToken, // FCM token for push notifications
         'items': cartState.items
@@ -472,6 +473,17 @@ class _ContactStepViewState extends State<_ContactStepView> {
         'phone': _phoneController.text.trim(),
         'checkoutContact': checkoutContact.toJson(),
       });
+
+      // Send notification to admin users about new order
+      await AdminNotificationService().notifyAdminsOnNewOrder(
+        orderId: orderDoc.id,
+        customerName: _nameController.text.trim().isEmpty
+            ? (user.displayName ?? 'Customer')
+            : _nameController.text.trim(),
+        totalAmount: total,
+        customerEmail: user.email ?? '',
+        phone: _phoneController.text.trim(),
+      );
 
       if (!mounted) return;
       await context.read<CheckoutCubit>().saveContactForLater(checkoutContact);

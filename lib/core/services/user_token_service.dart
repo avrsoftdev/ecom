@@ -13,7 +13,7 @@ class UserTokenService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
   /// Save FCM token to user profile when user logs in
-  Future<void> saveTokenForUser() async {
+  Future<void> saveTokenForUser({String? userRole}) async {
     try {
       final user = _auth.currentUser;
       if (user == null) return;
@@ -21,13 +21,15 @@ class UserTokenService {
       final fcmToken = await NotificationService().getFCMToken();
       if (fcmToken == null || fcmToken.isEmpty) return;
 
-      // Save token to user document
+      // Save token to user document with role information
       await _firestore.collection('users').doc(user.uid).set({
         'fcmToken': fcmToken,
+        'role': userRole ?? 'customer', // Default to customer if not specified
         'tokenUpdatedAt': FieldValue.serverTimestamp(),
+        'lastActiveAt': FieldValue.serverTimestamp(),
       }, SetOptions(merge: true));
 
-      debugPrint('FCM token saved for user: ${user.uid}');
+      debugPrint('FCM token saved for user: ${user.uid} with role: ${userRole ?? 'customer'}');
     } catch (e) {
       debugPrint('Error saving FCM token: $e');
     }

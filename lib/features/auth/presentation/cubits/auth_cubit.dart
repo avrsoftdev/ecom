@@ -36,16 +36,16 @@ class AuthCubit extends Cubit<AuthState> {
     // to Firestore rules without requiring a manual sign-out/sign-in cycle.
     await user.getIdToken(true);
 
-    // Save FCM token for push notifications
-    await UserTokenService().saveTokenForUser();
-
     final roleResult = await getUserRoleUseCase(GetUserRoleParams(uid: user.uid));
     roleResult.fold(
       (failure) {
         AuthRoleNotifier.instance.clear();
         emit(AuthError(failure.message));
       },
-      (role) {
+      (role) async {
+        // Save FCM token with user role
+        await UserTokenService().saveTokenForUser(userRole: role);
+        
         AuthRoleNotifier.instance.setRole(role);
         emit(Authenticated(user, role: role));
       },
