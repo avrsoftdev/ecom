@@ -128,6 +128,8 @@ class AuthRepositoryImpl implements AuthRepository {
       await sharedPreferences.setString('user_address', address);
 
     try {
+      // Ensure user is properly authenticated before accessing Firestore
+      await user.getIdToken();
       await remoteDataSource.upsertUserProfile(authUser);
     } on FirebaseException catch (e) {
       debugPrint(

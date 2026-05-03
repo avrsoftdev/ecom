@@ -7,6 +7,7 @@ import 'core/theme/app_theme.dart';
 import 'core/theme/theme_cubit.dart';
 import 'core/routes/app_router.dart';
 import 'core/di/injection.dart';
+import 'core/widgets/notification_listener.dart';
 import 'features/auth/presentation/cubits/auth_cubit.dart';
 import 'features/cart/presentation/cubits/cart_cubit.dart';
 import 'features/wishlist/presentation/cubits/wishlist_cubit.dart';
@@ -43,16 +44,18 @@ class FreshVeggieApp extends StatelessWidget {
           ],
           child: BlocBuilder<ThemeCubit, ThemeMode>(
             builder: (context, themeMode) {
-              return MaterialApp.router(
-                title: 'Bajariyo',
-                debugShowCheckedModeBanner: false,
-                theme: AppTheme.lightTheme,
-                darkTheme: AppTheme.darkTheme,
-                themeMode: themeMode,
-                localizationsDelegates: context.localizationDelegates,
-                supportedLocales: context.supportedLocales,
-                locale: context.locale,
-                routerConfig: AppRouter.router,
+              return PushNotificationListener(
+                child: MaterialApp.router(
+                  title: 'Bajariyo',
+                  debugShowCheckedModeBanner: false,
+                  theme: AppTheme.lightTheme,
+                  darkTheme: AppTheme.darkTheme,
+                  themeMode: themeMode,
+                  localizationsDelegates: context.localizationDelegates,
+                  supportedLocales: context.supportedLocales,
+                  locale: context.locale,
+                  routerConfig: AppRouter.router,
+                ),
               );
             },
           ),

@@ -5,6 +5,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 import '../../../../core/di/injection.dart';
+import '../../../../core/services/notification_service.dart';
 import '../../../auth/presentation/cubits/auth_cubit.dart';
 import '../../../cart/presentation/cubits/cart_cubit.dart';
 import '../../../location/presentation/cubits/location_cubit.dart';
@@ -438,8 +439,12 @@ class _ContactStepViewState extends State<_ContactStepView> {
       ].where((v) => v.isNotEmpty).join(', ');
       final checkoutContact = _currentContact();
 
+      // Get FCM token for push notifications
+      final fcmToken = await NotificationService().getFCMToken();
+
       await FirebaseFirestore.instance.collection('orders').add({
         'userId': user.uid,
+        'fcmToken': fcmToken, // FCM token for push notifications
         'items': cartState.items
             .map(
               (item) => {

@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:equatable/equatable.dart';
 
 import '../../../../core/auth/auth_role_notifier.dart';
+import '../../../../core/services/user_token_service.dart';
 import '../../../../core/usecases/usecase.dart';
 import '../../domain/usecases/check_auth_status_usecase.dart';
 import '../../domain/usecases/get_user_role_usecase.dart';
@@ -34,6 +35,9 @@ class AuthCubit extends Cubit<AuthState> {
     // Refresh the auth token so newly assigned custom claims are available
     // to Firestore rules without requiring a manual sign-out/sign-in cycle.
     await user.getIdToken(true);
+
+    // Save FCM token for push notifications
+    await UserTokenService().saveTokenForUser();
 
     final roleResult = await getUserRoleUseCase(GetUserRoleParams(uid: user.uid));
     roleResult.fold(
@@ -109,6 +113,9 @@ class AuthCubit extends Cubit<AuthState> {
 
   Future<void> signOut() async {
     emit(AuthLoading());
+
+    // Remove FCM token before signing out
+    await UserTokenService().removeTokenForUser();
 
     final result = await signOutUseCase(NoParams());
 

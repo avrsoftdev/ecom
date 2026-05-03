@@ -7,6 +7,7 @@ import 'package:flutter/foundation.dart';
 
 import 'app.dart';
 import 'core/di/injection.dart';
+import 'core/services/notification_service.dart';
 import 'firebase_options.dart';
 
 void main() async {
@@ -14,6 +15,9 @@ void main() async {
 
   // Initialize Firebase
   await _initializeFirebase();
+
+  // Initialize Notification Service
+  await NotificationService().initialize();
 
   // Initialize Crashlytics
   FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
