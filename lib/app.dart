@@ -12,6 +12,7 @@ import 'features/auth/presentation/cubits/auth_cubit.dart';
 import 'features/cart/presentation/cubits/cart_cubit.dart';
 import 'features/wishlist/presentation/cubits/wishlist_cubit.dart';
 import 'features/location/presentation/cubits/location_cubit.dart';
+import 'features/notification/presentation/cubits/notification_cubit.dart';
 
 class FreshVeggieApp extends StatelessWidget {
   const FreshVeggieApp({super.key});
@@ -39,6 +40,29 @@ class FreshVeggieApp extends StatelessWidget {
             ),
             BlocProvider(
               create: (context) => getIt<LocationCubit>()..fetchLocation(),
+            ),
+            BlocProvider(
+              create: (context) {
+                try {
+                  final cubit = getIt<NotificationCubit>();
+                  // Initialize notifications with a delay to ensure everything is ready
+                  Future.delayed(const Duration(milliseconds: 500), () {
+                    try {
+                      cubit.loadNotifications();
+                    } catch (e) {
+                      print('Error loading notifications after delay: $e');
+                    }
+                  });
+                  return cubit;
+                } catch (e) {
+                  print('Error creating NotificationCubit: $e');
+                  // Return a dummy cubit that won't crash
+                  return NotificationCubit(
+                    firestore: getIt(),
+                    firebaseAuth: getIt(),
+                  );
+                }
+              },
             ),
             // Add other global cubits here
           ],

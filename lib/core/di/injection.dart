@@ -59,6 +59,7 @@ import '../../features/location/domain/repositories/location_repository.dart';
 import '../../features/location/domain/usecases/get_location_usecase.dart';
 import '../../features/location/presentation/cubits/location_cubit.dart';
 import '../../features/checkout/presentation/cubits/checkout_cubit.dart';
+import '../../features/notification/presentation/cubits/notification_cubit.dart';
 import '../../firebase_options.dart';
 import '../network/network_info.dart';
 import '../theme/theme_cubit.dart';
@@ -239,6 +240,14 @@ Future<void> configureDependencies() async {
   getIt.registerFactory(
     () => CheckoutCubit(
       sharedPreferences: getIt(),
+      firestore: getIt(),
+      firebaseAuth: getIt(),
+    ),
+  );
+
+  // Notifications
+  getIt.registerFactory(
+    () => NotificationCubit(
       firestore: getIt(),
       firebaseAuth: getIt(),
     ),

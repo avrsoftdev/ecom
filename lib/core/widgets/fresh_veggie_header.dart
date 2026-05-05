@@ -6,6 +6,9 @@ import 'package:google_fonts/google_fonts.dart';
 import '../theme/theme_cubit.dart';
 import '../../features/location/presentation/cubits/location_cubit.dart';
 import '../../features/location/presentation/cubits/location_state.dart';
+import '../../features/notification/presentation/cubits/notification_cubit.dart';
+import '../../features/notification/presentation/cubits/notification_state.dart';
+import '../../features/notification/presentation/pages/notification_page.dart';
 
 class FreshVeggieHeader extends StatelessWidget implements PreferredSizeWidget {
   const FreshVeggieHeader({
@@ -87,6 +90,85 @@ class FreshVeggieHeader extends StatelessWidget implements PreferredSizeWidget {
       ),
       centerTitle: true,
       actions: [
+        BlocBuilder<NotificationCubit, NotificationState>(
+          builder: (context, state) {
+            int unreadCount = 0;
+            if (state is NotificationLoaded) {
+              unreadCount = state.unreadCount;
+            }
+
+            return IconButton(
+              tooltip: 'Notifications',
+              onPressed: () {
+                try {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) {
+                        try {
+                          return BlocProvider.value(
+                            value: context.read<NotificationCubit>(),
+                            child: const NotificationPage(),
+                          );
+                        } catch (e) {
+                          print('Error creating notification page: $e');
+                          // Return a simple page with error message
+                          return Scaffold(
+                            appBar: AppBar(
+                              backgroundColor: const Color(0xFF006400),
+                              foregroundColor: Colors.white,
+                              title: const Text('Notifications'),
+                            ),
+                            body: const Center(
+                              child: Text('Notifications temporarily unavailable'),
+                            ),
+                          );
+                        }
+                      },
+                    ),
+                  );
+                } catch (e) {
+                  print('Error navigating to notifications: $e');
+                }
+              },
+              icon: Stack(
+                children: [
+                  const Icon(
+                    Icons.notifications_outlined,
+                    color: Colors.white,
+                  ),
+                  if (unreadCount > 0)
+                    Positioned(
+                      right: 0,
+                      top: 0,
+                      child: Container(
+                        constraints: BoxConstraints(
+                          minWidth: 16.w,
+                          minHeight: 16.w,
+                        ),
+                        padding: EdgeInsets.all(2.w),
+                        decoration: const BoxDecoration(
+                          color: Colors.red,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Center(
+                          child: Text(
+                            unreadCount > 99 ? '99+' : unreadCount.toString(),
+                            style: GoogleFonts.poppins(
+                              fontSize: 8.sp,
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            );
+          },
+        ),
         BlocBuilder<ThemeCubit, ThemeMode>(
           builder: (context, themeMode) {
             final isDarkMode = themeMode == ThemeMode.dark;
