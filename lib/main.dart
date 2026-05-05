@@ -7,6 +7,7 @@ import 'package:flutter/foundation.dart';
 
 import 'app.dart';
 import 'core/di/injection.dart';
+import 'core/services/app_check_service.dart';
 import 'core/services/notification_service.dart';
 import 'firebase_options.dart';
 
@@ -15,6 +16,9 @@ void main() async {
 
   // Initialize Firebase
   await _initializeFirebase();
+
+  // Initialize Firebase App Check
+  await AppCheckService.initialize();
 
   // Initialize Notification Service
   await NotificationService().initialize();

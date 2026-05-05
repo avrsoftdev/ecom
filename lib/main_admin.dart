@@ -6,6 +6,7 @@ import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 
 import 'app.dart';
 import 'core/di/injection.dart';
+import 'core/services/app_check_service.dart';
 import 'firebase_options.dart';
 
 void main() async {
@@ -13,6 +14,9 @@ void main() async {
 
   // Initialize Firebase
   await _initializeFirebase();
+
+  // Initialize Firebase App Check
+  await AppCheckService.initialize();
 
   // Initialize Crashlytics
   FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterFatalError;
