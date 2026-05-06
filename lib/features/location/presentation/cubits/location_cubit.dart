@@ -23,4 +23,12 @@ class LocationCubit extends Cubit<LocationState> {
       },
     );
   }
+
+  void updateLocation(LocationEntity location) {
+    if (location.isWithinServiceArea) {
+      emit(LocationLoaded(location));
+    } else {
+      emit(LocationUnserviceable(location));
+    }
+  }
 }

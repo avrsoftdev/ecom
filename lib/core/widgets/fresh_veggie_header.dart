@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 import '../theme/theme_cubit.dart';
@@ -107,6 +108,12 @@ class FreshVeggieHeader extends StatelessWidget implements PreferredSizeWidget {
       ),
       centerTitle: false,
       actions: [
+        if (!showBackButton)
+          IconButton(
+            tooltip: 'Edit location',
+            onPressed: () => GoRouter.of(context).push('/edit-location'),
+            icon: const Icon(Icons.edit_location_alt_outlined),
+          ),
         BlocBuilder<NotificationCubit, NotificationState>(
           builder: (context, state) {
             int unreadCount = 0;

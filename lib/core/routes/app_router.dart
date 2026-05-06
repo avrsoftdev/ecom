@@ -10,6 +10,7 @@ import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/auth/presentation/pages/register_page.dart';
 import '../../features/home/presentation/cubits/home_cubit.dart';
 import '../../features/home/presentation/pages/home_page.dart';
+import '../../features/location/presentation/pages/edit_location_page.dart';
 import '../../features/location/presentation/pages/unserviceable_page.dart';
 import '../../features/navigation/presentation/pages/main_navigation_page.dart';
 import '../../features/navigation/presentation/pages/tabs/cart_page.dart';
@@ -110,6 +111,10 @@ class AppRouter {
         ),
       ),
       GoRoute(
+        path: '/edit-location',
+        builder: (context, state) => const EditLocationPage(),
+      ),
+      GoRoute(
         path: '/checkout',
         builder: (context, state) => const CheckoutPage(),
       ),
@@ -133,7 +138,8 @@ class AppRouter {
           location != '/unserviceable' &&
           location != '/home' &&
           location != '/search' &&
-          location != '/products') {
+          location != '/products' &&
+          location != '/edit-location') {
         return '/unserviceable';
       }
 
