@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("kotlin-android")
@@ -33,12 +35,33 @@ android {
         versionName = flutter.versionName
     }
 
+    val keyPropertiesFile = rootProject.file("key.properties")
+    val keyProperties = Properties().apply {
+        if (keyPropertiesFile.exists()) {
+            load(keyPropertiesFile.inputStream())
+        }
+    }
+
+    signingConfigs {
+        create("release") {
+            if (keyPropertiesFile.exists()) {
+                storeFile = file(keyProperties.getProperty("storeFile"))
+                storePassword = keyProperties.getProperty("storePassword")
+                keyAlias = keyProperties.getProperty("keyAlias")
+                keyPassword = keyProperties.getProperty("keyPassword")
+            }
+        }
+    }
+
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
-            
+            signingConfig = if (keyPropertiesFile.exists()) {
+                signingConfigs.getByName("release")
+            } else {
+                println("WARNING: android/key.properties not found. Release build will use debug keys. Create android/key.properties for Play Store signing.")
+                signingConfigs.getByName("debug")
+            }
+
             // Enable R8 code shrinking and obfuscation
             isMinifyEnabled = true
             isShrinkResources = true

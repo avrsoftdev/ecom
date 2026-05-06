@@ -1,0 +1,6 @@
+# Copy this file to android/key.properties and fill in your Play Store signing values.
+# Do not commit android/key.properties to source control.
+storePassword=YOUR_STORE_PASSWORD
+keyPassword=YOUR_KEY_PASSWORD
+keyAlias=YOUR_KEY_ALIAS
+storeFile=app/your_release_key.jks
