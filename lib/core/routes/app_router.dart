@@ -10,6 +10,7 @@ import '../../features/auth/presentation/pages/login_page.dart';
 import '../../features/auth/presentation/pages/register_page.dart';
 import '../../features/home/presentation/cubits/home_cubit.dart';
 import '../../features/home/presentation/pages/home_page.dart';
+import '../../features/location/presentation/pages/unserviceable_page.dart';
 import '../../features/navigation/presentation/pages/main_navigation_page.dart';
 import '../../features/navigation/presentation/pages/tabs/cart_page.dart';
 import '../../features/navigation/presentation/pages/tabs/favourites_page.dart';
@@ -22,13 +23,21 @@ import '../../features/product/presentation/pages/product_list_page.dart';
 import '../../features/checkout/presentation/pages/checkout_page.dart';
 
 class AppRouter {
+  static final ValueNotifier<bool> locationServiceableNotifier =
+      ValueNotifier(true);
+
   static final router = GoRouter(
     initialLocation: '/home',
     debugLogDiagnostics: kDebugMode,
+    refreshListenable: locationServiceableNotifier,
     routes: [
       GoRoute(
         path: '/',
         redirect: (context, state) => '/home',
+      ),
+      GoRoute(
+        path: '/unserviceable',
+        builder: (context, state) => const UnserviceablePage(),
       ),
       GoRoute(
         path: '/login',
@@ -117,6 +126,20 @@ class AppRouter {
       final isLoggedIn = FirebaseAuth.instance.currentUser != null;
       final location = state.matchedLocation;
       final isOnAuthPage = location == '/login' || location == '/register';
+      final isServiceable = AppRouter.locationServiceableNotifier.value;
+
+      if (!isServiceable &&
+          !isOnAuthPage &&
+          location != '/unserviceable' &&
+          location != '/home' &&
+          location != '/search' &&
+          location != '/products') {
+        return '/unserviceable';
+      }
+
+      if (isServiceable && location == '/unserviceable') {
+        return isLoggedIn ? '/home' : '/login';
+      }
 
       if (!isLoggedIn && !isOnAuthPage) {
         return '/login';

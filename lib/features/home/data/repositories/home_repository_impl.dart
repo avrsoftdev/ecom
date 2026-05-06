@@ -30,16 +30,16 @@ class HomeRepositoryImpl implements HomeRepository {
       final deals = await _safeLoad(remoteDataSource.getDeals);
       final recommended = await _safeLoad(remoteDataSource.getRecommendedProducts);
 
-      return Right(
-        HomeDataEntity(
-          banners: banners,
-          categories: categories,
-          featuredProducts: featuredProducts,
-          newArrivals: newArrivals,
-          deals: deals,
-          recommended: recommended,
-        ),
+      final homeData = HomeDataEntity(
+        banners: banners ?? [],
+        categories: categories ?? [],
+        featuredProducts: featuredProducts ?? [],
+        newArrivals: newArrivals ?? [],
+        deals: deals ?? [],
+        recommended: recommended ?? [],
       );
+
+      return Right(homeData);
     } catch (e) {
       return Left(ServerFailure(e.toString()));
     }
@@ -47,7 +47,8 @@ class HomeRepositoryImpl implements HomeRepository {
 
   Future<List<T>> _safeLoad<T>(Future<List<T>> Function() loader) async {
     try {
-      return await loader();
+      final result = await loader();
+      return result.where((item) => item != null).cast<T>().toList();
     } catch (e, stackTrace) {
       debugPrint('HomeRepositoryImpl load failed: $e');
       debugPrintStack(stackTrace: stackTrace);

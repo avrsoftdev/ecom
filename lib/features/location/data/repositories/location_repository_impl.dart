@@ -1,6 +1,8 @@
 import 'package:dartz/dartz.dart';
+import 'package:geolocator/geolocator.dart';
 import '../../../../core/error/failures.dart';
 import '../datasources/location_remote_datasource.dart';
+import '../../domain/entities/location_entity.dart';
 import '../../domain/repositories/location_repository.dart';
 
 class LocationRepositoryImpl implements LocationRepository {
@@ -8,15 +10,18 @@ class LocationRepositoryImpl implements LocationRepository {
 
   LocationRepositoryImpl(this.dataSource);
 
+  static const double _serviceCenterLatitude = 28.6533844;
+  static const double _serviceCenterLongitude = 77.4971739;
+  static const double _serviceRadiusKm = 10.0;
+
   @override
-  Future<Either<Failure, String>> getCurrentLocationAddress() async {
+  Future<Either<Failure, LocationEntity>> getCurrentLocationAddress() async {
     try {
       final position = await dataSource.getCurrentPosition();
       final placemarks = await dataSource.getPlacemarks(position);
 
       if (placemarks.isNotEmpty) {
         final place = placemarks.first;
-        // Constructing a detailed address
         final parts = [
           place.name,
           place.subLocality,
@@ -27,7 +32,24 @@ class LocationRepositoryImpl implements LocationRepository {
         ].where((part) => part != null && part.isNotEmpty).toSet().toList();
 
         final address = parts.join(', ');
-        return Right(address);
+        final distanceMeters = Geolocator.distanceBetween(
+          position.latitude,
+          position.longitude,
+          _serviceCenterLatitude,
+          _serviceCenterLongitude,
+        );
+        final distanceInKm = distanceMeters / 1000.0;
+        final isWithinServiceArea = distanceInKm <= _serviceRadiusKm;
+
+        return Right(
+          LocationEntity(
+            address: address,
+            latitude: position.latitude,
+            longitude: position.longitude,
+            distanceInKm: distanceInKm,
+            isWithinServiceArea: isWithinServiceArea,
+          ),
+        );
       } else {
         return const Left(
             ServerFailure('Could not find address for current location.'));

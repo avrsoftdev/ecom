@@ -34,61 +34,78 @@ class FreshVeggieHeader extends StatelessWidget implements PreferredSizeWidget {
       leading: showBackButton
           ? IconButton(
               icon: const Icon(Icons.arrow_back_rounded),
-              onPressed: onBackPressed ?? () => Navigator.of(context).maybePop(),
+              onPressed:
+                  onBackPressed ?? () => Navigator.of(context).maybePop(),
             )
           : null,
-      title: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            title,
-            style: GoogleFonts.poppins(
-              textStyle: (Theme.of(context).appBarTheme.titleTextStyle ??
-                      Theme.of(context).textTheme.titleLarge)
-                  ?.copyWith(color: Colors.white),
+      titleSpacing: 16,
+      title: Align(
+        alignment: Alignment.topLeft,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              title,
+              style: GoogleFonts.poppins(
+                textStyle: (Theme.of(context).appBarTheme.titleTextStyle ??
+                        Theme.of(context).textTheme.titleLarge)
+                    ?.copyWith(color: Colors.white),
+              ),
             ),
-          ),
-          if (!showBackButton) ...[
-            SizedBox(height: 2.h),
-            BlocBuilder<LocationCubit, LocationState>(
-              builder: (context, state) {
-                if (state is LocationLoaded) {
-                  return Text(
-                    state.address,
-                    style: GoogleFonts.poppins(
-                      fontSize: 10.sp,
-                      color: Colors.white70,
-                      fontWeight: FontWeight.w400,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  );
-                } else if (state is LocationLoading) {
-                  return Text(
-                    'Getting location...',
-                    style: GoogleFonts.poppins(
-                      fontSize: 10.sp,
-                      color: Colors.white70,
-                      fontWeight: FontWeight.w400,
-                    ),
-                  );
-                } else if (state is LocationError) {
-                  return Text(
-                    'Location unavailable',
-                    style: GoogleFonts.poppins(
-                      fontSize: 10.sp,
-                      color: Colors.white70,
-                      fontWeight: FontWeight.w400,
-                    ),
-                  );
-                }
-                return const SizedBox.shrink();
-              },
-            ),
+            if (!showBackButton) ...[
+              SizedBox(height: 2.h),
+              BlocBuilder<LocationCubit, LocationState>(
+                builder: (context, state) {
+                  if (state is LocationLoaded) {
+                    return Text(
+                      state.location.address,
+                      style: GoogleFonts.poppins(
+                        fontSize: 10.sp,
+                        color: Colors.white70,
+                        fontWeight: FontWeight.w400,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    );
+                  } else if (state is LocationUnserviceable) {
+                    return Text(
+                      state.location.address,
+                      style: GoogleFonts.poppins(
+                        fontSize: 10.sp,
+                        color: Colors.white70,
+                        fontWeight: FontWeight.w400,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    );
+                  } else if (state is LocationLoading) {
+                    return Text(
+                      'Getting location...',
+                      style: GoogleFonts.poppins(
+                        fontSize: 10.sp,
+                        color: Colors.white70,
+                        fontWeight: FontWeight.w400,
+                      ),
+                    );
+                  } else if (state is LocationError) {
+                    return Text(
+                      'Location unavailable',
+                      style: GoogleFonts.poppins(
+                        fontSize: 10.sp,
+                        color: Colors.white70,
+                        fontWeight: FontWeight.w400,
+                      ),
+                    );
+                  }
+                  return const SizedBox.shrink();
+                },
+              ),
+            ],
           ],
-        ],
+        ),
       ),
-      centerTitle: true,
+      centerTitle: false,
       actions: [
         BlocBuilder<NotificationCubit, NotificationState>(
           builder: (context, state) {
@@ -111,7 +128,7 @@ class FreshVeggieHeader extends StatelessWidget implements PreferredSizeWidget {
                             child: const NotificationPage(),
                           );
                         } catch (e) {
-                          print('Error creating notification page: $e');
+                          debugPrint('Error creating notification page: $e');
                           // Return a simple page with error message
                           return Scaffold(
                             appBar: AppBar(
@@ -120,7 +137,8 @@ class FreshVeggieHeader extends StatelessWidget implements PreferredSizeWidget {
                               title: const Text('Notifications'),
                             ),
                             body: const Center(
-                              child: Text('Notifications temporarily unavailable'),
+                              child:
+                                  Text('Notifications temporarily unavailable'),
                             ),
                           );
                         }
@@ -128,7 +146,7 @@ class FreshVeggieHeader extends StatelessWidget implements PreferredSizeWidget {
                     ),
                   );
                 } catch (e) {
-                  print('Error navigating to notifications: $e');
+                  debugPrint('Error navigating to notifications: $e');
                 }
               },
               icon: Stack(

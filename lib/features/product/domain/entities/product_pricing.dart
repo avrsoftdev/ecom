@@ -26,9 +26,23 @@ class ProductPricing extends Equatable {
   }
 
   factory ProductPricing.fromJson(Map<String, dynamic> json) {
+    double parseDouble(dynamic value, {double fallback = 0}) {
+      if (value is num) {
+        final d = value.toDouble();
+        if (d.isNaN || d.isInfinite) return fallback;
+        return d;
+      }
+      if (value is String) {
+        final d = double.tryParse(value.trim());
+        if (d == null || d.isNaN || d.isInfinite) return fallback;
+        return d;
+      }
+      return fallback;
+    }
+    
     return ProductPricing(
-      quantity: (json['quantity'] as num?)?.toDouble() ?? 0,
-      price: (json['price'] as num?)?.toDouble() ?? 0,
+      quantity: parseDouble(json['quantity'], fallback: 1),
+      price: parseDouble(json['price']),
       description: json['description'] as String?,
     );
   }

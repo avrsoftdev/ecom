@@ -209,7 +209,9 @@ class _ContactStepViewState extends State<_ContactStepView> {
 
                     String address = '';
                     if (locationState is LocationLoaded) {
-                      address = locationState.address;
+                      address = locationState.location.address;
+                    } else if (locationState is LocationUnserviceable) {
+                      address = locationState.location.address;
                     }
 
                     context
@@ -486,10 +488,14 @@ class _ContactStepViewState extends State<_ContactStepView> {
       );
 
       if (!mounted) return;
-      await context.read<CheckoutCubit>().saveContactForLater(checkoutContact);
-      context.read<CartCubit>().clearCart();
-      Navigator.of(context).pop();
-      ScaffoldMessenger.of(context).showSnackBar(
+      final checkoutCubit = context.read<CheckoutCubit>();
+      final cartCubit = context.read<CartCubit>();
+      final navigator = Navigator.of(context);
+      final messenger = ScaffoldMessenger.of(context);
+      await checkoutCubit.saveContactForLater(checkoutContact);
+      cartCubit.clearCart();
+      navigator.pop();
+      messenger.showSnackBar(
         const SnackBar(
           content: Text('Order placed successfully!'),
           backgroundColor: Colors.green,

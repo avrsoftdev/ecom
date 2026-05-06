@@ -17,6 +17,8 @@ class HomeCubit extends Cubit<HomeState> {
     
     final result = await getHomeDataUseCase(NoParams());
     
+    if (isClosed) return;
+    
     result.fold(
       (failure) {
         String errorMessage = 'Something went wrong';
@@ -25,10 +27,28 @@ class HomeCubit extends Cubit<HomeState> {
         } else if (failure is NetworkFailure) {
           errorMessage = 'No internet connection';
         }
-        emit(HomeError(message: errorMessage));
+        if (!isClosed) {
+          emit(HomeError(message: errorMessage));
+        }
       },
       (homeData) {
-        emit(HomeLoaded(homeData: homeData));
+        if (homeData == null) {
+          if (!isClosed) {
+            emit(HomeError(message: 'Received null home data'));
+          }
+          return;
+        }
+        try {
+          if (!isClosed) {
+            emit(HomeLoaded(homeData: homeData));
+          }
+        } catch (e, stackTrace) {
+          print('Error emitting HomeLoaded: $e');
+          print(stackTrace);
+          if (!isClosed) {
+            emit(HomeError(message: 'Error loading home data: $e'));
+          }
+        }
       },
     );
   }
@@ -37,7 +57,9 @@ class HomeCubit extends Cubit<HomeState> {
     final currentState = state;
     if (currentState is HomeLoaded) {
       // Keep the current data while refreshing
-      emit(HomeLoading());
+      if (!isClosed) {
+        emit(HomeLoading());
+      }
       await loadHomeData();
     } else {
       await loadHomeData();

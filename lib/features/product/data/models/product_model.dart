@@ -30,18 +30,33 @@ class ProductModel extends ProductEntity {
             .where((e) => e.isNotEmpty)
             .toList() ??
         const <String>[];
+    
+    double parseDouble(dynamic value, {double fallback = 0}) {
+      if (value is num) {
+        final d = value.toDouble();
+        if (d.isNaN || d.isInfinite) return fallback;
+        return d;
+      }
+      if (value is String) {
+        final d = double.tryParse(value.trim());
+        if (d == null || d.isNaN || d.isInfinite) return fallback;
+        return d;
+      }
+      return fallback;
+    }
+    
     return ProductModel(
-      id: json['id'] as String,
-      name: json['name'] as String,
+      id: json['id'] as String? ?? '',
+      name: json['name'] as String? ?? '',
       description: json['description'] as String? ?? '',
-      price: (json['price'] as num?)?.toDouble() ?? 0,
+      price: parseDouble(json['price']),
       imageUrl: json['imageUrl'] as String? ?? '',
       categoryId: json['categoryId'] as String? ?? '',
       stock: (json['stock'] as num?)?.toInt() ?? 0,
       isAvailable: json['isAvailable'] as bool? ?? true,
       createdAt: _parseTime(json['createdAt']),
       updatedAt: _parseTime(json['updatedAt']),
-      discountPercent: (json['discountPercent'] as num?)?.toDouble() ?? 0,
+      discountPercent: parseDouble(json['discountPercent']),
       featured: json['featured'] as bool? ?? false,
       imageUrls: imageUrls,
       soldCount: (json['soldCount'] as num?)?.toInt() ?? 0,

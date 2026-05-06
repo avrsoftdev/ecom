@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/usecases/usecase.dart';
+import '../../domain/entities/location_entity.dart';
 import '../../domain/usecases/get_location_usecase.dart';
 import 'location_state.dart';
 
@@ -13,7 +14,13 @@ class LocationCubit extends Cubit<LocationState> {
     final result = await getLocationUseCase(NoParams());
     result.fold(
       (failure) => emit(LocationError(failure.message)),
-      (address) => emit(LocationLoaded(address)),
+      (location) {
+        if (location.isWithinServiceArea) {
+          emit(LocationLoaded(location));
+        } else {
+          emit(LocationUnserviceable(location));
+        }
+      },
     );
   }
 }

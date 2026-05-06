@@ -12,6 +12,7 @@ import 'features/auth/presentation/cubits/auth_cubit.dart';
 import 'features/cart/presentation/cubits/cart_cubit.dart';
 import 'features/wishlist/presentation/cubits/wishlist_cubit.dart';
 import 'features/location/presentation/cubits/location_cubit.dart';
+import 'features/location/presentation/cubits/location_state.dart';
 import 'features/notification/presentation/cubits/notification_cubit.dart';
 
 class FreshVeggieApp extends StatelessWidget {
@@ -66,22 +67,31 @@ class FreshVeggieApp extends StatelessWidget {
             ),
             // Add other global cubits here
           ],
-          child: BlocBuilder<ThemeCubit, ThemeMode>(
-            builder: (context, themeMode) {
-              return PushNotificationListener(
-                child: MaterialApp.router(
-                  title: 'Bajariyo',
-                  debugShowCheckedModeBanner: false,
-                  theme: AppTheme.lightTheme,
-                  darkTheme: AppTheme.darkTheme,
-                  themeMode: themeMode,
-                  localizationsDelegates: context.localizationDelegates,
-                  supportedLocales: context.supportedLocales,
-                  locale: context.locale,
-                  routerConfig: AppRouter.router,
-                ),
-              );
+          child: BlocListener<LocationCubit, LocationState>(
+            listener: (context, state) {
+              if (state is LocationLoaded) {
+                AppRouter.locationServiceableNotifier.value = true;
+              } else if (state is LocationUnserviceable || state is LocationError) {
+                AppRouter.locationServiceableNotifier.value = false;
+              }
             },
+            child: BlocBuilder<ThemeCubit, ThemeMode>(
+              builder: (context, themeMode) {
+                return PushNotificationListener(
+                  child: MaterialApp.router(
+                    title: 'Bajariyo',
+                    debugShowCheckedModeBanner: false,
+                    theme: AppTheme.lightTheme,
+                    darkTheme: AppTheme.darkTheme,
+                    themeMode: themeMode,
+                    localizationsDelegates: context.localizationDelegates,
+                    supportedLocales: context.supportedLocales,
+                    locale: context.locale,
+                    routerConfig: AppRouter.router,
+                  ),
+                );
+              },
+            ),
           ),
         );
       },
