@@ -7,6 +7,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../../../../core/di/injection.dart';
 import '../../../../core/services/notification_service.dart';
 import '../../../../core/services/admin_notification_service.dart';
+import '../../../../core/widgets/location_autocomplete_field.dart';
 import '../../../auth/presentation/cubits/auth_cubit.dart';
 import '../../../cart/presentation/cubits/cart_cubit.dart';
 import '../../../location/presentation/cubits/location_cubit.dart';
@@ -284,13 +285,29 @@ class _ContactStepViewState extends State<_ContactStepView> {
                 ),
           ),
           SizedBox(height: 12.h),
-          _buildTextField(
+          LocationAutocompleteField(
             controller: _streetAreaColonyController,
             label: 'Street / Area / Colony Name',
             icon: Icons.location_on_outlined,
             onChanged: (val) => context.read<CheckoutCubit>().updateContact(
                   widget.contact.copyWith(streetAreaColony: val),
                 ),
+            onSuggestionSelected: (suggestion) {
+              // Update controllers
+              if (suggestion.city != null) _cityController.text = suggestion.city!;
+              if (suggestion.state != null) _stateController.text = suggestion.state!;
+              if (suggestion.pincode != null) _pincodeController.text = suggestion.pincode!;
+              
+              // Update state in Cubit
+              context.read<CheckoutCubit>().updateContact(
+                    widget.contact.copyWith(
+                      streetAreaColony: suggestion.title,
+                      city: suggestion.city ?? _cityController.text,
+                      state: suggestion.state ?? _stateController.text,
+                      pincode: suggestion.pincode ?? _pincodeController.text,
+                    ),
+                  );
+            },
           ),
           SizedBox(height: 12.h),
           _buildTextField(
