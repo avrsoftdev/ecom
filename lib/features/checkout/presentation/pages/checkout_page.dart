@@ -1,8 +1,11 @@
+import 'dart:async';
+import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:latlong2/latlong.dart';
 
 import '../../../../core/di/injection.dart';
 import '../../../../core/services/notification_service.dart';
@@ -22,7 +25,7 @@ class CheckoutBottomSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final screenHeight = MediaQuery.of(context).size.height;
-    
+
     return BlocProvider(
       create: (context) => getIt<CheckoutCubit>()..startCheckout(),
       child: Container(
@@ -63,7 +66,10 @@ class CheckoutBottomSheet extends StatelessWidget {
       width: 40.w,
       height: 4.h,
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.onSurfaceVariant.withValues(alpha: 0.4),
+        color: Theme.of(context)
+            .colorScheme
+            .onSurfaceVariant
+            .withValues(alpha: 0.4),
         borderRadius: BorderRadius.circular(2.r),
       ),
     );
@@ -71,7 +77,7 @@ class CheckoutBottomSheet extends StatelessWidget {
 
   Widget _buildHeader(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
-    
+
     return Container(
       padding: EdgeInsets.symmetric(horizontal: 16.w, vertical: 12.h),
       child: Row(
@@ -132,18 +138,43 @@ class _ContactStepViewState extends State<_ContactStepView> {
   late TextEditingController _landmarkController;
   late TextEditingController _phoneController;
   bool _isPlacingOrder = false;
+  LatLng? _selectedLatLng;
+  bool _isServiceable = true;
 
   @override
   void initState() {
     super.initState();
     _nameController = TextEditingController(text: widget.contact.name);
-    _houseFlatBuildingController = TextEditingController(text: widget.contact.houseFlatBuilding);
-    _streetAreaColonyController = TextEditingController(text: widget.contact.streetAreaColony);
+    _houseFlatBuildingController =
+        TextEditingController(text: widget.contact.houseFlatBuilding);
+    _streetAreaColonyController =
+        TextEditingController(text: widget.contact.streetAreaColony);
     _cityController = TextEditingController(text: widget.contact.city);
     _stateController = TextEditingController(text: widget.contact.state);
     _pincodeController = TextEditingController(text: widget.contact.pincode);
     _landmarkController = TextEditingController(text: widget.contact.landmark);
     _phoneController = TextEditingController(text: widget.contact.phoneNumber);
+
+    // Initial check for serviceability if contact has address
+    _checkInitialServiceability();
+  }
+
+  void _checkInitialServiceability() {
+    final locationState = context.read<LocationCubit>().state;
+    if (widget.contact.isForSelf && locationState is LocationLoaded) {
+      _selectedLatLng = LatLng(
+        locationState.location.latitude,
+        locationState.location.longitude,
+      );
+      _validateServiceArea(_selectedLatLng!);
+    }
+  }
+
+  void _validateServiceArea(LatLng latLng) {
+    final distance = _calculateDistance(latLng.latitude, latLng.longitude);
+    setState(() {
+      _isServiceable = distance <= 10.0;
+    });
   }
 
   @override
@@ -211,8 +242,29 @@ class _ContactStepViewState extends State<_ContactStepView> {
                     String address = '';
                     if (locationState is LocationLoaded) {
                       address = locationState.location.address;
+                      _selectedLatLng = LatLng(
+                        locationState.location.latitude,
+                        locationState.location.longitude,
+                      );
                     } else if (locationState is LocationUnserviceable) {
                       address = locationState.location.address;
+                      _selectedLatLng = LatLng(
+                        locationState.location.latitude,
+                        locationState.location.longitude,
+                      );
+                    }
+
+                    if (_selectedLatLng != null) {
+                      _validateServiceArea(_selectedLatLng!);
+                      if (!_isServiceable) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                                'Currently, We are not providing services in your area'),
+                            backgroundColor: Colors.red,
+                          ),
+                        );
+                      }
                     }
 
                     context
@@ -251,6 +303,11 @@ class _ContactStepViewState extends State<_ContactStepView> {
                 child: _SavedDetailsCard(
                   contact: contact,
                   onTap: () {
+                    // Check service area for saved contact if coordinates are available
+                    // Note: In a real app, you might want to store LatLng in CheckoutContactEntity
+                    // For now, we'll try to geocode or just rely on the user re-selecting if needed.
+                    // But if we have coordinates in the contact, we should check it.
+
                     context.read<CheckoutCubit>().useSavedContact(contact);
                   },
                 ),
@@ -294,10 +351,27 @@ class _ContactStepViewState extends State<_ContactStepView> {
                 ),
             onSuggestionSelected: (suggestion) {
               // Update controllers
-              if (suggestion.city != null) _cityController.text = suggestion.city!;
-              if (suggestion.state != null) _stateController.text = suggestion.state!;
-              if (suggestion.pincode != null) _pincodeController.text = suggestion.pincode!;
-              
+              if (suggestion.city != null)
+                _cityController.text = suggestion.city!;
+              if (suggestion.state != null)
+                _stateController.text = suggestion.state!;
+              if (suggestion.pincode != null)
+                _pincodeController.text = suggestion.pincode!;
+
+              _selectedLatLng = suggestion.position;
+              _validateServiceArea(_selectedLatLng!);
+
+              if (!_isServiceable) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text(
+                        'Currently, We are not providing services in your area'),
+                    backgroundColor: Colors.red,
+                    duration: Duration(seconds: 3),
+                  ),
+                );
+              }
+
               // Update state in Cubit
               context.read<CheckoutCubit>().updateContact(
                     widget.contact.copyWith(
@@ -326,9 +400,10 @@ class _ContactStepViewState extends State<_ContactStepView> {
                   controller: _stateController,
                   label: 'State',
                   icon: Icons.map_outlined,
-                  onChanged: (val) => context.read<CheckoutCubit>().updateContact(
-                        widget.contact.copyWith(state: val),
-                      ),
+                  onChanged: (val) =>
+                      context.read<CheckoutCubit>().updateContact(
+                            widget.contact.copyWith(state: val),
+                          ),
                 ),
               ),
               SizedBox(width: 12.w),
@@ -338,9 +413,10 @@ class _ContactStepViewState extends State<_ContactStepView> {
                   label: 'Pincode',
                   icon: Icons.pin_outlined,
                   keyboardType: TextInputType.number,
-                  onChanged: (val) => context.read<CheckoutCubit>().updateContact(
-                        widget.contact.copyWith(pincode: val),
-                      ),
+                  onChanged: (val) =>
+                      context.read<CheckoutCubit>().updateContact(
+                            widget.contact.copyWith(pincode: val),
+                          ),
                 ),
               ),
             ],
@@ -369,16 +445,23 @@ class _ContactStepViewState extends State<_ContactStepView> {
             width: double.infinity,
             height: 50.h,
             child: ElevatedButton(
-              onPressed: _isPlacingOrder ? null : _placeOrder,
+              onPressed:
+                  (_isPlacingOrder || !_isServiceable) ? null : _placeOrder,
               style: ElevatedButton.styleFrom(
                 backgroundColor: colorScheme.primary,
                 foregroundColor: colorScheme.onPrimary,
+                disabledBackgroundColor:
+                    colorScheme.onSurface.withValues(alpha: 0.12),
+                disabledForegroundColor:
+                    colorScheme.onSurface.withValues(alpha: 0.38),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(8.r),
                 ),
               ),
               child: Text(
-                _isPlacingOrder ? 'Placing order...' : 'Continue',
+                _isPlacingOrder
+                    ? 'Placing order...'
+                    : (_isServiceable ? 'Continue' : 'Area Not Serviceable'),
                 style: TextStyle(
                   fontSize: 16.sp,
                   fontWeight: FontWeight.w600,
@@ -389,6 +472,28 @@ class _ContactStepViewState extends State<_ContactStepView> {
         ],
       ),
     );
+  }
+
+  double _calculateDistance(double latitude, double longitude) {
+    const double waveCityLat = 28.6535345;
+    const double waveCityLng = 77.4996625;
+    const double earthRadius = 6371; // km
+
+    final double dLat = _degreesToRadians(latitude - waveCityLat);
+    final double dLon = _degreesToRadians(longitude - waveCityLng);
+
+    final double a = math.sin(dLat / 2) * math.sin(dLat / 2) +
+        math.cos(_degreesToRadians(waveCityLat)) *
+            math.cos(_degreesToRadians(latitude)) *
+            math.sin(dLon / 2) *
+            math.sin(dLon / 2);
+    final double c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a));
+
+    return earthRadius * c;
+  }
+
+  double _degreesToRadians(double degrees) {
+    return degrees * (math.pi / 180);
   }
 
   Widget _buildTextField({
@@ -442,6 +547,21 @@ class _ContactStepViewState extends State<_ContactStepView> {
       return;
     }
 
+    // Double check service area before placing order
+    if (_selectedLatLng != null) {
+      _validateServiceArea(_selectedLatLng!);
+      if (!_isServiceable) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content:
+                Text('Currently, We are not providing services in your area'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
+    }
+
     setState(() => _isPlacingOrder = true);
     try {
       const deliveryCharge = 40.0;
@@ -462,7 +582,8 @@ class _ContactStepViewState extends State<_ContactStepView> {
       // Get FCM token for push notifications
       final fcmToken = await NotificationService().getFCMToken();
 
-      final orderDoc = await FirebaseFirestore.instance.collection('orders').add({
+      final orderDoc =
+          await FirebaseFirestore.instance.collection('orders').add({
         'userId': user.uid,
         'fcmToken': fcmToken, // FCM token for push notifications
         'items': cartState.items
@@ -521,7 +642,8 @@ class _ContactStepViewState extends State<_ContactStepView> {
     } catch (_) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Failed to place order. Please try again.')),
+        const SnackBar(
+            content: Text('Failed to place order. Please try again.')),
       );
     } finally {
       if (mounted) {
@@ -600,7 +722,9 @@ class _SavedDetailsCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    contact.name.trim().isEmpty ? 'Saved delivery details' : contact.name,
+                    contact.name.trim().isEmpty
+                        ? 'Saved delivery details'
+                        : contact.name,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
