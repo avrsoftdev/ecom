@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -209,6 +210,30 @@ class _EditLocationPageState extends State<EditLocationPage> {
            longitude >= 68.7 && longitude <= 97.3;
   }
 
+  // Calculate distance from Wave City, Ghaziabad using Haversine formula
+  double _calculateDistanceFromWaveCity(double latitude, double longitude) {
+    const double waveCityLat = 28.6535345;
+    const double waveCityLng = 77.4996625;
+    
+    const double earthRadius = 6371; // Earth's radius in kilometers
+    
+    double lat1Rad = _degreesToRadians(waveCityLat);
+    double lat2Rad = _degreesToRadians(latitude);
+    double deltaLatRad = _degreesToRadians(latitude - waveCityLat);
+    double deltaLngRad = _degreesToRadians(longitude - waveCityLng);
+    
+    double a = math.sin(deltaLatRad / 2) * math.sin(deltaLatRad / 2) +
+        math.cos(lat1Rad) * math.cos(lat2Rad) *
+        math.sin(deltaLngRad / 2) * math.sin(deltaLngRad / 2);
+    double c = 2 * math.asin(math.sqrt(a));
+    
+    return earthRadius * c;
+  }
+
+  double _degreesToRadians(double degrees) {
+    return degrees * (math.pi / 180);
+  }
+
   String _formatPlacemark(Placemark placemark, [String? originalQuery]) {
     // Debug: Print all available placemark data
     print('=== DEBUG: Placemark Data ===');
@@ -294,23 +319,30 @@ class _EditLocationPageState extends State<EditLocationPage> {
     return fullAddress;
   }
 
-  Future<void> _updateSelectedLocation(LatLng latLng) async {
+  Future<void> _updateSelectedLocation(LatLng latLng, [String? address]) async {
     setState(() {
       _selectedLatLng = latLng;
-      _selectedAddress = null;
+      if (address != null) {
+        _selectedAddress = address;
+      } else {
+        _selectedAddress = null;
+      }
     });
 
-    try {
-      final placemarks = await placemarkFromCoordinates(latLng.latitude, latLng.longitude);
-      if (placemarks.isNotEmpty) {
+    // Only fetch placemarks if no address was provided
+    if (address == null) {
+      try {
+        final placemarks = await placemarkFromCoordinates(latLng.latitude, latLng.longitude);
+        if (placemarks.isNotEmpty) {
+          setState(() {
+            _selectedAddress = _formatPlacemark(placemarks.first);
+          });
+        }
+      } catch (_) {
         setState(() {
-          _selectedAddress = _formatPlacemark(placemarks.first);
+          _selectedAddress = '${latLng.latitude.toStringAsFixed(6)}, ${latLng.longitude.toStringAsFixed(6)}';
         });
       }
-    } catch (_) {
-      setState(() {
-        _selectedAddress = '${latLng.latitude.toStringAsFixed(6)}, ${latLng.longitude.toStringAsFixed(6)}';
-      });
     }
   }
 
@@ -322,11 +354,28 @@ class _EditLocationPageState extends State<EditLocationPage> {
       return;
     }
 
+    // Check if location is within 10km of Wave City, Ghaziabad
+    final distanceFromWaveCity = _calculateDistanceFromWaveCity(
+      _selectedLatLng!.latitude,
+      _selectedLatLng!.longitude,
+    );
+
+    if (distanceFromWaveCity > 10.0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('We are not currently available in your area'),
+          backgroundColor: Colors.red,
+          duration: Duration(seconds: 3),
+        ),
+      );
+      return;
+    }
+
     final locationEntity = LocationEntity(
       address: _selectedAddress!,
       latitude: _selectedLatLng!.latitude,
       longitude: _selectedLatLng!.longitude,
-      distanceInKm: 0.0,
+      distanceInKm: distanceFromWaveCity,
       isWithinServiceArea: true,
     );
 
@@ -402,7 +451,7 @@ class _EditLocationPageState extends State<EditLocationPage> {
                           _searchController.text = suggestion.title;
                           _suggestions.clear();
                           _mapController.move(suggestion.position, 14);
-                          _updateSelectedLocation(suggestion.position);
+                          _updateSelectedLocation(suggestion.position, suggestion.title);
                         },
                       );
                     },
