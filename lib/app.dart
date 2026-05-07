@@ -40,7 +40,7 @@ class FreshVeggieApp extends StatelessWidget {
               create: (context) => getIt<CartCubit>()..loadCart(),
             ),
             BlocProvider(
-              create: (context) => getIt<LocationCubit>()..fetchLocation(),
+              create: (context) => getIt<LocationCubit>(),
             ),
             BlocProvider(
               create: (context) {

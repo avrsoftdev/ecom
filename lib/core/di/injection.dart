@@ -235,7 +235,10 @@ Future<void> configureDependencies() async {
     () => GetCurrentLocationAddressUseCase(getIt()),
   );
   getIt.registerFactory(
-    () => LocationCubit(getLocationUseCase: getIt()),
+    () => LocationCubit(
+      getLocationUseCase: getIt(),
+      sharedPreferences: getIt(),
+    ),
   );
   getIt.registerFactory(
     () => CheckoutCubit(
