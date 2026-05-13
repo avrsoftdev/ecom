@@ -44,22 +44,32 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
   @override
   Future<UserCredential> signInWithGoogle() async {
-    final googleUser = await googleSignIn.signIn();
+    try {
+      final googleUser = await googleSignIn.signIn();
 
-    if (googleUser == null) {
+      if (googleUser == null) {
+        throw FirebaseAuthException(
+          code: 'sign_in_canceled',
+          message: 'Google sign in was canceled.',
+        );
+      }
+
+      final googleAuthentication = await googleUser.authentication;
+      final credential = GoogleAuthProvider.credential(
+        accessToken: googleAuthentication.accessToken,
+        idToken: googleAuthentication.idToken,
+      );
+
+      return firebaseAuth.signInWithCredential(credential);
+    } catch (e) {
+      if (e is FirebaseAuthException) {
+        rethrow;
+      }
       throw FirebaseAuthException(
-        code: 'sign_in_canceled',
-        message: 'Google sign in was canceled.',
+        code: 'google_sign_in_error',
+        message: 'Failed to sign in with Google: ${e.toString()}',
       );
     }
-
-    final googleAuthentication = await googleUser.authentication;
-    final credential = GoogleAuthProvider.credential(
-      accessToken: googleAuthentication.accessToken,
-      idToken: googleAuthentication.idToken,
-    );
-
-    return firebaseAuth.signInWithCredential(credential);
   }
 
   @override

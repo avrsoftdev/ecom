@@ -17,6 +17,7 @@ import '../../../../core/network/network_info.dart';
 import '../../../wishlist/presentation/cubits/wishlist_cubit.dart';
 import '../cubits/home_cubit.dart';
 import '../widgets/banner_slider.dart';
+import '../widgets/banner_ad_widget.dart';
 import '../widgets/category_item.dart';
 import '../widgets/home_search_field.dart';
 import '../widgets/home_shimmer.dart';
@@ -121,6 +122,12 @@ class HomePage extends StatelessWidget {
                         );
                       },
                     ),
+                  ),
+                ),
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(vertical: 16.h),
+                    child: const BannerAdWidget(),
                   ),
                 ),
                 _ProductSection(

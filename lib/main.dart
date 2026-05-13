@@ -4,6 +4,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 import 'app.dart';
 import 'core/di/injection.dart';
@@ -35,6 +36,9 @@ void main() async {
 
   // Initialize dependency injection
   await configureDependencies();
+
+  // Initialize Google Mobile Ads
+  MobileAds.instance.initialize();
 
   // Set preferred orientations
   await SystemChrome.setPreferredOrientations([

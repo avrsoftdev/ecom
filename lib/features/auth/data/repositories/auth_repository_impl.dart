@@ -1,6 +1,7 @@
 import 'package:dartz/dartz.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -66,8 +67,10 @@ class AuthRepositoryImpl implements AuthRepository {
       return Right(result);
     } on FirebaseAuthException catch (e) {
       return Left(AuthFailure(_mapFirebaseErrorToMessage(e)));
+    } on PlatformException catch (e) {
+      return Left(AuthFailure('Google Sign-In failed: ${e.message ?? e.code}'));
     } catch (e) {
-      return Left(ServerFailure(e.toString()));
+      return Left(ServerFailure('Unexpected error during Google Sign-In: ${e.toString()}'));
     }
   }
 
@@ -179,6 +182,8 @@ class AuthRepositoryImpl implements AuthRepository {
         return 'Firebase project configuration not found.';
       case 'internal-error':
         return 'Unexpected error occurred. Please try again.';
+      case 'google_sign_in_error':
+        return 'Google Sign-In failed. Please ensure Google Play Services is updated.';
       default:
         return 'An error occurred. Please try again.';
     }
