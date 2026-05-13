@@ -56,7 +56,7 @@ class _LoginPageState extends State<LoginPage> {
               context.go('/admin/unauthorized');
             }
           } else {
-            context.go('/home');
+            context.go('/edit-location');
           }
         }
       },
