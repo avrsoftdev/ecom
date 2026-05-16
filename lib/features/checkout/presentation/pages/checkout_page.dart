@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:flutter/services.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:latlong2/latlong.dart';
@@ -138,6 +139,7 @@ class _ContactStepViewState extends State<_ContactStepView> {
   late TextEditingController _landmarkController;
   late TextEditingController _phoneController;
   bool _isPlacingOrder = false;
+  String? _phoneErrorText;
   LatLng? _selectedLatLng;
   bool _isServiceable = true;
 
@@ -351,12 +353,15 @@ class _ContactStepViewState extends State<_ContactStepView> {
                 ),
             onSuggestionSelected: (suggestion) {
               // Update controllers
-              if (suggestion.city != null)
+              if (suggestion.city != null) {
                 _cityController.text = suggestion.city!;
-              if (suggestion.state != null)
+              }
+              if (suggestion.state != null) {
                 _stateController.text = suggestion.state!;
-              if (suggestion.pincode != null)
+              }
+              if (suggestion.pincode != null) {
                 _pincodeController.text = suggestion.pincode!;
+              }
 
               _selectedLatLng = suggestion.position;
               _validateServiceArea(_selectedLatLng!);
@@ -436,9 +441,19 @@ class _ContactStepViewState extends State<_ContactStepView> {
             label: 'Phone Number',
             icon: Icons.phone_outlined,
             keyboardType: TextInputType.phone,
-            onChanged: (val) => context.read<CheckoutCubit>().updateContact(
-                  widget.contact.copyWith(phoneNumber: val),
-                ),
+            errorText: _phoneErrorText,
+            inputFormatters: [
+              FilteringTextInputFormatter.digitsOnly,
+              LengthLimitingTextInputFormatter(10),
+            ],
+            onChanged: (val) {
+              setState(() {
+                _phoneErrorText = _validatePhoneNumber(val);
+              });
+              context.read<CheckoutCubit>().updateContact(
+                    widget.contact.copyWith(phoneNumber: val),
+                  );
+            },
           ),
           SizedBox(height: 32.h),
           SizedBox(
@@ -496,12 +511,25 @@ class _ContactStepViewState extends State<_ContactStepView> {
     return degrees * (math.pi / 180);
   }
 
+  String? _validatePhoneNumber(String value) {
+    final trimmedValue = value.trim();
+    if (trimmedValue.isEmpty) {
+      return 'Phone number is required';
+    }
+    if (!RegExp(r'^[6-9]\d{9}$').hasMatch(trimmedValue)) {
+      return 'Enter a valid 10-digit phone number';
+    }
+    return null;
+  }
+
   Widget _buildTextField({
     required TextEditingController controller,
     required String label,
     required IconData icon,
     int maxLines = 1,
     TextInputType? keyboardType,
+    List<TextInputFormatter>? inputFormatters,
+    String? errorText,
     required Function(String) onChanged,
   }) {
     final colorScheme = Theme.of(context).colorScheme;
@@ -510,9 +538,11 @@ class _ContactStepViewState extends State<_ContactStepView> {
       controller: controller,
       maxLines: maxLines,
       keyboardType: keyboardType,
+      inputFormatters: inputFormatters,
       onChanged: onChanged,
       decoration: InputDecoration(
         labelText: label,
+        errorText: errorText,
         prefixIcon: Icon(icon),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(8.r),
@@ -535,6 +565,17 @@ class _ContactStepViewState extends State<_ContactStepView> {
     if (cartState is! CartLoaded || cartState.items.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Your cart is empty')),
+      );
+      return;
+    }
+
+    final phoneErrorText = _validatePhoneNumber(_phoneController.text);
+    if (phoneErrorText != null) {
+      setState(() {
+        _phoneErrorText = phoneErrorText;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(phoneErrorText)),
       );
       return;
     }

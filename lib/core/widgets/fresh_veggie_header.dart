@@ -14,7 +14,7 @@ import '../../features/notification/presentation/pages/notification_page.dart';
 class FreshVeggieHeader extends StatelessWidget implements PreferredSizeWidget {
   const FreshVeggieHeader({
     super.key,
-    this.title = 'Bajariyo',
+    this.title = 'Bazariyo',
     this.showBackButton = false,
     this.onBackPressed,
   });

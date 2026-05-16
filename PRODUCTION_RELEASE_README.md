@@ -61,7 +61,7 @@ flutter clean
 ```
 
 ## 📱 App Information
-- **Package Name**: com.bajariyo.avr
+- **Package Name**: com.bazariyo.avr
 - **Version**: 1.0.0+1
 - **Min SDK**: As configured in flutter.minSdkVersion
 - **Target SDK**: As configured in flutter.targetSdkVersion

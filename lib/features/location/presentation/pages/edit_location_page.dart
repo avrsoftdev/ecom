@@ -246,7 +246,7 @@ class _EditLocationPageState extends State<EditLocationPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Edit Location'),
+        title: const Text('Edit Location', style: TextStyle(color: Colors.white)),
         backgroundColor: const Color(0xFF006400),
       ),
       body: SafeArea(
@@ -389,7 +389,7 @@ class _EditLocationPageState extends State<EditLocationPage> {
                       child: Text(
                         'Save location',
                         style: TextStyle(
-                            fontSize: 15.sp, fontWeight: FontWeight.w600),
+                            fontSize: 15.sp, fontWeight: FontWeight.w600, color: Colors.white),
                       ),
                     ),
                   ),
