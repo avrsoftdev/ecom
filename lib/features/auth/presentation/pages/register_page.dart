@@ -67,13 +67,17 @@ class _RegisterPageState extends State<RegisterPage> {
             child: Center(
               child: LayoutBuilder(
                 builder: (context, constraints) {
-                  final horizontalPadding = constraints.maxWidth >= 700 ? 32.0 : 22.0;
+                  final horizontalPadding =
+                      constraints.maxWidth >= 700 ? 32.0 : 22.0;
                   final contentWidth = constraints.maxWidth >= 700
                       ? 420.0
-                      : (constraints.maxWidth - (horizontalPadding * 2)).clamp(320.0, 420.0).toDouble();
+                      : (constraints.maxWidth - (horizontalPadding * 2))
+                          .clamp(320.0, 420.0)
+                          .toDouble();
 
                   return SingleChildScrollView(
-                    padding: EdgeInsets.symmetric(horizontal: horizontalPadding, vertical: 12),
+                    padding: EdgeInsets.symmetric(
+                        horizontal: horizontalPadding, vertical: 12),
                     child: ConstrainedBox(
                       constraints: BoxConstraints(maxWidth: contentWidth),
                       child: Material(
@@ -111,6 +115,12 @@ class _RegisterPageState extends State<RegisterPage> {
                                 prefixIcon: Icons.mail_outline_rounded,
                                 backgroundColor: softGreen,
                                 keyboardType: TextInputType.emailAddress,
+                                inputFormatters: [
+                                  FilteringTextInputFormatter.deny(
+                                      RegExp(r'\s')),
+                                ],
+                                autovalidateMode:
+                                    AutovalidateMode.onUserInteraction,
                                 validator: _validateEmail,
                               ),
                               const SizedBox(height: 14),
@@ -158,7 +168,9 @@ class _RegisterPageState extends State<RegisterPage> {
                                     });
                                   },
                                   icon: Icon(
-                                    _obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                                    _obscurePassword
+                                        ? Icons.visibility_outlined
+                                        : Icons.visibility_off_outlined,
                                     color: const Color(0xFF7A8B76),
                                   ),
                                 ),
@@ -179,7 +191,9 @@ class _RegisterPageState extends State<RegisterPage> {
                                     });
                                   },
                                   icon: Icon(
-                                    _obscureConfirm ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                                    _obscureConfirm
+                                        ? Icons.visibility_outlined
+                                        : Icons.visibility_off_outlined,
                                     color: const Color(0xFF7A8B76),
                                   ),
                                 ),
@@ -218,11 +232,14 @@ class _RegisterPageState extends State<RegisterPage> {
                                       ),
                                     ),
                                     TextButton(
-                                      onPressed: isLoading ? null : () => context.go('/login'),
+                                      onPressed: isLoading
+                                          ? null
+                                          : () => context.go('/login'),
                                       style: TextButton.styleFrom(
                                         padding: EdgeInsets.zero,
                                         minimumSize: Size.zero,
-                                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                        tapTargetSize:
+                                            MaterialTapTargetSize.shrinkWrap,
                                         foregroundColor: textGreen,
                                         textStyle: GoogleFonts.dmSans(
                                           fontSize: 14,
@@ -265,8 +282,12 @@ class _RegisterPageState extends State<RegisterPage> {
   String? _validateEmail(String? value) {
     final trimmedValue = value?.trim() ?? '';
     if (trimmedValue.isEmpty) return 'Email is required.';
-    final emailPattern = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
-    if (!emailPattern.hasMatch(trimmedValue)) return 'Enter a valid email address.';
+    final emailPattern = RegExp(
+      r"^[A-Za-z0-9.!#$%&'*+/=?^_`{|}~-]+@[A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+$",
+    );
+    if (!emailPattern.hasMatch(trimmedValue)) {
+      return 'Enter a valid email address.';
+    }
     return null;
   }
 
@@ -289,7 +310,9 @@ class _RegisterPageState extends State<RegisterPage> {
   String? _validateAddress(String? value) {
     final trimmedValue = value?.trim() ?? '';
     if (trimmedValue.isEmpty) return 'Address is required.';
-    if (trimmedValue.length < 5) return 'Address should be at least 5 characters.';
+    if (trimmedValue.length < 5) {
+      return 'Address should be at least 5 characters.';
+    }
     return null;
   }
 
@@ -315,6 +338,7 @@ class _InputField extends StatelessWidget {
   final TextInputType? keyboardType;
   final List<TextInputFormatter>? inputFormatters;
   final String? Function(String?)? validator;
+  final AutovalidateMode? autovalidateMode;
   final Widget? suffix;
   final Color backgroundColor;
 
@@ -327,6 +351,7 @@ class _InputField extends StatelessWidget {
     this.keyboardType,
     this.inputFormatters,
     this.validator,
+    this.autovalidateMode,
     this.suffix,
   });
 
@@ -338,6 +363,7 @@ class _InputField extends StatelessWidget {
       keyboardType: keyboardType,
       inputFormatters: inputFormatters,
       validator: validator,
+      autovalidateMode: autovalidateMode,
       style: const TextStyle(color: Colors.black),
       decoration: InputDecoration(
         hintText: hintText,
@@ -345,7 +371,8 @@ class _InputField extends StatelessWidget {
         fillColor: backgroundColor,
         prefixIcon: Icon(prefixIcon, color: const Color(0xFF7A8B76)),
         suffixIcon: suffix,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+        contentPadding:
+            const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
         border: OutlineInputBorder(
           borderSide: BorderSide.none,
           borderRadius: BorderRadius.circular(16),
