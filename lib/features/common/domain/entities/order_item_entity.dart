@@ -8,6 +8,8 @@ class OrderItemEntity extends Equatable {
     required this.unitPrice,
     required this.lineTotal,
     this.unitType,
+    this.tierId,
+    this.tierLabel,
   });
 
   final String productId;
@@ -16,7 +18,18 @@ class OrderItemEntity extends Equatable {
   final double unitPrice;
   final double lineTotal;
   final String? unitType;
+  final String? tierId;
+  final String? tierLabel;
 
   @override
-  List<Object?> get props => [productId, name, quantity, unitPrice, lineTotal, unitType];
+  List<Object?> get props => [
+        productId,
+        name,
+        quantity,
+        unitPrice,
+        lineTotal,
+        unitType,
+        tierId,
+        tierLabel,
+      ];
 }

@@ -25,7 +25,8 @@ class OrderModel extends OrderEntity {
     final data = doc.data() ?? {};
     final itemsRaw = data['items'] as List<dynamic>? ?? [];
     final items = itemsRaw
-        .map((e) => OrderItemModel.fromJson(Map<String, dynamic>.from(e as Map)))
+        .map(
+            (e) => OrderItemModel.fromJson(Map<String, dynamic>.from(e as Map)))
         .toList();
     return OrderModel(
       id: doc.id,
@@ -61,6 +62,8 @@ class OrderModel extends OrderEntity {
                 unitPrice: e.unitPrice,
                 lineTotal: e.lineTotal,
                 unitType: e.unitType,
+                tierId: e.tierId,
+                tierLabel: e.tierLabel,
               ).toJson())
           .toList(),
       'subtotal': subtotal,
@@ -69,7 +72,9 @@ class OrderModel extends OrderEntity {
       'total': total,
       'status': status,
       'createdAt': Timestamp.fromDate(createdAt),
-      'updatedAt': updatedAt != null ? Timestamp.fromDate(updatedAt!) : FieldValue.serverTimestamp(),
+      'updatedAt': updatedAt != null
+          ? Timestamp.fromDate(updatedAt!)
+          : FieldValue.serverTimestamp(),
       'customerName': customerName,
       'customerEmail': customerEmail,
       'shippingAddress': shippingAddress,

@@ -636,6 +636,8 @@ class _ContactStepViewState extends State<_ContactStepView> {
                 'unitPrice': item.unitPrice,
                 'lineTotal': item.totalPrice,
                 'unitType': item.product.unitType.displayUnit,
+                'tierId': item.tierId,
+                'tierLabel': item.tierLabel,
               },
             )
             .toList(),

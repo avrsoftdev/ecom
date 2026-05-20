@@ -22,7 +22,8 @@ class OrderHistoryPage extends StatelessWidget {
         body: _EmptyOrderState(
           icon: Icons.receipt_long_outlined,
           title: 'Sign in to view orders',
-          subtitle: 'Your placed orders will appear here once you are logged in.',
+          subtitle:
+              'Your placed orders will appear here once you are logged in.',
         ),
       );
     }
@@ -236,12 +237,15 @@ class _OrderItemRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final tierLabel = item.tierLabel?.trim();
+    final hasTierLabel = tierLabel != null && tierLabel.isNotEmpty;
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
         border: Border(
-          top: BorderSide(color: colorScheme.outlineVariant.withValues(alpha: 0.5)),
+          top: BorderSide(
+              color: colorScheme.outlineVariant.withValues(alpha: 0.5)),
         ),
       ),
       child: Row(
@@ -258,9 +262,23 @@ class _OrderItemRow extends StatelessWidget {
             flex: 3,
             child: Padding(
               padding: const EdgeInsets.only(right: 8),
-              child: Text(
-                item.name,
-                style: Theme.of(context).textTheme.bodyMedium,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    item.name,
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                  if (hasTierLabel) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      'Tier: $tierLabel',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: colorScheme.onSurfaceVariant,
+                          ),
+                    ),
+                  ],
+                ],
               ),
             ),
           ),

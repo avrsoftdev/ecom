@@ -34,16 +34,16 @@ class HelpCenterPage extends StatelessWidget {
               const SizedBox(height: 20),
               const _SectionTitle('Contact support'),
               const SizedBox(height: 10),
-              _ContactTile(
-                icon: Icons.email_outlined,
-                title: 'Email us',
-                value: settings?.supportEmail ?? 'support@bajariyo.com',
-                caption: 'Best for account help, feedback, and order issues.',
-              ),
+              // _ContactTile(
+              //   icon: Icons.email_outlined,
+              //   title: 'Email us',
+              //   value: settings?.supportEmail ?? 'support@bajariyo.com',
+              //   caption: 'Best for account help, feedback, and order issues.',
+              // ),
               _ContactTile(
                 icon: Icons.call_outlined,
                 title: 'Call support',
-                value: settings?.supportPhone ?? '+91 98765 43210',
+                value: settings?.supportPhone ?? '+91 94564 46163',
                 caption: 'Reach us faster for urgent delivery concerns.',
               ),
               _ContactTile(

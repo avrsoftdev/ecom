@@ -8,6 +8,8 @@ class OrderItemModel extends OrderItemEntity {
     required super.unitPrice,
     required super.lineTotal,
     super.unitType,
+    super.tierId,
+    super.tierLabel,
   });
 
   factory OrderItemModel.fromJson(Map<String, dynamic> json) {
@@ -18,6 +20,8 @@ class OrderItemModel extends OrderItemEntity {
       unitPrice: (json['unitPrice'] as num?)?.toDouble() ?? 0,
       lineTotal: (json['lineTotal'] as num?)?.toDouble() ?? 0,
       unitType: json['unitType'] as String?,
+      tierId: json['tierId'] as String?,
+      tierLabel: json['tierLabel'] as String?,
     );
   }
 
@@ -28,5 +32,7 @@ class OrderItemModel extends OrderItemEntity {
         'unitPrice': unitPrice,
         'lineTotal': lineTotal,
         'unitType': unitType,
+        'tierId': tierId,
+        'tierLabel': tierLabel,
       };
 }
