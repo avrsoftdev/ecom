@@ -204,7 +204,7 @@ class _CartSummary extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final deliveryFee = 40.0;
+    final deliveryFee = 0.0;
     final total = subtotal + deliveryFee;
 
     return Column(
@@ -241,7 +241,7 @@ class _CartSummary extends StatelessWidget {
               ),
             ),
             Text(
-              formatCurrency(deliveryFee),
+              'Free',
               style: TextStyle(
                 fontSize: 14.sp,
                 fontWeight: FontWeight.w600,

@@ -605,7 +605,7 @@ class _ContactStepViewState extends State<_ContactStepView> {
 
     setState(() => _isPlacingOrder = true);
     try {
-      const deliveryCharge = 40.0;
+      const deliveryCharge = 0.0;
       const taxRate = 0.0;
       final subtotal = cartState.totalPrice;
       final tax = subtotal * taxRate;

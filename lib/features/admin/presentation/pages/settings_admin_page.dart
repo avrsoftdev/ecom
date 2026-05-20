@@ -26,7 +26,6 @@ class _SettingsView extends StatefulWidget {
 }
 
 class _SettingsViewState extends State<_SettingsView> {
-  final _delivery = TextEditingController();
   final _tax = TextEditingController();
   final _email = TextEditingController();
   final _phone = TextEditingController();
@@ -34,7 +33,6 @@ class _SettingsViewState extends State<_SettingsView> {
 
   @override
   void dispose() {
-    _delivery.dispose();
     _tax.dispose();
     _email.dispose();
     _phone.dispose();
@@ -43,7 +41,6 @@ class _SettingsViewState extends State<_SettingsView> {
   }
 
   void _sync(StoreSettingsEntity s) {
-    _delivery.text = s.deliveryCharge.toStringAsFixed(2);
     _tax.text = s.taxPercent.toStringAsFixed(2);
     _email.text = s.supportEmail ?? '';
     _phone.text = s.supportPhone ?? '';
@@ -90,16 +87,6 @@ class _SettingsViewState extends State<_SettingsView> {
                     padding: EdgeInsets.all(16.w),
                     child: Column(
                       children: [
-                        TextField(
-                          controller: _delivery,
-                          keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                          decoration: const InputDecoration(
-                            labelText: 'Delivery charges',
-                            border: OutlineInputBorder(),
-                          ),
-                          onChanged: (_) => _pushDraft(context, s),
-                        ),
-                        SizedBox(height: 12.h),
                         TextField(
                           controller: _tax,
                           keyboardType: const TextInputType.numberWithOptions(decimal: true),
@@ -187,10 +174,9 @@ class _SettingsViewState extends State<_SettingsView> {
   }
 
   void _pushDraft(BuildContext context, StoreSettingsEntity current) {
-    final delivery = double.tryParse(_delivery.text) ?? current.deliveryCharge;
     final tax = double.tryParse(_tax.text) ?? current.taxPercent;
     final next = StoreSettingsEntity(
-      deliveryCharge: delivery,
+      deliveryCharge: 0,
       taxPercent: tax,
       supportEmail: _email.text.trim().isEmpty ? null : _email.text.trim(),
       supportPhone: _phone.text.trim().isEmpty ? null : _phone.text.trim(),
