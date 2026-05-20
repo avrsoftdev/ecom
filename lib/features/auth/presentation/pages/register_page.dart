@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -127,6 +128,10 @@ class _RegisterPageState extends State<RegisterPage> {
                                 prefixIcon: Icons.phone_outlined,
                                 backgroundColor: softGreen,
                                 keyboardType: TextInputType.phone,
+                                inputFormatters: [
+                                  FilteringTextInputFormatter.digitsOnly,
+                                  LengthLimitingTextInputFormatter(10),
+                                ],
                                 validator: _validatePhone,
                               ),
                               const SizedBox(height: 14),
@@ -275,7 +280,9 @@ class _RegisterPageState extends State<RegisterPage> {
   String? _validatePhone(String? value) {
     final trimmedValue = value?.trim() ?? '';
     if (trimmedValue.isEmpty) return 'Phone number is required.';
-    if (trimmedValue.length < 10) return 'Phone number should be at least 10 digits.';
+    if (!RegExp(r'^[6-9]\d{9}$').hasMatch(trimmedValue)) {
+      return 'Enter a valid 10-digit phone number.';
+    }
     return null;
   }
 
@@ -306,6 +313,7 @@ class _InputField extends StatelessWidget {
   final IconData prefixIcon;
   final bool obscureText;
   final TextInputType? keyboardType;
+  final List<TextInputFormatter>? inputFormatters;
   final String? Function(String?)? validator;
   final Widget? suffix;
   final Color backgroundColor;
@@ -317,6 +325,7 @@ class _InputField extends StatelessWidget {
     required this.backgroundColor,
     this.obscureText = false,
     this.keyboardType,
+    this.inputFormatters,
     this.validator,
     this.suffix,
   });
@@ -327,6 +336,7 @@ class _InputField extends StatelessWidget {
       controller: controller,
       obscureText: obscureText,
       keyboardType: keyboardType,
+      inputFormatters: inputFormatters,
       validator: validator,
       style: const TextStyle(color: Colors.black),
       decoration: InputDecoration(
@@ -344,4 +354,3 @@ class _InputField extends StatelessWidget {
     );
   }
 }
-
