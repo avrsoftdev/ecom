@@ -11,6 +11,7 @@ import 'package:latlong2/latlong.dart';
 import '../../../../core/di/injection.dart';
 import '../../../../core/services/notification_service.dart';
 import '../../../../core/services/admin_notification_service.dart';
+import '../../../../core/utils/delivery_fee_calculator.dart';
 import '../../../../core/widgets/location_autocomplete_field.dart';
 import '../../../auth/presentation/cubits/auth_cubit.dart';
 import '../../../cart/presentation/cubits/cart_cubit.dart';
@@ -605,9 +606,9 @@ class _ContactStepViewState extends State<_ContactStepView> {
 
     setState(() => _isPlacingOrder = true);
     try {
-      const deliveryCharge = 0.0;
       const taxRate = 0.0;
       final subtotal = cartState.totalPrice;
+      final deliveryCharge = calculateDeliveryFee(subtotal);
       final tax = subtotal * taxRate;
       final total = subtotal + deliveryCharge + tax;
       final shippingAddress = [

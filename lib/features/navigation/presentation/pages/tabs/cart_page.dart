@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../../../core/utils/delivery_fee_calculator.dart';
 import '../../../../../core/utils/currency_formatter.dart';
 import '../../../../../core/widgets/fresh_veggie_header.dart';
 import '../../../../cart/presentation/cubits/cart_cubit.dart';
@@ -191,7 +192,7 @@ class _EmptyCartView extends StatelessWidget {
   }
 }
 
-class _CartSummary extends StatelessWidget {
+class _CartSummary extends StatefulWidget {
   const _CartSummary({
     required this.totalItems,
     required this.subtotal,
@@ -203,9 +204,56 @@ class _CartSummary extends StatelessWidget {
   final ColorScheme colorScheme;
 
   @override
+  State<_CartSummary> createState() => _CartSummaryState();
+}
+
+class _CartSummaryState extends State<_CartSummary> {
+  double? _lastSnackbarSubtotal;
+
+  @override
+  void initState() {
+    super.initState();
+    _showFreeDeliverySnackbarIfNeeded();
+  }
+
+  @override
+  void didUpdateWidget(_CartSummary oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.subtotal != oldWidget.subtotal) {
+      _showFreeDeliverySnackbarIfNeeded();
+    }
+  }
+
+  void _showFreeDeliverySnackbarIfNeeded() {
+    if (widget.subtotal >= freeDeliveryMinimum) {
+      _lastSnackbarSubtotal = null;
+      return;
+    }
+
+    if (_lastSnackbarSubtotal == widget.subtotal) {
+      return;
+    }
+
+    _lastSnackbarSubtotal = widget.subtotal;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+
+      final remainingAmount = freeDeliveryMinimum - widget.subtotal;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Add items worth ${formatCurrency(remainingAmount)} more to unlock free delivery.',
+          ),
+        ),
+      );
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final deliveryFee = 0.0;
-    final total = subtotal + deliveryFee;
+    final deliveryFee = calculateDeliveryFee(widget.subtotal);
+    final total = widget.subtotal + deliveryFee;
+    final colorScheme = widget.colorScheme;
 
     return Column(
       children: [
@@ -213,14 +261,14 @@ class _CartSummary extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              'Subtotal ($totalItems items)',
+              'Subtotal (${widget.totalItems} items)',
               style: TextStyle(
                 fontSize: 14.sp,
                 color: colorScheme.onSurfaceVariant,
               ),
             ),
             Text(
-              formatCurrency(subtotal),
+              formatCurrency(widget.subtotal),
               style: TextStyle(
                 fontSize: 14.sp,
                 fontWeight: FontWeight.w600,
@@ -241,7 +289,7 @@ class _CartSummary extends StatelessWidget {
               ),
             ),
             Text(
-              'Free',
+              deliveryFee == 0 ? 'Free' : formatCurrency(deliveryFee),
               style: TextStyle(
                 fontSize: 14.sp,
                 fontWeight: FontWeight.w600,
@@ -279,14 +327,16 @@ class _CartSummary extends StatelessWidget {
           width: double.infinity,
           height: 48.h,
           child: ElevatedButton(
-            onPressed: totalItems > 0 ? () {
-              showModalBottomSheet(
-                context: context,
-                isScrollControlled: true,
-                backgroundColor: Colors.transparent,
-                builder: (context) => const CheckoutBottomSheet(),
-              );
-            } : null,
+            onPressed: widget.totalItems > 0
+                ? () {
+                    showModalBottomSheet(
+                      context: context,
+                      isScrollControlled: true,
+                      backgroundColor: Colors.transparent,
+                      builder: (context) => const CheckoutBottomSheet(),
+                    );
+                  }
+                : null,
             style: ElevatedButton.styleFrom(
               backgroundColor: colorScheme.primary,
               foregroundColor: colorScheme.onPrimary,
