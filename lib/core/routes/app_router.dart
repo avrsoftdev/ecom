@@ -14,6 +14,7 @@ import '../../features/location/presentation/pages/edit_location_page.dart';
 import '../../features/location/presentation/pages/unserviceable_page.dart';
 import '../../features/navigation/presentation/pages/main_navigation_page.dart';
 import '../../features/navigation/presentation/pages/tabs/cart_page.dart';
+import '../../features/navigation/presentation/pages/tabs/categories_page.dart';
 import '../../features/navigation/presentation/pages/tabs/favourites_page.dart';
 import '../../features/navigation/presentation/pages/tabs/order_history_page.dart';
 import '../../features/navigation/presentation/pages/tabs/profile_page.dart';
@@ -83,8 +84,8 @@ class AppRouter {
           StatefulShellBranch(
             routes: [
               GoRoute(
-                path: '/wishlist',
-                builder: (context, state) => const FavouritesPage(),
+                path: '/categories',
+                builder: (context, state) => const CategoriesPage(),
               ),
             ],
           ),
@@ -109,6 +110,10 @@ class AppRouter {
         builder: (context, state) => SearchPage(
           initialQuery: state.uri.queryParameters['q'],
         ),
+      ),
+      GoRoute(
+        path: '/wishlist',
+        builder: (context, state) => const FavouritesPage(),
       ),
       GoRoute(
         path: '/edit-location',
@@ -137,6 +142,7 @@ class AppRouter {
           !isOnAuthPage &&
           location != '/unserviceable' &&
           location != '/home' &&
+          location != '/categories' &&
           location != '/search' &&
           location != '/products' &&
           location != '/edit-location') {

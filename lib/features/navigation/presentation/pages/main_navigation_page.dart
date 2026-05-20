@@ -13,7 +13,7 @@ class MainNavigationPage extends StatelessWidget {
 
   final StatefulNavigationShell navigationShell;
 
-  List<NavigationDestination> _buildNavigationItems(BuildContext context, int cartCount) {
+  List<NavigationDestination> _buildNavigationItems(int cartCount) {
     return [
       NavigationDestination(
         icon: Icon(Icons.home_outlined),
@@ -37,9 +37,9 @@ class MainNavigationPage extends StatelessWidget {
         label: 'Cart',
       ),
       NavigationDestination(
-        icon: Icon(Icons.favorite_border_rounded),
-        selectedIcon: Icon(Icons.favorite_rounded),
-        label: 'Wishlist',
+        icon: Icon(Icons.category_outlined),
+        selectedIcon: Icon(Icons.category_rounded),
+        label: 'Categories',
       ),
       NavigationDestination(
         icon: Icon(Icons.person_outline_rounded),
@@ -81,7 +81,7 @@ class MainNavigationPage extends StatelessWidget {
               height: 72,
               backgroundColor: colorScheme.surface,
               surfaceTintColor: colorScheme.surface,
-              destinations: _buildNavigationItems(context, cartCount),
+              destinations: _buildNavigationItems(cartCount),
               onDestinationSelected: (index) {
                 navigationShell.goBranch(
                   index,

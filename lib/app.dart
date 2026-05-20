@@ -79,7 +79,7 @@ class FreshVeggieApp extends StatelessWidget {
               builder: (context, themeMode) {
                 return PushNotificationListener(
                   child: MaterialApp.router(
-                    title: 'Bajariyo',
+                    title: 'Bazariyo',
                     debugShowCheckedModeBanner: false,
                     theme: AppTheme.lightTheme,
                     darkTheme: AppTheme.darkTheme,
