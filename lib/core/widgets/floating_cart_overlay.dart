@@ -1,8 +1,11 @@
+import 'dart:math' as math;
+
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
+import '../utils/delivery_fee_calculator.dart';
 import '../../features/cart/presentation/cubits/cart_cubit.dart';
 
 class FloatingCartOverlay extends StatefulWidget {
@@ -150,6 +153,7 @@ class _FloatingCartButton extends StatefulWidget {
   });
 
   static double get buttonSize => 58.r;
+  static double get iconSize => 58.r;
 
   final VoidCallback onTap;
   final GestureDragUpdateCallback onDragUpdate;
@@ -199,6 +203,10 @@ class _FloatingCartButtonState extends State<_FloatingCartButton>
     return state is CartLoaded ? state.totalItems : 0;
   }
 
+  double _cartTotal(CartState state) {
+    return state is CartLoaded ? state.totalPrice : 0;
+  }
+
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
@@ -213,6 +221,9 @@ class _FloatingCartButtonState extends State<_FloatingCartButton>
       },
       builder: (context, state) {
         final itemCount = _itemCount(state);
+        final cartTotal = _cartTotal(state);
+        final progress =
+            (cartTotal / freeDeliveryMinimum).clamp(0.0, 1.0).toDouble();
 
         return GestureDetector(
           behavior: HitTestBehavior.opaque,
@@ -233,68 +244,90 @@ class _FloatingCartButtonState extends State<_FloatingCartButton>
               child: InkWell(
                 onTap: widget.onTap,
                 customBorder: const CircleBorder(),
-                child: Stack(
-                  clipBehavior: Clip.none,
-                  children: [
-                    Container(
+                child: TweenAnimationBuilder<double>(
+                  tween: Tween<double>(begin: 0.0, end: progress),
+                  duration: const Duration(milliseconds: 420),
+                  curve: Curves.easeOutCubic,
+                  builder: (context, animatedProgress, _) {
+                    return SizedBox(
                       width: _FloatingCartButton.buttonSize,
                       height: _FloatingCartButton.buttonSize,
-                      decoration: BoxDecoration(
-                        color: colorScheme.surface,
-                        shape: BoxShape.circle,
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.18),
-                            blurRadius: 16.r,
-                            offset: Offset(0, 6.h),
+                      child: Stack(
+                        clipBehavior: Clip.none,
+                        alignment: Alignment.center,
+                        children: [
+                          Container(
+                            width: _FloatingCartButton.iconSize,
+                            height: _FloatingCartButton.iconSize,
+                            decoration: BoxDecoration(
+                              color: colorScheme.surface,
+                              shape: BoxShape.circle,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.18),
+                                  blurRadius: 16.r,
+                                  offset: Offset(0, 6.h),
+                                ),
+                              ],
+                            ),
+                            foregroundDecoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: colorScheme.primary,
+                                width: 3.r,
+                              ),
+                            ),
+                            clipBehavior: Clip.antiAlias,
+                            child: Image.asset(
+                              'assets/images/cart_icon.png',
+                              width: _FloatingCartButton.iconSize,
+                              height: _FloatingCartButton.iconSize,
+                              fit: BoxFit.cover,
+                            ),
+                          ),
+                          CustomPaint(
+                            size: Size.square(_FloatingCartButton.iconSize),
+                            painter: _CartProgressRingPainter(
+                              progress: animatedProgress,
+                              color: Colors.orange,
+                              trackColor:
+                                  Colors.orange.withValues(alpha: 0.22),
+                              strokeWidth: 4.r,
+                            ),
+                          ),
+                          Positioned(
+                            right: 0,
+                            top: 0,
+                            child: Container(
+                              constraints: BoxConstraints(
+                                minWidth: 20.r,
+                                minHeight: 20.r,
+                              ),
+                              padding: EdgeInsets.symmetric(horizontal: 5.w),
+                              alignment: Alignment.center,
+                              decoration: BoxDecoration(
+                                color: colorScheme.error,
+                                borderRadius: BorderRadius.circular(999.r),
+                                border: Border.all(
+                                  color: colorScheme.surface,
+                                  width: 1.5.r,
+                                ),
+                              ),
+                              child: Text(
+                                itemCount > 99 ? '99+' : itemCount.toString(),
+                                style: TextStyle(
+                                  color: colorScheme.onError,
+                                  fontSize: 10.sp,
+                                  fontWeight: FontWeight.w800,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
                           ),
                         ],
                       ),
-                      foregroundDecoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: colorScheme.primary,
-                          width: 3.r,
-                        ),
-                      ),
-                      clipBehavior: Clip.antiAlias,
-                      child: Image.asset(
-                        'assets/images/cart_icon.png',
-                        width: _FloatingCartButton.buttonSize,
-                        height: _FloatingCartButton.buttonSize,
-                        fit: BoxFit.cover,
-                      ),
-                    ),
-                    Positioned(
-                      right: -2.r,
-                      top: -3.r,
-                      child: Container(
-                        constraints: BoxConstraints(
-                          minWidth: 20.r,
-                          minHeight: 20.r,
-                        ),
-                        padding: EdgeInsets.symmetric(horizontal: 5.w),
-                        alignment: Alignment.center,
-                        decoration: BoxDecoration(
-                          color: colorScheme.error,
-                          borderRadius: BorderRadius.circular(999.r),
-                          border: Border.all(
-                            color: colorScheme.surface,
-                            width: 1.5.r,
-                          ),
-                        ),
-                        child: Text(
-                          itemCount > 99 ? '99+' : itemCount.toString(),
-                          style: TextStyle(
-                            color: colorScheme.onError,
-                            fontSize: 10.sp,
-                            fontWeight: FontWeight.w800,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                    ),
-                  ],
+                    );
+                  },
                 ),
               ),
             ),
@@ -302,5 +335,53 @@ class _FloatingCartButtonState extends State<_FloatingCartButton>
         );
       },
     );
+  }
+}
+
+class _CartProgressRingPainter extends CustomPainter {
+  const _CartProgressRingPainter({
+    required this.progress,
+    required this.color,
+    required this.trackColor,
+    required this.strokeWidth,
+  });
+
+  final double progress;
+  final Color color;
+  final Color trackColor;
+  final double strokeWidth;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = size.center(Offset.zero);
+    final radius = (size.shortestSide - strokeWidth) / 2;
+    final rect = Rect.fromCircle(center: center, radius: radius);
+    final trackPaint = Paint()
+      ..color = trackColor
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round
+      ..strokeWidth = strokeWidth;
+    final progressPaint = Paint()
+      ..color = color
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round
+      ..strokeWidth = strokeWidth;
+
+    canvas.drawCircle(center, radius, trackPaint);
+    canvas.drawArc(
+      rect,
+      -math.pi / 2,
+      math.pi * 2 * progress,
+      false,
+      progressPaint,
+    );
+  }
+
+  @override
+  bool shouldRepaint(covariant _CartProgressRingPainter oldDelegate) {
+    return oldDelegate.progress != progress ||
+        oldDelegate.color != color ||
+        oldDelegate.trackColor != trackColor ||
+        oldDelegate.strokeWidth != strokeWidth;
   }
 }
