@@ -143,7 +143,7 @@ class _FloatingCartOverlayState extends State<FloatingCartOverlay> {
   }
 }
 
-class _FloatingCartButton extends StatelessWidget {
+class _FloatingCartButton extends StatefulWidget {
   const _FloatingCartButton({
     required this.onTap,
     required this.onDragUpdate,
@@ -155,83 +155,147 @@ class _FloatingCartButton extends StatelessWidget {
   final GestureDragUpdateCallback onDragUpdate;
 
   @override
+  State<_FloatingCartButton> createState() => _FloatingCartButtonState();
+}
+
+class _FloatingCartButtonState extends State<_FloatingCartButton>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _animationController;
+  late final Animation<double> _shakeAnimation;
+  late final Animation<double> _scaleAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 520),
+    );
+    _shakeAnimation = TweenSequence<double>([
+      TweenSequenceItem(tween: Tween(begin: 0.0, end: -7.0), weight: 1),
+      TweenSequenceItem(tween: Tween(begin: -7.0, end: 7.0), weight: 2),
+      TweenSequenceItem(tween: Tween(begin: 7.0, end: -5.0), weight: 2),
+      TweenSequenceItem(tween: Tween(begin: -5.0, end: 5.0), weight: 2),
+      TweenSequenceItem(tween: Tween(begin: 5.0, end: 0.0), weight: 1),
+    ]).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
+    );
+    _scaleAnimation = TweenSequence<double>([
+      TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.12), weight: 2),
+      TweenSequenceItem(tween: Tween(begin: 1.12, end: 0.96), weight: 2),
+      TweenSequenceItem(tween: Tween(begin: 0.96, end: 1.0), weight: 2),
+    ]).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
+
+  int _itemCount(CartState state) {
+    return state is CartLoaded ? state.totalItems : 0;
+  }
+
+  @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
-    return BlocBuilder<CartCubit, CartState>(
+    return BlocConsumer<CartCubit, CartState>(
+      listenWhen: (previous, current) {
+        return previous is CartLoaded &&
+            _itemCount(current) > previous.totalItems;
+      },
+      listener: (context, state) {
+        _animationController.forward(from: 0);
+      },
       builder: (context, state) {
-        final itemCount = state is CartLoaded ? state.totalItems : 0;
+        final itemCount = _itemCount(state);
 
         return GestureDetector(
           behavior: HitTestBehavior.opaque,
-          onPanUpdate: onDragUpdate,
-          child: Material(
-            color: Colors.transparent,
-            child: InkWell(
-              onTap: onTap,
-              customBorder: const CircleBorder(),
-              child: Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  Container(
-                    width: buttonSize,
-                    height: buttonSize,
-                    decoration: BoxDecoration(
-                      color: colorScheme.surface,
-                      shape: BoxShape.circle,
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.18),
-                          blurRadius: 16.r,
-                          offset: Offset(0, 6.h),
-                        ),
-                      ],
-                    ),
-                    foregroundDecoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: colorScheme.primary,
-                        width: 3.r,
-                      ),
-                    ),
-                    clipBehavior: Clip.antiAlias,
-                    child: Image.asset(
-                      'assets/images/cart_icon.png',
-                      width: buttonSize,
-                      height: buttonSize,
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                  Positioned(
-                    right: -2.r,
-                    top: -3.r,
-                    child: Container(
-                      constraints: BoxConstraints(
-                        minWidth: 20.r,
-                        minHeight: 20.r,
-                      ),
-                      padding: EdgeInsets.symmetric(horizontal: 5.w),
-                      alignment: Alignment.center,
+          onPanUpdate: widget.onDragUpdate,
+          child: AnimatedBuilder(
+            animation: _animationController,
+            builder: (context, child) {
+              return Transform.translate(
+                offset: Offset(_shakeAnimation.value.w, 0),
+                child: Transform.scale(
+                  scale: _scaleAnimation.value,
+                  child: child,
+                ),
+              );
+            },
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: widget.onTap,
+                customBorder: const CircleBorder(),
+                child: Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    Container(
+                      width: _FloatingCartButton.buttonSize,
+                      height: _FloatingCartButton.buttonSize,
                       decoration: BoxDecoration(
-                        color: colorScheme.error,
-                        borderRadius: BorderRadius.circular(999.r),
+                        color: colorScheme.surface,
+                        shape: BoxShape.circle,
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.18),
+                            blurRadius: 16.r,
+                            offset: Offset(0, 6.h),
+                          ),
+                        ],
+                      ),
+                      foregroundDecoration: BoxDecoration(
+                        shape: BoxShape.circle,
                         border: Border.all(
-                          color: colorScheme.surface,
-                          width: 1.5.r,
+                          color: colorScheme.primary,
+                          width: 3.r,
                         ),
                       ),
-                      child: Text(
-                        itemCount > 99 ? '99+' : itemCount.toString(),
-                        style: TextStyle(
-                          color: colorScheme.onError,
-                          fontSize: 10.sp,
-                          fontWeight: FontWeight.w800,
-                        ),
-                        textAlign: TextAlign.center,
+                      clipBehavior: Clip.antiAlias,
+                      child: Image.asset(
+                        'assets/images/cart_icon.png',
+                        width: _FloatingCartButton.buttonSize,
+                        height: _FloatingCartButton.buttonSize,
+                        fit: BoxFit.cover,
                       ),
                     ),
-                  ),
-                ],
+                    Positioned(
+                      right: -2.r,
+                      top: -3.r,
+                      child: Container(
+                        constraints: BoxConstraints(
+                          minWidth: 20.r,
+                          minHeight: 20.r,
+                        ),
+                        padding: EdgeInsets.symmetric(horizontal: 5.w),
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                          color: colorScheme.error,
+                          borderRadius: BorderRadius.circular(999.r),
+                          border: Border.all(
+                            color: colorScheme.surface,
+                            width: 1.5.r,
+                          ),
+                        ),
+                        child: Text(
+                          itemCount > 99 ? '99+' : itemCount.toString(),
+                          style: TextStyle(
+                            color: colorScheme.onError,
+                            fontSize: 10.sp,
+                            fontWeight: FontWeight.w800,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
