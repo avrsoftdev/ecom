@@ -22,7 +22,7 @@ class ProductCubit extends Cubit<ProductState> {
     final params = GetProductsParams(
       categoryId: categoryId,
       searchQuery: searchQuery,
-      limit: limit ?? 20,
+      limit: limit,
       offset: offset,
     );
 

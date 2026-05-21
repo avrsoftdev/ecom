@@ -56,8 +56,10 @@ class ProductListPage extends StatelessWidget {
                     builder: (context, cartState) {
                       return BlocBuilder<WishlistCubit, WishlistState>(
                         builder: (context, wishlistState) {
-                          final isWishlisted = wishlistState is WishlistLoaded &&
-                              wishlistState.wishlistProducts.containsKey(product.id);
+                          final isWishlisted =
+                              wishlistState is WishlistLoaded &&
+                                  wishlistState.wishlistProducts
+                                      .containsKey(product.id);
                           final cartCubit = context.read<CartCubit>();
                           final hasTiers = product.pricingTiers.isNotEmpty;
                           final displayCartItem = cartState is CartLoaded
@@ -81,9 +83,12 @@ class ProductListPage extends StatelessWidget {
                                   MaterialPageRoute(
                                     builder: (context) => BlocProvider(
                                       create: (context) => ProductDetailsCubit(
-                                        productRepository: ProductRepositoryImpl(
-                                          remoteDataSource: ProductRemoteDataSourceImpl(
-                                            firestore: FirebaseFirestore.instance,
+                                        productRepository:
+                                            ProductRepositoryImpl(
+                                          remoteDataSource:
+                                              ProductRemoteDataSourceImpl(
+                                            firestore:
+                                                FirebaseFirestore.instance,
                                           ),
                                           networkInfo: NetworkInfoImpl(
                                             Connectivity(),
@@ -103,7 +108,9 @@ class ProductListPage extends StatelessWidget {
                                 cartCubit.addToCart(product);
                               },
                               onWishlistToggle: () {
-                                context.read<WishlistCubit>().toggleWishlist(product);
+                                context
+                                    .read<WishlistCubit>()
+                                    .toggleWishlist(product);
                               },
                               isWishlisted: isWishlisted,
                               quantity: quantity,
@@ -115,7 +122,8 @@ class ProductListPage extends StatelessWidget {
                                   return;
                                 }
                                 if (displayCartItem != null) {
-                                  cartCubit.incrementQuantity(displayCartItem.id);
+                                  cartCubit
+                                      .incrementQuantity(displayCartItem.id);
                                 }
                               },
                               onDecrementQuantity: () {
@@ -124,7 +132,8 @@ class ProductListPage extends StatelessWidget {
                                   return;
                                 }
                                 if (displayCartItem != null) {
-                                  cartCubit.decrementQuantity(displayCartItem.id);
+                                  cartCubit
+                                      .decrementQuantity(displayCartItem.id);
                                 }
                               },
                             ),
@@ -143,7 +152,9 @@ class ProductListPage extends StatelessWidget {
                     Text(state.message),
                     ElevatedButton(
                       onPressed: () {
-                        context.read<ProductCubit>().getProducts();
+                        context.read<ProductCubit>().getProducts(
+                              categoryId: categoryId,
+                            );
                       },
                       child: const Text('Retry'),
                     ),
