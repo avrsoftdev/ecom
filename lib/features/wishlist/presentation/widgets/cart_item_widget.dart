@@ -28,7 +28,7 @@ class CartItemWidget extends StatelessWidget {
     final itemTotal = item.totalPrice;
 
     return Container(
-      margin: EdgeInsets.only(bottom: 16.h),
+      margin: EdgeInsets.only(bottom: 12.h),
       decoration: BoxDecoration(
         color: colorScheme.surface,
         borderRadius: BorderRadius.circular(12.r),
@@ -42,14 +42,14 @@ class CartItemWidget extends StatelessWidget {
         ],
       ),
       child: Padding(
-        padding: EdgeInsets.all(16.w),
+        padding: EdgeInsets.all(12.w),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Product Image
             Container(
-              width: 80.w,
-              height: 80.w,
+              width: 68.w,
+              height: 68.w,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(8.r),
                 color: colorScheme.surfaceContainerHighest,
@@ -78,7 +78,7 @@ class CartItemWidget extends StatelessWidget {
                 ),
               ),
             ),
-            SizedBox(width: 12.w),
+            SizedBox(width: 10.w),
             
             // Product Details
             Expanded(
@@ -101,7 +101,7 @@ class CartItemWidget extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      SizedBox(width: 8.w),
+                      SizedBox(width: 6.w),
                       IconButton(
                         onPressed: onRemove,
                         icon: Icon(
@@ -110,14 +110,14 @@ class CartItemWidget extends StatelessWidget {
                           size: 20.sp,
                         ),
                         constraints: BoxConstraints(
-                          minWidth: 32.w,
-                          minHeight: 32.h,
+                          minWidth: 28.w,
+                          minHeight: 28.h,
                         ),
                         padding: EdgeInsets.zero,
                       ),
                     ],
                   ),
-                  SizedBox(height: 4.h),
+                  SizedBox(height: 2.h),
                   
                   // Stock Info
                   Text(
@@ -129,7 +129,7 @@ class CartItemWidget extends StatelessWidget {
                       color: colorScheme.onSurfaceVariant,
                     ),
                   ),
-                  SizedBox(height: 8.h),
+                  SizedBox(height: 6.h),
                   
                   // Price and Quantity Controls
                   Row(
@@ -155,11 +155,11 @@ class CartItemWidget extends StatelessWidget {
                         quantity: quantity,
                         onIncrement: onIncrement,
                         onDecrement: onDecrement,
-                        width: 100.w,
+                        width: 92.w,
                       ),
                     ],
                   ),
-                  SizedBox(height: 8.h),
+                  SizedBox(height: 6.h),
                   
                   // Item Total
                   Align(
