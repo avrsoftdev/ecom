@@ -1,9 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
-
-import '../../../cart/presentation/cubits/cart_cubit.dart';
-import '../../../wishlist/presentation/widgets/cart_icon_with_badge.dart';
 
 class MainNavigationPage extends StatelessWidget {
   const MainNavigationPage({
@@ -13,7 +9,7 @@ class MainNavigationPage extends StatelessWidget {
 
   final StatefulNavigationShell navigationShell;
 
-  List<NavigationDestination> _buildNavigationItems(int cartCount) {
+  List<NavigationDestination> _buildNavigationItems() {
     return [
       NavigationDestination(
         icon: Icon(Icons.home_outlined),
@@ -24,17 +20,6 @@ class MainNavigationPage extends StatelessWidget {
         icon: Icon(Icons.receipt_long_outlined),
         selectedIcon: Icon(Icons.receipt_long_rounded),
         label: 'Orders',
-      ),
-      NavigationDestination(
-        icon: CartIconWithBadge(
-          itemCount: cartCount,
-          icon: Icons.shopping_cart_outlined,
-        ),
-        selectedIcon: CartIconWithBadge(
-          itemCount: cartCount,
-          icon: Icons.shopping_cart_rounded,
-        ),
-        label: 'Cart',
       ),
       NavigationDestination(
         icon: Icon(Icons.category_outlined),
@@ -55,42 +40,34 @@ class MainNavigationPage extends StatelessWidget {
 
     return Scaffold(
       body: navigationShell,
-      bottomNavigationBar: BlocBuilder<CartCubit, CartState>(
-        builder: (context, state) {
-          final cartCount = state is CartLoaded
-              ? state.totalItems
-              : 0;
-
-          return NavigationBarTheme(
-            data: NavigationBarThemeData(
-              indicatorColor: colorScheme.secondaryContainer,
-              labelTextStyle: WidgetStateProperty.resolveWith(
-                (states) => TextStyle(
-                  fontSize: 12,
-                  fontWeight: states.contains(WidgetState.selected)
-                      ? FontWeight.w700
-                      : FontWeight.w500,
-                  color: states.contains(WidgetState.selected)
-                      ? colorScheme.primary
-                      : colorScheme.onSurfaceVariant,
-                ),
-              ),
+      bottomNavigationBar: NavigationBarTheme(
+        data: NavigationBarThemeData(
+          indicatorColor: colorScheme.secondaryContainer,
+          labelTextStyle: WidgetStateProperty.resolveWith(
+            (states) => TextStyle(
+              fontSize: 12,
+              fontWeight: states.contains(WidgetState.selected)
+                  ? FontWeight.w700
+                  : FontWeight.w500,
+              color: states.contains(WidgetState.selected)
+                  ? colorScheme.primary
+                  : colorScheme.onSurfaceVariant,
             ),
-            child: NavigationBar(
-              selectedIndex: navigationShell.currentIndex,
-              height: 72,
-              backgroundColor: colorScheme.surface,
-              surfaceTintColor: colorScheme.surface,
-              destinations: _buildNavigationItems(cartCount),
-              onDestinationSelected: (index) {
-                navigationShell.goBranch(
-                  index,
-                  initialLocation: index == navigationShell.currentIndex,
-                );
-              },
-            ),
-          );
-        },
+          ),
+        ),
+        child: NavigationBar(
+          selectedIndex: navigationShell.currentIndex,
+          height: 72,
+          backgroundColor: colorScheme.surface,
+          surfaceTintColor: colorScheme.surface,
+          destinations: _buildNavigationItems(),
+          onDestinationSelected: (index) {
+            navigationShell.goBranch(
+              index,
+              initialLocation: index == navigationShell.currentIndex,
+            );
+          },
+        ),
       ),
     );
   }

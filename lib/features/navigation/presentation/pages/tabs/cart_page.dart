@@ -18,7 +18,16 @@ class CartPage extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
-      appBar: const FreshVeggieHeader(),
+      appBar: FreshVeggieHeader(
+        showBackButton: true,
+        onBackPressed: () {
+          if (Navigator.of(context).canPop()) {
+            context.pop();
+            return;
+          }
+          context.go('/home');
+        },
+      ),
       body: BlocBuilder<CartCubit, CartState>(
         builder: (context, state) {
           if (state is CartInitial || state is CartLoading) {

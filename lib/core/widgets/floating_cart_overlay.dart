@@ -32,7 +32,6 @@ class _FloatingCartOverlayState extends State<FloatingCartOverlay> {
   static const Set<String> _bottomNavigationPaths = {
     '/home',
     '/orders',
-    '/cart',
     '/categories',
     '/profile',
   };

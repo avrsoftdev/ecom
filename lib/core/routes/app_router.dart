@@ -76,14 +76,6 @@ class AppRouter {
           StatefulShellBranch(
             routes: [
               GoRoute(
-                path: '/cart',
-                builder: (context, state) => const CartPage(),
-              ),
-            ],
-          ),
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
                 path: '/categories',
                 builder: (context, state) => const CategoriesPage(),
               ),
@@ -98,6 +90,10 @@ class AppRouter {
             ],
           ),
         ],
+      ),
+      GoRoute(
+        path: '/cart',
+        builder: (context, state) => const CartPage(),
       ),
       GoRoute(
         path: '/products',
