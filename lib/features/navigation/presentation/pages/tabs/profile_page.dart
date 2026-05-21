@@ -68,6 +68,12 @@ class ProfilePage extends StatelessWidget {
                             onTap: () => context.go('/wishlist'),
                           ),
                           _ActionCard(
+                            icon: Icons.location_on_rounded,
+                            title: 'Saved Address',
+                            subtitle: 'Manage your delivery addresses',
+                            onTap: () => context.pushNamed('saved-addresses'),
+                          ),
+                          _ActionCard(
                             icon: Icons.shopping_cart_rounded,
                             title: 'Cart',
                             subtitle: 'Continue checkout from your cart',

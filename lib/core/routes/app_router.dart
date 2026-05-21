@@ -21,6 +21,7 @@ import '../../features/navigation/presentation/pages/tabs/profile_page.dart';
 import '../../features/navigation/presentation/pages/tabs/search_page.dart';
 import '../../features/navigation/presentation/pages/help_center_page.dart';
 import '../../features/navigation/presentation/pages/privacy_policy_page.dart';
+import '../../features/navigation/presentation/pages/saved_addresses_page.dart';
 import '../../features/product/presentation/pages/product_list_page.dart';
 import '../../features/checkout/presentation/pages/checkout_page.dart';
 
@@ -122,6 +123,15 @@ class AppRouter {
       GoRoute(
         path: '/profile/help-center',
         builder: (context, state) => const HelpCenterPage(),
+      ),
+      GoRoute(
+        name: 'saved-addresses',
+        path: '/profile/saved-addresses',
+        builder: (context, state) => const SavedAddressesPage(),
+      ),
+      GoRoute(
+        path: '/profile/saved addresses',
+        redirect: (context, state) => '/profile/saved-addresses',
       ),
       GoRoute(
         path: '/profile/privacy-policy',

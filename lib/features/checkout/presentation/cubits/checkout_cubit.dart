@@ -88,10 +88,13 @@ class CheckoutCubit extends Cubit<CheckoutState> {
 
   Future<void> _loadSavedContacts() async {
     final localContacts = _loadLocalSavedContacts();
+    final accountAddresses = await _loadAccountAddresses();
     final orderContacts = await _loadOrderContacts();
-    _savedContacts = _dedupeContacts([...localContacts, ...orderContacts])
-        .take(5)
-        .toList();
+    _savedContacts = _dedupeContacts([
+      ...accountAddresses,
+      ...localContacts,
+      ...orderContacts,
+    ]).take(5).toList();
 
     final current = state;
     if (current is CheckoutContactStep) {
@@ -112,6 +115,27 @@ class CheckoutCubit extends Cubit<CheckoutState> {
 
       return decoded
           .whereType<Map<String, dynamic>>()
+          .map(_contactFromJson)
+          .where(_hasUsefulDetails)
+          .toList();
+    } catch (_) {
+      return const [];
+    }
+  }
+
+  Future<List<CheckoutContactEntity>> _loadAccountAddresses() async {
+    final user = _firebaseAuth.currentUser;
+    if (user == null) return const [];
+
+    try {
+      final snapshot = await _firestore.collection('users').doc(user.uid).get();
+      final savedAddresses = (snapshot.data()?['savedAddresses'] as List?)
+              ?.whereType<Map>()
+              .map((entry) => Map<String, dynamic>.from(entry))
+              .toList() ??
+          const <Map<String, dynamic>>[];
+
+      return savedAddresses
           .map(_contactFromJson)
           .where(_hasUsefulDetails)
           .toList();
@@ -181,7 +205,7 @@ class CheckoutCubit extends Cubit<CheckoutState> {
 
   CheckoutContactEntity _contactFromJson(Map<String, dynamic> json) {
     return CheckoutContactEntity(
-      name: (json['name'] as String?) ?? '',
+      name: (json['name'] as String?) ?? (json['label'] as String?) ?? '',
       houseFlatBuilding: (json['houseFlatBuilding'] as String?) ?? '',
       streetAreaColony: (json['streetAreaColony'] as String?) ?? '',
       city: (json['city'] as String?) ?? '',
