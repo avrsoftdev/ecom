@@ -241,11 +241,11 @@ class _CartSummaryState extends State<_CartSummary> {
   void _showFreeDeliverySnackbarIfNeeded() {
     if (widget.subtotal >= freeDeliveryMinimum) {
       _lastSnackbarSubtotal = null;
-      });
       return;
-    _wasEligibleForFreeDelivery = false;
+    }
 
     if (_lastSnackbarSubtotal == widget.subtotal) {
+      return;
     }
 
     _lastSnackbarSubtotal = widget.subtotal;
