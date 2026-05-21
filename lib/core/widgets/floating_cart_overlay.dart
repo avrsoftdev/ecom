@@ -36,13 +36,19 @@ class _FloatingCartOverlayState extends State<FloatingCartOverlay> {
     '/profile',
   };
 
-  bool _isAuthPath(String path) {
+  static const Set<String> _hiddenCartPaths = {
+    '/edit-location',
+  };
+
+  bool _shouldShowCart(String path) {
     final normalizedPath = path.toLowerCase();
-    return normalizedPath == '/login' ||
+    final isAuthPath = normalizedPath == '/login' ||
         normalizedPath == '/register' ||
         normalizedPath == '/signup' ||
         normalizedPath.contains('otp') ||
         normalizedPath.contains('verification');
+
+    return !isAuthPath && !_hiddenCartPaths.contains(normalizedPath);
   }
 
   @override
@@ -91,7 +97,7 @@ class _FloatingCartOverlayState extends State<FloatingCartOverlay> {
           animation: widget.routeListenable,
           builder: (context, _) {
             final path = widget.routeListenable.value.uri.path;
-            final showCart = !_isAuthPath(path);
+            final showCart = _shouldShowCart(path);
             final hasBottomNavigation = _bottomNavigationPaths.contains(path);
             final screenSize = constraints.biggest;
             final viewPadding = MediaQuery.viewPaddingOf(context);

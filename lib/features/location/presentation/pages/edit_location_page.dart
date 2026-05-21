@@ -33,6 +33,7 @@ class _EditLocationPageState extends State<EditLocationPage> {
   @override
   void initState() {
     super.initState();
+    _searchController.addListener(_onSearchControllerChanged);
     final locationState = context.read<LocationCubit>().state;
     if (locationState is LocationLoaded) {
       final location = locationState.location;
@@ -55,8 +56,22 @@ class _EditLocationPageState extends State<EditLocationPage> {
   @override
   void dispose() {
     _debounce?.cancel();
+    _searchController.removeListener(_onSearchControllerChanged);
     _searchController.dispose();
     super.dispose();
+  }
+
+  void _onSearchControllerChanged() {
+    setState(() {});
+  }
+
+  void _clearSearch() {
+    _debounce?.cancel();
+    _searchController.clear();
+    setState(() {
+      _suggestions.clear();
+      _isSearching = false;
+    });
   }
 
   void _onSearchChanged(String query) {
@@ -268,7 +283,13 @@ class _EditLocationPageState extends State<EditLocationPage> {
                           child:
                               const CircularProgressIndicator(strokeWidth: 2),
                         )
-                      : null,
+                      : (_searchController.text.isNotEmpty
+                          ? IconButton(
+                              icon: const Icon(Icons.close),
+                              tooltip: 'Clear location',
+                              onPressed: _clearSearch,
+                            )
+                          : null),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(12.r),
                   ),
