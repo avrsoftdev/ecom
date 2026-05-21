@@ -41,7 +41,7 @@ class CartPage extends StatelessWidget {
           }
 
           final cartItems = state.items;
-          
+
           if (cartItems.isEmpty) {
             return _EmptyCartView(colorScheme: colorScheme);
           }
@@ -69,7 +69,8 @@ class CartPage extends StatelessWidget {
                     ),
                     const Spacer(),
                     Container(
-                      padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+                      padding:
+                          EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
                       decoration: BoxDecoration(
                         color: colorScheme.primaryContainer,
                         borderRadius: BorderRadius.circular(999.r),
@@ -94,7 +95,7 @@ class CartPage extends StatelessWidget {
                   itemCount: cartItems.length,
                   itemBuilder: (context, index) {
                     final item = cartItems[index];
-                    
+
                     return CartItemWidget(
                       item: item,
                       onRemove: () {
@@ -240,11 +241,11 @@ class _CartSummaryState extends State<_CartSummary> {
   void _showFreeDeliverySnackbarIfNeeded() {
     if (widget.subtotal >= freeDeliveryMinimum) {
       _lastSnackbarSubtotal = null;
+      });
       return;
-    }
+    _wasEligibleForFreeDelivery = false;
 
     if (_lastSnackbarSubtotal == widget.subtotal) {
-      return;
     }
 
     _lastSnackbarSubtotal = widget.subtotal;
@@ -252,13 +253,32 @@ class _CartSummaryState extends State<_CartSummary> {
       if (!mounted) return;
 
       final remainingAmount = freeDeliveryMinimum - widget.subtotal;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(
-            'Add items worth ${formatCurrency(remainingAmount)} more to unlock free delivery.',
+      final colorScheme = Theme.of(context).colorScheme;
+      final messenger = ScaffoldMessenger.maybeOf(context);
+
+      if (messenger == null) return;
+
+      messenger
+        ..removeCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            behavior: SnackBarBehavior.floating,
+            backgroundColor: colorScheme.surfaceContainerHighest,
+            margin: EdgeInsets.fromLTRB(16.w, 0, 16.w, 16.h),
+            duration: const Duration(seconds: 2),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(14.r),
+            ),
+            content: Text(
+              'Add items worth ${formatCurrency(remainingAmount)} more to unlock free delivery.',
+              style: TextStyle(
+                color: colorScheme.onSurface,
+                fontSize: 13.sp,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
           ),
-        ),
-      );
+        );
     });
   }
 
