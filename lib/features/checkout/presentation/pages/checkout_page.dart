@@ -457,30 +457,34 @@ class _ContactStepViewState extends State<_ContactStepView> {
             },
           ),
           SizedBox(height: 32.h),
-          SizedBox(
-            width: double.infinity,
-            height: 50.h,
-            child: ElevatedButton(
-              onPressed:
-                  (_isPlacingOrder || !_isServiceable) ? null : _placeOrder,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: colorScheme.primary,
-                foregroundColor: colorScheme.onPrimary,
-                disabledBackgroundColor:
-                    colorScheme.onSurface.withValues(alpha: 0.12),
-                disabledForegroundColor:
-                    colorScheme.onSurface.withValues(alpha: 0.38),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8.r),
+          SafeArea(
+            top: false,
+            minimum: EdgeInsets.only(bottom: 12.h),
+            child: SizedBox(
+              width: double.infinity,
+              height: 50.h,
+              child: ElevatedButton(
+                onPressed:
+                    (_isPlacingOrder || !_isServiceable) ? null : _placeOrder,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: colorScheme.primary,
+                  foregroundColor: colorScheme.onPrimary,
+                  disabledBackgroundColor:
+                      colorScheme.onSurface.withValues(alpha: 0.12),
+                  disabledForegroundColor:
+                      colorScheme.onSurface.withValues(alpha: 0.38),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8.r),
+                  ),
                 ),
-              ),
-              child: Text(
-                _isPlacingOrder
-                    ? 'Placing order...'
-                    : (_isServiceable ? 'Continue' : 'Area Not Serviceable'),
-                style: TextStyle(
-                  fontSize: 16.sp,
-                  fontWeight: FontWeight.w600,
+                child: Text(
+                  _isPlacingOrder
+                      ? 'Placing order...'
+                      : (_isServiceable ? 'Continue' : 'Area Not Serviceable'),
+                  style: TextStyle(
+                    fontSize: 16.sp,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
             ),
