@@ -70,7 +70,7 @@ class CartPage extends StatelessWidget {
                     const Spacer(),
                     Container(
                       padding:
-                          EdgeInsets.symmetric(horizontal: 12.w, vertical: 6.h),
+                          EdgeInsets.symmetric(horizontal: 12.w, vertical: 7.h),
                       decoration: BoxDecoration(
                         color: colorScheme.primaryContainer,
                         borderRadius: BorderRadius.circular(999.r),
@@ -81,6 +81,35 @@ class CartPage extends StatelessWidget {
                           fontSize: 12.sp,
                           fontWeight: FontWeight.w600,
                           color: colorScheme.onPrimaryContainer,
+                        ),
+                      ),
+                    ),
+                    SizedBox(width: 4.w),
+                    FilledButton.tonalIcon(
+                      onPressed: () => context.go('/home'),
+                      icon: Icon(
+                        Icons.add_shopping_cart_rounded,
+                        size: 15.sp,
+                      ),
+                      label: Text(
+                        'Add More',
+                        style: TextStyle(
+                          fontSize: 11.sp,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      style: FilledButton.styleFrom(
+                        foregroundColor: colorScheme.primary,
+                        backgroundColor: colorScheme.primaryContainer,
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 10.w,
+                          vertical: 10.h,
+                        ),
+                        minimumSize: Size.zero,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                        visualDensity: VisualDensity.compact,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(999.r),
                         ),
                       ),
                     ),
