@@ -108,7 +108,7 @@ class _PolicyHeroCard extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            'This page explains what information Bajariyo uses, why it is used, and the choices customers have while using the app.',
+            'This page explains what information Bazariyo uses, why it is used, and the choices customers have while using the app.',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: colorScheme.onPrimaryContainer.withValues(alpha: 0.82),
                 ),

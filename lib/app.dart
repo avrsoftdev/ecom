@@ -7,6 +7,7 @@ import 'core/theme/app_theme.dart';
 import 'core/theme/theme_cubit.dart';
 import 'core/routes/app_router.dart';
 import 'core/di/injection.dart';
+import 'core/widgets/app_update_snackbar_listener.dart';
 import 'core/widgets/notification_listener.dart';
 import 'features/auth/presentation/cubits/auth_cubit.dart';
 import 'features/cart/presentation/cubits/cart_cubit.dart';
@@ -51,12 +52,12 @@ class FreshVeggieApp extends StatelessWidget {
                     try {
                       cubit.loadNotifications();
                     } catch (e) {
-                      print('Error loading notifications after delay: $e');
+                      debugPrint('Error loading notifications after delay: $e');
                     }
                   });
                   return cubit;
                 } catch (e) {
-                  print('Error creating NotificationCubit: $e');
+                  debugPrint('Error creating NotificationCubit: $e');
                   // Return a dummy cubit that won't crash
                   return NotificationCubit(
                     firestore: getIt(),
@@ -71,7 +72,8 @@ class FreshVeggieApp extends StatelessWidget {
             listener: (context, state) {
               if (state is LocationLoaded) {
                 AppRouter.locationServiceableNotifier.value = true;
-              } else if (state is LocationUnserviceable || state is LocationError) {
+              } else if (state is LocationUnserviceable ||
+                  state is LocationError) {
                 AppRouter.locationServiceableNotifier.value = false;
               }
             },
@@ -88,6 +90,11 @@ class FreshVeggieApp extends StatelessWidget {
                     supportedLocales: context.supportedLocales,
                     locale: context.locale,
                     routerConfig: AppRouter.router,
+                    builder: (context, child) {
+                      return AppUpdateSnackBarListener(
+                        child: child ?? const SizedBox.shrink(),
+                      );
+                    },
                   ),
                 );
               },

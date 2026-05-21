@@ -145,7 +145,7 @@ class _HeroCard extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             hasCustomSupportDetails
-                ? 'Reach the Bajariyo support team using the contact options below.'
+                ? 'Reach the Bazariyo support team using the contact options below.'
                 : 'Support details have not been customized yet, so fallback contact information is shown below.',
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: colorScheme.onPrimaryContainer.withValues(alpha: 0.82),
