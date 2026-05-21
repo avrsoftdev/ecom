@@ -8,6 +8,7 @@ import 'core/theme/theme_cubit.dart';
 import 'core/routes/app_router.dart';
 import 'core/di/injection.dart';
 import 'core/widgets/app_update_snackbar_listener.dart';
+import 'core/widgets/floating_cart_overlay.dart';
 import 'core/widgets/notification_listener.dart';
 import 'features/auth/presentation/cubits/auth_cubit.dart';
 import 'features/cart/presentation/cubits/cart_cubit.dart';
@@ -92,7 +93,12 @@ class FreshVeggieApp extends StatelessWidget {
                     routerConfig: AppRouter.router,
                     builder: (context, child) {
                       return AppUpdateSnackBarListener(
-                        child: child ?? const SizedBox.shrink(),
+                        child: FloatingCartOverlay(
+                          routeListenable:
+                              AppRouter.router.routeInformationProvider,
+                          onCartTap: () => AppRouter.router.go('/cart'),
+                          child: child ?? const SizedBox.shrink(),
+                        ),
                       );
                     },
                   ),
