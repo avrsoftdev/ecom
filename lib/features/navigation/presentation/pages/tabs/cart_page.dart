@@ -85,33 +85,9 @@ class CartPage extends StatelessWidget {
                       ),
                     ),
                     SizedBox(width: 4.w),
-                    FilledButton.tonalIcon(
+                    _AddMoreButton(
                       onPressed: () => context.go('/home'),
-                      icon: Icon(
-                        Icons.add_shopping_cart_rounded,
-                        size: 15.sp,
-                      ),
-                      label: Text(
-                        'Add More',
-                        style: TextStyle(
-                          fontSize: 11.sp,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                      style: FilledButton.styleFrom(
-                        foregroundColor: colorScheme.primary,
-                        backgroundColor: colorScheme.primaryContainer,
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 10.w,
-                          vertical: 10.h,
-                        ),
-                        minimumSize: Size.zero,
-                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                        visualDensity: VisualDensity.compact,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(999.r),
-                        ),
-                      ),
+                      colorScheme: colorScheme,
                     ),
                   ],
                 ),
@@ -166,6 +142,74 @@ class CartPage extends StatelessWidget {
             ],
           );
         },
+      ),
+    );
+  }
+}
+
+class _AddMoreButton extends StatelessWidget {
+  const _AddMoreButton({
+    required this.onPressed,
+    required this.colorScheme,
+  });
+
+  final VoidCallback onPressed;
+  final ColorScheme colorScheme;
+
+  @override
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: colorScheme.primary,
+        borderRadius: BorderRadius.circular(8.r),
+        boxShadow: [
+          BoxShadow(
+            color: colorScheme.primary.withValues(alpha: 0.24),
+            blurRadius: 10.r,
+            offset: Offset(0, 4.h),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(8.r),
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onPressed,
+          child: SizedBox(
+            height: 32.h,
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: 8.w),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 18.r,
+                    height: 18.r,
+                    decoration: BoxDecoration(
+                      color: colorScheme.onPrimary.withValues(alpha: 0.18),
+                      borderRadius: BorderRadius.circular(5.r),
+                    ),
+                    child: Icon(
+                      Icons.add_rounded,
+                      color: colorScheme.onPrimary,
+                      size: 15.sp,
+                    ),
+                  ),
+                  SizedBox(width: 6.w),
+                  Text(
+                    'Add More',
+                    style: TextStyle(
+                      color: colorScheme.onPrimary,
+                      fontSize: 12.sp,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
