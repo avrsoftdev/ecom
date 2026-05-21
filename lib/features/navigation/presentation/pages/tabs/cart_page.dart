@@ -112,21 +112,25 @@ class CartPage extends StatelessWidget {
               ),
 
               // Cart Summary
-              Container(
-                padding: EdgeInsets.all(16.w),
-                decoration: BoxDecoration(
-                  color: colorScheme.surface,
-                  border: Border(
-                    top: BorderSide(
-                      color: colorScheme.primary,
-                      width: 2,
+              SafeArea(
+                top: false,
+                minimum: EdgeInsets.only(bottom: 12.h),
+                child: Container(
+                  padding: EdgeInsets.all(16.w),
+                  decoration: BoxDecoration(
+                    color: colorScheme.surface,
+                    border: Border(
+                      top: BorderSide(
+                        color: colorScheme.primary,
+                        width: 2,
+                      ),
                     ),
                   ),
-                ),
-                child: _CartSummary(
-                  totalItems: state.totalItems,
-                  subtotal: state.totalPrice,
-                  colorScheme: colorScheme,
+                  child: _CartSummary(
+                    totalItems: state.totalItems,
+                    subtotal: state.totalPrice,
+                    colorScheme: colorScheme,
+                  ),
                 ),
               ),
             ],
