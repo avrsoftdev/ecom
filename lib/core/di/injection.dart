@@ -70,7 +70,7 @@ Future<void> configureDependencies() async {
   final sharedPreferences = await SharedPreferences.getInstance();
   final googleSignIn = GoogleSignIn(
     scopes: const ['email'],
-    clientId: DefaultFirebaseOptions.googleWebClientId,
+    serverClientId: DefaultFirebaseOptions.googleWebClientId,
   );
 
   getIt.registerSingleton<SharedPreferences>(sharedPreferences);

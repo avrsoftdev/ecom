@@ -7,12 +7,28 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:14234085234:android:3b0c54b9a3ae011ddd1feb",
+        "mobilesdk_app_id": "1:14234085234:android:7f87c42ed6a91c06dd1feb",
         "android_client_info": {
-          "package_name": "com.bazariyo.avr"
+          "package_name": "com.bajariyo.avr"
         }
       },
       "oauth_client": [
+        {
+          "client_id": "14234085234-ktd6rabbvg6204s8thkg126vjkji3h9o.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.bajariyo.avr",
+            "certificate_hash": "952d20f83ed7ed5af161c2901c93fdf063de1ab0"
+          }
+        },
+        {
+          "client_id": "14234085234-ve94kt8hu14nvfdjdonuq9em2so33i9m.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.bajariyo.avr",
+            "certificate_hash": "17025e23ce94462a163085f8c5745dbdf8ead19f"
+          }
+        },
         {
           "client_id": "14234085234-uotespbo6irc706klsdv35s9ebuq4m58.apps.googleusercontent.com",
           "client_type": 3
@@ -71,6 +87,22 @@
         }
       },
       "oauth_client": [
+        {
+          "client_id": "14234085234-0mqnief29okumcmu11s6v96blmbc8ntd.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.bazariyo.avr",
+            "certificate_hash": "17025e23ce94462a163085f8c5745dbdf8ead19f"
+          }
+        },
+        {
+          "client_id": "14234085234-ggdk0qhfk3h934bubar033rf4lguqogr.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.bazariyo.avr",
+            "certificate_hash": "952d20f83ed7ed5af161c2901c93fdf063de1ab0"
+          }
+        },
         {
           "client_id": "14234085234-uotespbo6irc706klsdv35s9ebuq4m58.apps.googleusercontent.com",
           "client_type": 3
