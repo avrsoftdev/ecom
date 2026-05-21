@@ -79,6 +79,9 @@ dependencies {
     // Add Firebase Analytics
     implementation("com.google.firebase:firebase-analytics")
 
+    // Play Integrity API
+    implementation("com.google.android.play:integrity:1.3.0")
+
     // Add other Firebase dependencies as needed
     // https://firebase.google.com/docs/android/setup#available-libraries
 }

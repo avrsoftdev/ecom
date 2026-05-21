@@ -15,6 +15,7 @@ abstract class AuthRepository {
   Future<Either<Failure, UserCredential>> signInWithGoogle();
   Future<Either<Failure, void>> signOut();
   Future<Either<Failure, String?>> getUserRole(String uid);
+  Future<Either<Failure, String?>> getIntegrityToken({String? nonce});
   Stream<User?> get authStateChanges;
   User? get currentUser;
 }

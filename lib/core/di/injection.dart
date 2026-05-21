@@ -32,6 +32,7 @@ import '../../features/auth/data/datasources/auth_remote_datasource.dart';
 import '../../features/auth/data/repositories/auth_repository_impl.dart';
 import '../../features/auth/domain/repositories/auth_repository.dart';
 import '../../features/auth/domain/usecases/check_auth_status_usecase.dart';
+import '../../features/auth/domain/usecases/get_integrity_token_usecase.dart';
 import '../../features/auth/domain/usecases/get_user_role_usecase.dart';
 import '../../features/auth/domain/usecases/sign_in_usecase.dart';
 import '../../features/auth/domain/usecases/sign_in_with_google_usecase.dart';
@@ -62,6 +63,7 @@ import '../../features/checkout/presentation/cubits/checkout_cubit.dart';
 import '../../features/notification/presentation/cubits/notification_cubit.dart';
 import '../../firebase_options.dart';
 import '../network/network_info.dart';
+import '../services/play_integrity_service.dart';
 import '../theme/theme_cubit.dart';
 
 final getIt = GetIt.instance;
@@ -80,6 +82,8 @@ Future<void> configureDependencies() async {
   getIt.registerSingleton<FirebaseFirestore>(FirebaseFirestore.instance);
   getIt.registerSingleton<FirebaseStorage>(FirebaseStorage.instance);
   getIt.registerSingleton<GoogleSignIn>(googleSignIn);
+  getIt.registerLazySingleton<PlayIntegrityService>(
+      () => PlayIntegrityService());
 
   getIt.registerSingleton<Dio>(Dio());
   getIt.registerSingleton<Connectivity>(Connectivity());
@@ -100,6 +104,7 @@ Future<void> configureDependencies() async {
     () => AuthRepositoryImpl(
       remoteDataSource: getIt(),
       sharedPreferences: getIt(),
+      playIntegrityService: getIt(),
     ),
   );
 
@@ -109,6 +114,7 @@ Future<void> configureDependencies() async {
   getIt.registerLazySingleton(() => SignOutUseCase(getIt()));
   getIt.registerLazySingleton(() => CheckAuthStatusUseCase(getIt()));
   getIt.registerLazySingleton(() => GetUserRoleUseCase(getIt()));
+  getIt.registerLazySingleton(() => GetIntegrityTokenUseCase(getIt()));
 
   getIt.registerFactory(
     () => AuthCubit(

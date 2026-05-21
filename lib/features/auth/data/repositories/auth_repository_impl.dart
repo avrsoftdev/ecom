@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../../../core/error/failures.dart';
+import '../../../../core/services/play_integrity_service.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../datasources/auth_remote_datasource.dart';
 import '../models/auth_user_model.dart';
@@ -13,10 +14,12 @@ import '../models/auth_user_model.dart';
 class AuthRepositoryImpl implements AuthRepository {
   final AuthRemoteDataSource remoteDataSource;
   final SharedPreferences sharedPreferences;
+  final PlayIntegrityService playIntegrityService;
 
   AuthRepositoryImpl({
     required this.remoteDataSource,
     required this.sharedPreferences,
+    required this.playIntegrityService,
   });
 
   @override
@@ -70,7 +73,8 @@ class AuthRepositoryImpl implements AuthRepository {
     } on PlatformException catch (e) {
       return Left(AuthFailure('Google Sign-In failed: ${e.message ?? e.code}'));
     } catch (e) {
-      return Left(ServerFailure('Unexpected error during Google Sign-In: ${e.toString()}'));
+      return Left(ServerFailure(
+          'Unexpected error during Google Sign-In: ${e.toString()}'));
     }
   }
 
@@ -90,6 +94,19 @@ class AuthRepositoryImpl implements AuthRepository {
     try {
       final role = await remoteDataSource.getUserRole(uid);
       return Right(role);
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, String?>> getIntegrityToken({String? nonce}) async {
+    try {
+      final token = await playIntegrityService.getIntegrityToken(nonce: nonce);
+      if (token == null) {
+        return const Left(ServerFailure('Failed to get integrity token'));
+      }
+      return Right(token);
     } catch (e) {
       return Left(ServerFailure(e.toString()));
     }
