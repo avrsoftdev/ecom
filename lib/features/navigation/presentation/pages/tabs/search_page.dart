@@ -139,7 +139,7 @@ class _SearchPageState extends State<SearchPage> {
                       padding: EdgeInsets.symmetric(horizontal: 16.w),
                       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                         crossAxisCount: 2,
-                        childAspectRatio: 0.75,
+                        childAspectRatio: 0.82,
                         crossAxisSpacing: 12.w,
                         mainAxisSpacing: 12.h,
                       ),
@@ -168,7 +168,8 @@ class _SearchPageState extends State<SearchPage> {
                                           ))
                                     : null;
                                 final quantity = cartState is CartLoaded
-                                    ? cartCubit.totalQuantityForProduct(product.id)
+                                    ? cartCubit
+                                        .totalQuantityForProduct(product.id)
                                     : 0;
 
                                 return ProductCard(
@@ -215,8 +216,8 @@ class _SearchPageState extends State<SearchPage> {
                                       return;
                                     }
                                     if (displayCartItem != null) {
-                                      cartCubit
-                                          .incrementQuantity(displayCartItem.id);
+                                      cartCubit.incrementQuantity(
+                                          displayCartItem.id);
                                     }
                                   },
                                   onDecrementQuantity: () {
@@ -225,8 +226,8 @@ class _SearchPageState extends State<SearchPage> {
                                       return;
                                     }
                                     if (displayCartItem != null) {
-                                      cartCubit
-                                          .decrementQuantity(displayCartItem.id);
+                                      cartCubit.decrementQuantity(
+                                          displayCartItem.id);
                                     }
                                   },
                                 );

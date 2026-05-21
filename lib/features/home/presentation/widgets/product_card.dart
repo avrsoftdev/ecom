@@ -7,6 +7,8 @@ import '../../../product/domain/entities/product_entity.dart';
 import '../../../wishlist/presentation/widgets/quantity_counter_widget.dart';
 
 class ProductCard extends StatelessWidget {
+  static double get cardWidth => 144.w;
+
   final ProductEntity product;
   final VoidCallback onTap;
   final VoidCallback onAddToCart;
@@ -37,7 +39,8 @@ class ProductCard extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
     final hasDiscount = product.discountPercent > 0;
     final hasTiers = product.pricingTiers.isNotEmpty;
-    final hasSelectedTier = hasTiers && quantity > 0 && selectedTierLabel != null;
+    final hasSelectedTier =
+        hasTiers && quantity > 0 && selectedTierLabel != null;
     final lowestTierPrice = hasTiers
         ? product.pricingTiers
             .map((tier) => tier.price)
@@ -45,10 +48,10 @@ class ProductCard extends StatelessWidget {
         : null;
 
     return Container(
-      width: 160.w,
+      width: cardWidth,
       decoration: BoxDecoration(
         color: colorScheme.surface,
-        borderRadius: BorderRadius.circular(12.r),
+        borderRadius: BorderRadius.circular(10.r),
         border: Border.all(color: colorScheme.primary, width: 2),
         boxShadow: [
           BoxShadow(
@@ -60,23 +63,23 @@ class ProductCard extends StatelessWidget {
       ),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(12.r),
+        borderRadius: BorderRadius.circular(10.r),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Product Image
             Expanded(
-              flex: 11,
+              flex: 9,
               child: Stack(
                 children: [
                   Container(
                     width: double.infinity,
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(12.r),
+                      borderRadius: BorderRadius.circular(10.r),
                       color: colorScheme.surfaceContainerHighest,
                     ),
                     child: ClipRRect(
-                      borderRadius: BorderRadius.circular(12.r),
+                      borderRadius: BorderRadius.circular(10.r),
                       child: product.imageUrl.isNotEmpty
                           ? CachedNetworkImage(
                               imageUrl: product.imageUrl,
@@ -170,116 +173,133 @@ class ProductCard extends StatelessWidget {
             ),
             // Product Details
             Expanded(
-              flex: 10,
+              flex: 11,
               child: Padding(
-                padding: EdgeInsets.fromLTRB(8.w, 4.h, 8.w, 2.h),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            product.name,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              fontSize: 11.sp,
-                              fontWeight: FontWeight.w500,
-                              color: colorScheme.onSurface,
-                            ),
-                          ),
-                          SizedBox(height: 2.h),
-                          Text(
-                            '${product.stock} ${product.unitType.displayUnit} available',
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              fontSize: 10.sp,
-                              color: colorScheme.onSurfaceVariant,
-                            ),
-                          ),
-                          SizedBox(height: 2.h),
-                          Text(
-                            hasTiers
-                                ? '${product.pricingTiers.length} tiers from ${formatCurrency(lowestTierPrice!)}'
-                                : formatCurrency(product.effectivePrice),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: TextStyle(
-                              fontSize: 11.sp,
-                              fontWeight: FontWeight.w700,
-                              color: colorScheme.primary,
-                            ),
-                          ),
-                          if (hasTiers) ...[
-                            SizedBox(height: 1.h),
-                            Text(
-                              hasSelectedTier
-                                  ? 'Selected: $selectedTierLabel'
-                                  : 'Tap Add to choose a tier',
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(
-                                fontSize: 9.sp,
-                                color: colorScheme.onSurfaceVariant,
-                              ),
-                            ),
-                          ] else if (hasDiscount) ...[
-                            SizedBox(height: 1.h),
-                            Text(
-                              formatCurrency(product.price),
-                              style: TextStyle(
-                                fontSize: 9.sp,
-                                color: colorScheme.onSurfaceVariant,
-                                decoration: TextDecoration.lineThrough,
-                              ),
-                            ),
-                          ],
-                        ],
-                      ),
-                    ),
-                    SizedBox(height: 2.h),
-                    SizedBox(
-                      width: double.infinity,
-                      height: 24.h,
-                      child: showQuantityControls && quantity > 0
-                          ? QuantityCounterWidget(
-                              quantity: quantity,
-                              onIncrement: onIncrementQuantity ?? () {},
-                              onDecrement: onDecrementQuantity ?? () {},
-                            )
-                          : ElevatedButton(
-                              onPressed: onAddToCart,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: colorScheme.primary,
-                                foregroundColor: colorScheme.onPrimary,
-                                elevation: 0,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(6.r),
-                                ),
-                                padding: EdgeInsets.symmetric(horizontal: 8.w),
-                              ),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
+                padding: EdgeInsets.fromLTRB(7.w, 4.h, 7.w, 3.h),
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: FittedBox(
+                            alignment: Alignment.topLeft,
+                            fit: BoxFit.scaleDown,
+                            child: SizedBox(
+                              width: constraints.maxWidth,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  Icon(Icons.add_shopping_cart, size: 12.sp),
-                                  SizedBox(width: 4.w),
                                   Text(
-                                    'Add',
+                                    product.name,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
                                     style: TextStyle(
-                                      fontSize: 10.sp,
-                                      fontWeight: FontWeight.w600,
+                                      fontSize: 11.sp,
+                                      fontWeight: FontWeight.w500,
+                                      color: colorScheme.onSurface,
                                     ),
                                   ),
+                                  SizedBox(height: 2.h),
+                                  Text(
+                                    '${product.stock} ${product.unitType.displayUnit} available',
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      fontSize: 10.sp,
+                                      color: colorScheme.onSurfaceVariant,
+                                    ),
+                                  ),
+                                  SizedBox(height: 2.h),
+                                  Text(
+                                    hasTiers
+                                        ? '${product.pricingTiers.length} tiers from ${formatCurrency(lowestTierPrice!)}'
+                                        : formatCurrency(
+                                            product.effectivePrice,
+                                          ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      fontSize: 11.sp,
+                                      fontWeight: FontWeight.w700,
+                                      color: colorScheme.primary,
+                                    ),
+                                  ),
+                                  if (hasTiers) ...[
+                                    SizedBox(height: 1.h),
+                                    Text(
+                                      hasSelectedTier
+                                          ? 'Selected: $selectedTierLabel'
+                                          : 'Tap Add to choose a tier',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                        fontSize: 9.sp,
+                                        color: colorScheme.onSurfaceVariant,
+                                      ),
+                                    ),
+                                  ] else if (hasDiscount) ...[
+                                    SizedBox(height: 1.h),
+                                    Text(
+                                      formatCurrency(product.price),
+                                      style: TextStyle(
+                                        fontSize: 9.sp,
+                                        color: colorScheme.onSurfaceVariant,
+                                        decoration: TextDecoration.lineThrough,
+                                      ),
+                                    ),
+                                  ],
                                 ],
                               ),
                             ),
-                    ),
-                    SizedBox(height: 4.h),
-                  ],
+                          ),
+                        ),
+                        SizedBox(height: 2.h),
+                        SizedBox(
+                          width: double.infinity,
+                          height: 24.h,
+                          child: showQuantityControls && quantity > 0
+                              ? QuantityCounterWidget(
+                                  quantity: quantity,
+                                  height: 24.h,
+                                  onIncrement: onIncrementQuantity ?? () {},
+                                  onDecrement: onDecrementQuantity ?? () {},
+                                )
+                              : ElevatedButton(
+                                  onPressed: onAddToCart,
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: colorScheme.primary,
+                                    foregroundColor: colorScheme.onPrimary,
+                                    elevation: 0,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(6.r),
+                                    ),
+                                    padding:
+                                        EdgeInsets.symmetric(horizontal: 7.w),
+                                  ),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        Icons.add_shopping_cart,
+                                        size: 12.sp,
+                                      ),
+                                      SizedBox(width: 4.w),
+                                      Text(
+                                        'Add',
+                                        style: TextStyle(
+                                          fontSize: 10.sp,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                        ),
+                      ],
+                    );
+                  },
                 ),
               ),
             ),

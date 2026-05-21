@@ -151,7 +151,14 @@ class HomePage extends StatelessWidget {
                   products: homeData.recommended,
                 ),
                 SliverToBoxAdapter(
-                  child: SizedBox(height: 24.h),
+                  child: Padding(
+                    padding: EdgeInsets.fromLTRB(16.w, 24.h, 16.w, 24.h),
+                    child: Image.asset(
+                      'assets/images/bottom_image.png',
+                      width: double.infinity,
+                      fit: BoxFit.fitWidth,
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -200,7 +207,7 @@ class _ProductSection extends StatelessWidget {
             ),
             SizedBox(height: 16.h),
             SizedBox(
-              height: 260.h,
+              height: 232.h,
               child: ListView.separated(
                 padding: EdgeInsets.symmetric(horizontal: 16.w),
                 scrollDirection: Axis.horizontal,
@@ -299,7 +306,6 @@ class _ProductSection extends StatelessWidget {
     );
   }
 }
-
 
 class _HomeErrorView extends StatelessWidget {
   const _HomeErrorView({

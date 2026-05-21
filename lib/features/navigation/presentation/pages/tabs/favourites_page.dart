@@ -78,7 +78,7 @@ class FavouritesPage extends StatelessWidget {
                       crossAxisCount: 2,
                       crossAxisSpacing: 12.w,
                       mainAxisSpacing: 12.h,
-                      childAspectRatio: 0.7,
+                      childAspectRatio: 0.82,
                     ),
                     itemCount: wishlistProducts.length,
                     itemBuilder: (context, index) {
@@ -87,19 +87,24 @@ class FavouritesPage extends StatelessWidget {
                         builder: (context, cartState) {
                           return BlocBuilder<WishlistCubit, WishlistState>(
                             builder: (context, wishlistState) {
-                              final isWishlisted = wishlistState is WishlistLoaded &&
-                                  wishlistState.wishlistProducts.containsKey(product.id);
+                              final isWishlisted =
+                                  wishlistState is WishlistLoaded &&
+                                      wishlistState.wishlistProducts
+                                          .containsKey(product.id);
                               final cartCubit = context.read<CartCubit>();
                               final hasTiers = product.pricingTiers.isNotEmpty;
                               final displayCartItem = cartState is CartLoaded
                                   ? (hasTiers
-                                      ? cartCubit.preferredDisplayItemForProduct(
+                                      ? cartCubit
+                                          .preferredDisplayItemForProduct(
                                           product.id,
                                         )
-                                      : cartCubit.baseItemForProduct(product.id))
+                                      : cartCubit
+                                          .baseItemForProduct(product.id))
                                   : null;
                               final quantity = cartState is CartLoaded
-                                  ? cartCubit.totalQuantityForProduct(product.id)
+                                  ? cartCubit
+                                      .totalQuantityForProduct(product.id)
                                   : 0;
 
                               return ProductCard(
@@ -109,10 +114,14 @@ class FavouritesPage extends StatelessWidget {
                                     context,
                                     MaterialPageRoute(
                                       builder: (context) => BlocProvider(
-                                        create: (context) => ProductDetailsCubit(
-                                          productRepository: ProductRepositoryImpl(
-                                            remoteDataSource: ProductRemoteDataSourceImpl(
-                                              firestore: FirebaseFirestore.instance,
+                                        create: (context) =>
+                                            ProductDetailsCubit(
+                                          productRepository:
+                                              ProductRepositoryImpl(
+                                            remoteDataSource:
+                                                ProductRemoteDataSourceImpl(
+                                              firestore:
+                                                  FirebaseFirestore.instance,
                                             ),
                                             networkInfo: NetworkInfoImpl(
                                               Connectivity(),
@@ -132,7 +141,9 @@ class FavouritesPage extends StatelessWidget {
                                   cartCubit.addToCart(product);
                                 },
                                 onWishlistToggle: () {
-                                  context.read<WishlistCubit>().toggleWishlist(product);
+                                  context
+                                      .read<WishlistCubit>()
+                                      .toggleWishlist(product);
                                 },
                                 isWishlisted: isWishlisted,
                                 quantity: quantity,
@@ -144,7 +155,8 @@ class FavouritesPage extends StatelessWidget {
                                     return;
                                   }
                                   if (displayCartItem != null) {
-                                    cartCubit.incrementQuantity(displayCartItem.id);
+                                    cartCubit
+                                        .incrementQuantity(displayCartItem.id);
                                   }
                                 },
                                 onDecrementQuantity: () {
@@ -153,7 +165,8 @@ class FavouritesPage extends StatelessWidget {
                                     return;
                                   }
                                   if (displayCartItem != null) {
-                                    cartCubit.decrementQuantity(displayCartItem.id);
+                                    cartCubit
+                                        .decrementQuantity(displayCartItem.id);
                                   }
                                 },
                               );
