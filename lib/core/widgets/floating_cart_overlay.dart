@@ -22,7 +22,8 @@ class FloatingCartOverlay extends StatefulWidget {
 }
 
 class _FloatingCartOverlayState extends State<FloatingCartOverlay> {
-  Offset? _cartPosition;
+  final ValueNotifier<Offset?> _cartPositionNotifier =
+      ValueNotifier<Offset?>(null);
   bool _hasUserMovedCart = false;
 
   static const Set<String> _bottomNavigationPaths = {
@@ -40,6 +41,12 @@ class _FloatingCartOverlayState extends State<FloatingCartOverlay> {
         normalizedPath == '/signup' ||
         normalizedPath.contains('otp') ||
         normalizedPath.contains('verification');
+  }
+
+  @override
+  void dispose() {
+    _cartPositionNotifier.dispose();
+    super.dispose();
   }
 
   Offset _defaultCartPosition(
@@ -92,35 +99,40 @@ class _FloatingCartOverlayState extends State<FloatingCartOverlay> {
               viewPadding,
               hasBottomNavigation,
             );
-            final effectivePosition = _clampCartPosition(
-              _hasUserMovedCart
-                  ? (_cartPosition ?? defaultPosition)
-                  : defaultPosition,
-              screenSize,
-              viewPadding,
-            );
-
             return Stack(
               fit: StackFit.expand,
               children: [
                 widget.child,
                 if (showCart)
-                  Positioned(
-                    left: effectivePosition.dx,
-                    top: effectivePosition.dy,
-                    child: _FloatingCartButton(
-                      onTap: widget.onCartTap,
-                      onDragUpdate: (details) {
-                        setState(() {
-                          _hasUserMovedCart = true;
-                          _cartPosition = _clampCartPosition(
-                            effectivePosition + details.delta,
-                            screenSize,
-                            viewPadding,
-                          );
-                        });
-                      },
-                    ),
+                  ValueListenableBuilder<Offset?>(
+                    valueListenable: _cartPositionNotifier,
+                    builder: (context, cartPosition, _) {
+                      final effectivePosition = _clampCartPosition(
+                        _hasUserMovedCart
+                            ? (cartPosition ?? defaultPosition)
+                            : defaultPosition,
+                        screenSize,
+                        viewPadding,
+                      );
+
+                      return Positioned(
+                        left: effectivePosition.dx,
+                        top: effectivePosition.dy,
+                        child: RepaintBoundary(
+                          child: _FloatingCartButton(
+                            onTap: widget.onCartTap,
+                            onDragUpdate: (details) {
+                              _hasUserMovedCart = true;
+                              _cartPositionNotifier.value = _clampCartPosition(
+                                effectivePosition + details.delta,
+                                screenSize,
+                                viewPadding,
+                              );
+                            },
+                          ),
+                        ),
+                      );
+                    },
                   ),
               ],
             );
@@ -151,6 +163,7 @@ class _FloatingCartButton extends StatelessWidget {
         final itemCount = state is CartLoaded ? state.totalItems : 0;
 
         return GestureDetector(
+          behavior: HitTestBehavior.opaque,
           onPanUpdate: onDragUpdate,
           child: Material(
             color: Colors.transparent,
@@ -173,9 +186,12 @@ class _FloatingCartButton extends StatelessWidget {
                           offset: Offset(0, 6.h),
                         ),
                       ],
+                    ),
+                    foregroundDecoration: BoxDecoration(
+                      shape: BoxShape.circle,
                       border: Border.all(
-                        color: colorScheme.outlineVariant,
-                        width: 1.r,
+                        color: colorScheme.primary,
+                        width: 3.r,
                       ),
                     ),
                     clipBehavior: Clip.antiAlias,
