@@ -518,19 +518,6 @@ class _BannerCard extends StatelessWidget {
           ),
           Positioned.fill(
             child: _FloatingSticker(
-              start: Alignment(0.0, 0.1),
-              delta: const Offset(0.05, 0.05),
-              duration: const Duration(seconds: 8),
-              phase: 0.25,
-              child: _StickerBadge(
-                  icon: Icons.shopping_bag_rounded,
-                  bgColor: const Color(0xFFFFF8E1),
-                  iconColor: const Color(0xFFF9A825),
-                  size: 30),
-            ),
-          ),
-          Positioned.fill(
-            child: _FloatingSticker(
               start: Alignment(-0.6, 0.5),
               delta: const Offset(0.05, 0.06),
               duration: const Duration(seconds: 7),

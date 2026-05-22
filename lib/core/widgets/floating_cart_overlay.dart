@@ -1,5 +1,6 @@
 import 'dart:math' as math;
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -41,6 +42,8 @@ class _FloatingCartOverlayState extends State<FloatingCartOverlay> {
   };
 
   bool _shouldShowCart(String path) {
+    if (FirebaseAuth.instance.currentUser == null) return false;
+
     final normalizedPath = path.toLowerCase();
     final isAuthPath = normalizedPath == '/login' ||
         normalizedPath == '/register' ||

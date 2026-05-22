@@ -30,6 +30,14 @@
           }
         },
         {
+          "client_id": "14234085234-vvoosg0trhhcjcd53et1gi226lv534ja.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.bajariyo.avr",
+            "certificate_hash": "3c5006dba248d6890d02d3e6563767e2857845fd"
+          }
+        },
+        {
           "client_id": "14234085234-uotespbo6irc706klsdv35s9ebuq4m58.apps.googleusercontent.com",
           "client_type": 3
         }
