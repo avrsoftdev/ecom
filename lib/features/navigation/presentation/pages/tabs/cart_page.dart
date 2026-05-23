@@ -51,43 +51,47 @@ class CartPage extends StatelessWidget {
               // Header
               Padding(
                 padding: EdgeInsets.fromLTRB(16.w, 16.h, 16.w, 8.h),
-                child: Row(
+                child: Column(
                   children: [
-                    Icon(
-                      Icons.shopping_cart_rounded,
-                      color: colorScheme.primary,
-                      size: 24.sp,
-                    ),
-                    SizedBox(width: 8.w),
-                    Text(
-                      'My Cart',
-                      style: TextStyle(
-                        fontSize: 20.sp,
-                        fontWeight: FontWeight.w700,
-                        color: colorScheme.onSurface,
-                      ),
-                    ),
-                    const Spacer(),
-                    Container(
-                      padding:
-                          EdgeInsets.symmetric(horizontal: 12.w, vertical: 7.h),
-                      decoration: BoxDecoration(
-                        color: colorScheme.primaryContainer,
-                        borderRadius: BorderRadius.circular(999.r),
-                      ),
-                      child: Text(
-                        '${state.totalItems} items',
-                        style: TextStyle(
-                          fontSize: 12.sp,
-                          fontWeight: FontWeight.w600,
-                          color: colorScheme.onPrimaryContainer,
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.shopping_cart_rounded,
+                          color: colorScheme.primary,
+                          size: 24.sp,
                         ),
-                      ),
-                    ),
-                    SizedBox(width: 4.w),
-                    _AddMoreButton(
-                      onPressed: () => context.go('/home'),
-                      colorScheme: colorScheme,
+                        SizedBox(width: 8.w),
+                        Text(
+                          'My Cart',
+                          style: TextStyle(
+                            fontSize: 20.sp,
+                            fontWeight: FontWeight.w700,
+                            color: colorScheme.onSurface,
+                          ),
+                        ),
+                        const Spacer(),
+                        Container(
+                          padding: EdgeInsets.symmetric(
+                              horizontal: 12.w, vertical: 7.h),
+                          decoration: BoxDecoration(
+                            color: colorScheme.primaryContainer,
+                            borderRadius: BorderRadius.circular(999.r),
+                          ),
+                          child: Text(
+                            '${state.totalItems} items',
+                            style: TextStyle(
+                              fontSize: 12.sp,
+                              fontWeight: FontWeight.w600,
+                              color: colorScheme.onPrimaryContainer,
+                            ),
+                          ),
+                        ),
+                        SizedBox(width: 4.w),
+                        _AddMoreButton(
+                          onPressed: () => context.go('/home'),
+                          colorScheme: colorScheme,
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -142,6 +146,114 @@ class CartPage extends StatelessWidget {
             ],
           );
         },
+      ),
+    );
+  }
+}
+
+class _OrdersButton extends StatelessWidget {
+  const _OrdersButton({
+    required this.colorScheme,
+  });
+
+  final ColorScheme colorScheme;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              colorScheme.primaryContainer.withValues(alpha: 0.8),
+              colorScheme.secondaryContainer.withValues(alpha: 0.55),
+            ],
+          ),
+          borderRadius: BorderRadius.circular(14.r),
+          border: Border.all(
+            color: colorScheme.primary.withValues(alpha: 0.22),
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: colorScheme.primary.withValues(alpha: 0.10),
+              blurRadius: 14.r,
+              offset: Offset(0, 6.h),
+            ),
+          ],
+        ),
+        child: Material(
+          color: Colors.transparent,
+          borderRadius: BorderRadius.circular(14.r),
+          clipBehavior: Clip.antiAlias,
+          child: InkWell(
+            onTap: () => context.go('/orders'),
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: 12.w, vertical: 11.h),
+              child: Row(
+                children: [
+                  Container(
+                    width: 38.r,
+                    height: 38.r,
+                    decoration: BoxDecoration(
+                      color: colorScheme.primary.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(10.r),
+                    ),
+                    child: Icon(
+                      Icons.receipt_long_outlined,
+                      color: colorScheme.primary,
+                      size: 21.sp,
+                    ),
+                  ),
+                  SizedBox(width: 12.w),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          'Check Current or Past Order',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: colorScheme.onSurface,
+                            fontSize: 14.sp,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                        SizedBox(height: 2.h),
+                        Text(
+                          'Track delivery status and previous purchases',
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: TextStyle(
+                            color: colorScheme.onSurfaceVariant,
+                            fontSize: 11.sp,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  SizedBox(width: 8.w),
+                  Container(
+                    width: 30.r,
+                    height: 30.r,
+                    decoration: BoxDecoration(
+                      color: colorScheme.surface.withValues(alpha: 0.75),
+                      borderRadius: BorderRadius.circular(999.r),
+                    ),
+                    child: Icon(
+                      Icons.arrow_forward_rounded,
+                      color: colorScheme.primary,
+                      size: 18.sp,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -272,6 +384,8 @@ class _EmptyCartView extends StatelessWidget {
                 ),
               ),
             ),
+            SizedBox(height: 12.h),
+            _OrdersButton(colorScheme: colorScheme),
           ],
         ),
       ),
