@@ -1,5 +1,6 @@
 import 'package:dartz/dartz.dart' show Either;
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/di/injection.dart';
 import '../../../../core/error/failures.dart';
@@ -9,6 +10,40 @@ import '../../../common/domain/entities/store_settings_entity.dart';
 
 class HelpCenterPage extends StatelessWidget {
   const HelpCenterPage({super.key});
+
+  static const String _supportPhoneNumber = '+919456446163';
+  static const String _supportWhatsAppNumber = '919456446163';
+
+  Future<void> _launchSupportUrl(
+    BuildContext context,
+    Uri uri,
+    String fallbackMessage,
+  ) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final launched = await launchUrl(uri, mode: LaunchMode.externalApplication);
+
+    if (!launched) {
+      messenger.showSnackBar(
+        SnackBar(content: Text(fallbackMessage)),
+      );
+    }
+  }
+
+  void _callSupport(BuildContext context) {
+    _launchSupportUrl(
+      context,
+      Uri(scheme: 'tel', path: _supportPhoneNumber),
+      'Could not open the phone keypad.',
+    );
+  }
+
+  void _openWhatsApp(BuildContext context) {
+    _launchSupportUrl(
+      context,
+      Uri.https('wa.me', _supportWhatsAppNumber),
+      'Could not open WhatsApp.',
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -49,8 +84,8 @@ class HelpCenterPage extends StatelessWidget {
               _ContactTile(
                 icon: Icons.location_on_outlined,
                 title: 'Store address',
-                value:
-                    settings?.supportAddress ?? 'Fresh groceries, delivered to your door.',
+                value: settings?.supportAddress ??
+                    'Fresh groceries, delivered to your door.',
                 caption: 'Use this when you need store or pickup details.',
               ),
               const SizedBox(height: 18),
@@ -87,6 +122,64 @@ class HelpCenterPage extends StatelessWidget {
             ],
           );
         },
+      ),
+      bottomNavigationBar: SafeArea(
+        minimum: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            _SupportIconButton(
+              assetPath: 'assets/images/call_icon.png',
+              semanticLabel: 'Call support',
+              onPressed: () => _callSupport(context),
+            ),
+            _SupportIconButton(
+              assetPath: 'assets/images/whatsapp_icon.png',
+              semanticLabel: 'WhatsApp support',
+              onPressed: () => _openWhatsApp(context),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SupportIconButton extends StatelessWidget {
+  const _SupportIconButton({
+    required this.assetPath,
+    required this.semanticLabel,
+    required this.onPressed,
+  });
+
+  final String assetPath;
+  final String semanticLabel;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      button: true,
+      label: semanticLabel,
+      child: Material(
+        color: Colors.white,
+        shape: const CircleBorder(),
+        elevation: 5,
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: onPressed,
+          customBorder: const CircleBorder(),
+          child: SizedBox.square(
+            dimension: 58,
+            child: Padding(
+              padding: const EdgeInsets.all(10),
+              child: Image.asset(
+                assetPath,
+                fit: BoxFit.contain,
+              ),
+            ),
+          ),
+        ),
       ),
     );
   }

@@ -39,6 +39,7 @@ class _FloatingCartOverlayState extends State<FloatingCartOverlay> {
 
   static const Set<String> _hiddenCartPaths = {
     '/edit-location',
+    '/profile/help-center',
   };
 
   bool _shouldShowCart(String path) {
@@ -51,7 +52,13 @@ class _FloatingCartOverlayState extends State<FloatingCartOverlay> {
         normalizedPath.contains('otp') ||
         normalizedPath.contains('verification');
 
-    return !isAuthPath && !_hiddenCartPaths.contains(normalizedPath);
+    final isHiddenPath = _hiddenCartPaths.any(
+      (hiddenPath) =>
+          normalizedPath == hiddenPath ||
+          normalizedPath.startsWith('$hiddenPath/'),
+    );
+
+    return !isAuthPath && !isHiddenPath;
   }
 
   @override
@@ -298,8 +305,7 @@ class _FloatingCartButtonState extends State<_FloatingCartButton>
                             painter: _CartProgressRingPainter(
                               progress: animatedProgress,
                               color: Colors.orange,
-                              trackColor:
-                                  Colors.orange.withValues(alpha: 0.22),
+                              trackColor: Colors.orange.withValues(alpha: 0.22),
                               strokeWidth: 4.r,
                             ),
                           ),
