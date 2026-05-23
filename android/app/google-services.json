@@ -7,59 +7,6 @@
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:14234085234:android:7f87c42ed6a91c06dd1feb",
-        "android_client_info": {
-          "package_name": "com.bajariyo.avr"
-        }
-      },
-      "oauth_client": [
-        {
-          "client_id": "14234085234-ktd6rabbvg6204s8thkg126vjkji3h9o.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "com.bajariyo.avr",
-            "certificate_hash": "952d20f83ed7ed5af161c2901c93fdf063de1ab0"
-          }
-        },
-        {
-          "client_id": "14234085234-ve94kt8hu14nvfdjdonuq9em2so33i9m.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "com.bajariyo.avr",
-            "certificate_hash": "17025e23ce94462a163085f8c5745dbdf8ead19f"
-          }
-        },
-        {
-          "client_id": "14234085234-vvoosg0trhhcjcd53et1gi226lv534ja.apps.googleusercontent.com",
-          "client_type": 1,
-          "android_info": {
-            "package_name": "com.bajariyo.avr",
-            "certificate_hash": "3c5006dba248d6890d02d3e6563767e2857845fd"
-          }
-        },
-        {
-          "client_id": "14234085234-uotespbo6irc706klsdv35s9ebuq4m58.apps.googleusercontent.com",
-          "client_type": 3
-        }
-      ],
-      "api_key": [
-        {
-          "current_key": "AIzaSyDYZjcGYvye-WRLMo9YfAB7Q4VbFeEqLgQ"
-        }
-      ],
-      "services": {
-        "appinvite_service": {
-          "other_platform_oauth_client": [
-            {
-              "client_id": "14234085234-uotespbo6irc706klsdv35s9ebuq4m58.apps.googleusercontent.com",
-              "client_type": 3
-            }
-          ]
-        }
-      }
-    },
-    {
-      "client_info": {
         "mobilesdk_app_id": "1:14234085234:android:586df895c7a7b837dd1feb",
         "android_client_info": {
           "package_name": "com.bajariyoadmin.avr"
@@ -101,6 +48,14 @@
           "android_info": {
             "package_name": "com.bazariyo.avr",
             "certificate_hash": "17025e23ce94462a163085f8c5745dbdf8ead19f"
+          }
+        },
+        {
+          "client_id": "14234085234-9nr9m49l0hr11624fd90qk0trk3p0s9r.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.bazariyo.avr",
+            "certificate_hash": "3c5006dba248d6890d02d3e6563767e2857845fd"
           }
         },
         {
