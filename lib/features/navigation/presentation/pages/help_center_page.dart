@@ -124,21 +124,24 @@ class HelpCenterPage extends StatelessWidget {
         },
       ),
       bottomNavigationBar: SafeArea(
-        minimum: const EdgeInsets.fromLTRB(16, 8, 16, 16),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            _SupportIconButton(
-              assetPath: 'assets/images/call_icon.png',
-              semanticLabel: 'Call support',
-              onPressed: () => _callSupport(context),
-            ),
-            _SupportIconButton(
-              assetPath: 'assets/images/whatsapp_icon.png',
-              semanticLabel: 'WhatsApp support',
-              onPressed: () => _openWhatsApp(context),
-            ),
-          ],
+        minimum: const EdgeInsets.fromLTRB(18, 8, 18, 16),
+        child: SizedBox(
+          height: 64,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              _SupportIconButton(
+                assetPath: 'assets/images/call_icon.png',
+                semanticLabel: 'Call support',
+                onPressed: () => _callSupport(context),
+              ),
+              _SupportIconButton(
+                assetPath: 'assets/images/whatsapp_icon.png',
+                semanticLabel: 'WhatsApp support',
+                onPressed: () => _openWhatsApp(context),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -161,22 +164,18 @@ class _SupportIconButton extends StatelessWidget {
     return Semantics(
       button: true,
       label: semanticLabel,
-      child: Material(
-        color: Colors.white,
-        shape: const CircleBorder(),
-        elevation: 5,
-        clipBehavior: Clip.antiAlias,
-        child: InkWell(
-          onTap: onPressed,
-          customBorder: const CircleBorder(),
-          child: SizedBox.square(
-            dimension: 58,
-            child: Padding(
-              padding: const EdgeInsets.all(10),
-              child: Image.asset(
-                assetPath,
-                fit: BoxFit.contain,
-              ),
+      child: SizedBox.square(
+        dimension: 64,
+        child: Material(
+          color: Colors.transparent,
+          shape: const CircleBorder(),
+          clipBehavior: Clip.antiAlias,
+          child: InkWell(
+            onTap: onPressed,
+            customBorder: const CircleBorder(),
+            child: Image.asset(
+              assetPath,
+              fit: BoxFit.cover,
             ),
           ),
         ),
