@@ -28,7 +28,7 @@ class CartItemWidget extends StatelessWidget {
     final itemTotal = item.totalPrice;
 
     return Container(
-      margin: EdgeInsets.only(bottom: 12.h),
+      margin: EdgeInsets.only(bottom: 10.h),
       decoration: BoxDecoration(
         color: colorScheme.surface,
         borderRadius: BorderRadius.circular(12.r),
@@ -42,14 +42,14 @@ class CartItemWidget extends StatelessWidget {
         ],
       ),
       child: Padding(
-        padding: EdgeInsets.all(12.w),
+        padding: EdgeInsets.all(10.w),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Product Image
             Container(
-              width: 68.w,
-              height: 68.w,
+              width: 60.w,
+              height: 60.w,
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(8.r),
                 color: colorScheme.surfaceContainerHighest,
@@ -78,8 +78,8 @@ class CartItemWidget extends StatelessWidget {
                 ),
               ),
             ),
-            SizedBox(width: 10.w),
-            
+            SizedBox(width: 9.w),
+
             // Product Details
             Expanded(
               child: Column(
@@ -110,27 +110,24 @@ class CartItemWidget extends StatelessWidget {
                           size: 20.sp,
                         ),
                         constraints: BoxConstraints(
-                          minWidth: 28.w,
-                          minHeight: 28.h,
+                          minWidth: 24.w,
+                          minHeight: 24.h,
                         ),
                         padding: EdgeInsets.zero,
                       ),
                     ],
                   ),
-                  SizedBox(height: 2.h),
-                  
+
                   // Stock Info
-                  Text(
-                    item.tierLabel == null
-                        ? '${product.stock} ${product.unitType.displayUnit} available'
-                        : 'Selected tier: ${item.tierLabel}',
-                    style: TextStyle(
-                      fontSize: 12.sp,
-                      color: colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                  SizedBox(height: 6.h),
-                  
+                  // Text(
+                  //   '${product.stock} ${product.unitType.displayUnit} available',
+                  //   style: TextStyle(
+                  //     fontSize: 12.sp,
+                  //     color: colorScheme.onSurfaceVariant,
+                  //   ),
+                  // ),
+                  SizedBox(height: 5.h),
+
                   // Price and Quantity Controls
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -149,7 +146,7 @@ class CartItemWidget extends StatelessWidget {
                           ),
                         ],
                       ),
-                      
+
                       // Quantity Counter
                       QuantityCounterWidget(
                         quantity: quantity,
@@ -159,8 +156,8 @@ class CartItemWidget extends StatelessWidget {
                       ),
                     ],
                   ),
-                  SizedBox(height: 6.h),
-                  
+                  SizedBox(height: 5.h),
+
                   // Item Total
                   Align(
                     alignment: Alignment.centerRight,
