@@ -76,6 +76,9 @@ class _OrderCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
+    final statusDetails = _OrderStatusDetails.fromStatus(order.status);
+    final shortOrderId =
+        order.id.length <= 8 ? order.id : order.id.substring(0, 8);
     final itemCount = order.items.fold<int>(
       0,
       (sum, item) => sum + item.quantity,
@@ -101,7 +104,7 @@ class _OrderCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'Order #${order.id.substring(0, 8).toUpperCase()}',
+                      'Order #${shortOrderId.toUpperCase()}',
                       style: Theme.of(context).textTheme.titleMedium?.copyWith(
                             fontWeight: FontWeight.w700,
                           ),
@@ -116,9 +119,11 @@ class _OrderCard extends StatelessWidget {
                   ],
                 ),
               ),
-              _StatusChip(status: order.status),
+              _StatusChip(details: statusDetails),
             ],
           ),
+          const SizedBox(height: 16),
+          _OrderStatusSummary(details: statusDetails),
           const SizedBox(height: 16),
           Wrap(
             spacing: 8,
@@ -174,6 +179,153 @@ class _OrderCard extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _OrderStatusSummary extends StatelessWidget {
+  const _OrderStatusSummary({required this.details});
+
+  final _OrderStatusDetails details;
+
+  @override
+  Widget build(BuildContext context) {
+    final colorScheme = Theme.of(context).colorScheme;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: details.background,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: details.foreground.withValues(alpha: 0.2)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(details.icon, size: 22, color: details.foreground),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  details.customerMessage,
+                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                        color: details.foreground,
+                        fontWeight: FontWeight.w800,
+                      ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              _StatusStep(
+                label: 'Soon',
+                isActive: details.step >= 0,
+                color: details.foreground,
+              ),
+              _StatusLine(
+                  isActive: details.step >= 1, color: details.foreground),
+              _StatusStep(
+                label: 'Dispatched',
+                isActive: details.step >= 1,
+                color: details.foreground,
+              ),
+              _StatusLine(
+                  isActive: details.step >= 2, color: details.foreground),
+              _StatusStep(
+                label: 'Delivered',
+                isActive: details.step >= 2,
+                color: details.foreground,
+              ),
+            ],
+          ),
+          if (details.isCancelled) ...[
+            const SizedBox(height: 8),
+            Text(
+              'Please contact support if you need help with this order.',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: colorScheme.onSurfaceVariant,
+                  ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class _StatusStep extends StatelessWidget {
+  const _StatusStep({
+    required this.label,
+    required this.isActive,
+    required this.color,
+  });
+
+  final String label;
+  final bool isActive;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    final inactiveColor = Theme.of(context).colorScheme.outline;
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 24,
+          height: 24,
+          decoration: BoxDecoration(
+            color: isActive ? color : Colors.transparent,
+            shape: BoxShape.circle,
+            border: Border.all(color: isActive ? color : inactiveColor),
+          ),
+          child: Icon(
+            Icons.check_rounded,
+            size: 16,
+            color: isActive ? Colors.white : Colors.transparent,
+          ),
+        ),
+        const SizedBox(height: 6),
+        SizedBox(
+          width: 82,
+          child: Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                  color: isActive ? color : inactiveColor,
+                  fontWeight: FontWeight.w700,
+                ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _StatusLine extends StatelessWidget {
+  const _StatusLine({
+    required this.isActive,
+    required this.color,
+  });
+
+  final bool isActive;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: Container(
+        height: 2,
+        margin: const EdgeInsets.only(bottom: 24),
+        color: isActive ? color : Theme.of(context).colorScheme.outlineVariant,
       ),
     );
   }
@@ -307,47 +459,22 @@ class _OrderItemRow extends StatelessWidget {
 }
 
 class _StatusChip extends StatelessWidget {
-  const _StatusChip({required this.status});
+  const _StatusChip({required this.details});
 
-  final String status;
+  final _OrderStatusDetails details;
 
   @override
   Widget build(BuildContext context) {
-    final colorScheme = Theme.of(context).colorScheme;
-    final normalized = status.trim().toLowerCase();
-
-    Color background;
-    Color foreground;
-
-    switch (normalized) {
-      case 'delivered':
-        background = Colors.green.withValues(alpha: 0.12);
-        foreground = Colors.green.shade800;
-        break;
-      case 'cancelled':
-        background = colorScheme.errorContainer;
-        foreground = colorScheme.onErrorContainer;
-        break;
-      case 'processing':
-      case 'shipped':
-        background = Colors.orange.withValues(alpha: 0.15);
-        foreground = Colors.orange.shade800;
-        break;
-      default:
-        background = colorScheme.secondaryContainer;
-        foreground = colorScheme.onSecondaryContainer;
-    }
-
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: background,
+        color: details.background,
         borderRadius: BorderRadius.circular(999),
       ),
       child: Text(
-        _titleCase(normalized),
+        details.chipLabel,
         style: Theme.of(context).textTheme.labelMedium?.copyWith(
-              color: foreground,
+              color: details.foreground,
               fontWeight: FontWeight.w700,
             ),
       ),
@@ -442,7 +569,70 @@ class _EmptyOrderState extends StatelessWidget {
   }
 }
 
-String _titleCase(String value) {
-  if (value.isEmpty) return 'Pending';
-  return value[0].toUpperCase() + value.substring(1);
+class _OrderStatusDetails {
+  const _OrderStatusDetails({
+    required this.chipLabel,
+    required this.customerMessage,
+    required this.step,
+    required this.icon,
+    required this.background,
+    required this.foreground,
+    this.isCancelled = false,
+  });
+
+  final String chipLabel;
+  final String customerMessage;
+  final int step;
+  final IconData icon;
+  final Color background;
+  final Color foreground;
+  final bool isCancelled;
+
+  factory _OrderStatusDetails.fromStatus(String status) {
+    final normalized = status.trim().toLowerCase();
+
+    switch (normalized) {
+      case 'delivered':
+        return _OrderStatusDetails(
+          chipLabel: 'Delivered',
+          customerMessage: 'Your Order has been Delivered',
+          step: 2,
+          icon: Icons.check_circle_outline_rounded,
+          background: Colors.green.withValues(alpha: 0.12),
+          foreground: Colors.green.shade800,
+        );
+      case 'dispatched':
+      case 'shipped':
+      case 'out_for_delivery':
+        return _OrderStatusDetails(
+          chipLabel: 'Dispatched',
+          customerMessage: 'Your Order has been Dispatched',
+          step: 1,
+          icon: Icons.local_shipping_outlined,
+          background: Colors.orange.withValues(alpha: 0.15),
+          foreground: Colors.orange.shade800,
+        );
+      case 'cancelled':
+        return _OrderStatusDetails(
+          chipLabel: 'Cancelled',
+          customerMessage: 'Your Order has been Cancelled',
+          step: -1,
+          icon: Icons.cancel_outlined,
+          background: Colors.red.withValues(alpha: 0.12),
+          foreground: Colors.red.shade800,
+          isCancelled: true,
+        );
+      case 'pending':
+      case 'processing':
+      default:
+        return _OrderStatusDetails(
+          chipLabel: 'Soon',
+          customerMessage: 'Your Order will be Delivered Soon',
+          step: 0,
+          icon: Icons.schedule_outlined,
+          background: Colors.blue.withValues(alpha: 0.12),
+          foreground: Colors.blue.shade800,
+        );
+    }
+  }
 }

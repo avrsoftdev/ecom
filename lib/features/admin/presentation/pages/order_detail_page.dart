@@ -54,7 +54,9 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     const Text('Order not found'),
-                    TextButton(onPressed: () => context.go('/admin/orders'), child: const Text('Back')),
+                    TextButton(
+                        onPressed: () => context.go('/admin/orders'),
+                        child: const Text('Back')),
                   ],
                 ),
               );
@@ -67,16 +69,25 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                   Row(
                     children: [
                       Expanded(
-                        child: Text('Order ${order.id}', style: Theme.of(context).textTheme.headlineSmall),
+                        child: Text('Order ${order.id}',
+                            style: Theme.of(context).textTheme.headlineSmall),
                       ),
                       DropdownButton<String>(
                         value: order.status,
                         items: const [
-                          DropdownMenuItem(value: 'pending', child: Text('pending')),
-                          DropdownMenuItem(value: 'processing', child: Text('processing')),
-                          DropdownMenuItem(value: 'shipped', child: Text('shipped')),
-                          DropdownMenuItem(value: 'delivered', child: Text('delivered')),
-                          DropdownMenuItem(value: 'cancelled', child: Text('cancelled')),
+                          DropdownMenuItem(
+                              value: 'pending', child: Text('pending')),
+                          DropdownMenuItem(
+                              value: 'processing', child: Text('processing')),
+                          DropdownMenuItem(
+                              value: 'dispatched', child: Text('dispatched')),
+                          DropdownMenuItem(
+                              value: 'shipped',
+                              child: Text('shipped (legacy)')),
+                          DropdownMenuItem(
+                              value: 'delivered', child: Text('delivered')),
+                          DropdownMenuItem(
+                              value: 'cancelled', child: Text('cancelled')),
                         ],
                         onChanged: (v) async {
                           if (v == null) return;
@@ -101,7 +112,8 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                           .map(
                             (i) => ListTile(
                               title: Text(i.name),
-                              subtitle: Text('Qty ${i.quantity} × ${formatCurrency(i.unitPrice)}'),
+                              subtitle: Text(
+                                  'Qty ${i.quantity} × ${formatCurrency(i.unitPrice)}'),
                               trailing: Text(formatCurrency(i.lineTotal)),
                             ),
                           )
@@ -112,7 +124,8 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                   Text('Subtotal: ${formatCurrency(order.subtotal)}'),
                   Text('Delivery: ${formatCurrency(order.deliveryCharge)}'),
                   Text('Tax: ${formatCurrency(order.tax)}'),
-                  Text('Total: ${formatCurrency(order.total)}', style: Theme.of(context).textTheme.titleMedium),
+                  Text('Total: ${formatCurrency(order.total)}',
+                      style: Theme.of(context).textTheme.titleMedium),
                 ],
               ),
             );
