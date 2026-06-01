@@ -7,6 +7,7 @@ import '../../../../../core/utils/delivery_fee_calculator.dart';
 import '../../../../../core/utils/currency_formatter.dart';
 import '../../../../../core/widgets/fresh_veggie_header.dart';
 import '../../../../cart/presentation/cubits/cart_cubit.dart';
+import '../../../../../core/widgets/update_snackbar.dart';
 import '../../../../wishlist/presentation/widgets/cart_item_widget.dart';
 import '../../../../checkout/presentation/pages/checkout_page.dart';
 
@@ -549,6 +550,21 @@ class _CartSummaryState extends State<_CartSummary> {
           child: ElevatedButton(
             onPressed: widget.totalItems > 0
                 ? () {
+                    final cartState = context.read<CartCubit>().state;
+                    if (cartState is CartLoaded) {
+                      final hasOutOfAreaItems = cartState.items.any(
+                        (item) => !item.product.isDeliverableToUser,
+                      );
+                      if (hasOutOfAreaItems) {
+                        updateSnackbar(
+                          context,
+                          message:
+                              'Checkout blocked due to delivery constraints.',
+                          backgroundColor: Colors.red,
+                        );
+                        return;
+                      }
+                    }
                     showModalBottomSheet(
                       context: context,
                       isScrollControlled: true,

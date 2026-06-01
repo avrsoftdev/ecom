@@ -7,15 +7,12 @@ import '../../../../../core/di/injection.dart';
 import '../../../../home/presentation/widgets/home_search_field.dart';
 import '../../../../home/presentation/widgets/product_card.dart';
 import '../../../../product/presentation/pages/product_details_page.dart';
-import '../../../../product/presentation/cubits/product_details_cubit.dart';
-import '../../../../product/data/repositories/product_repository_impl.dart';
-import '../../../../product/data/datasources/product_remote_datasource.dart';
-import '../../../../../core/network/network_info.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:connectivity_plus/connectivity_plus.dart';
 import '../../../../wishlist/presentation/cubits/wishlist_cubit.dart';
 import '../../../../cart/presentation/cubits/cart_cubit.dart';
 import '../../../../product/presentation/widgets/tier_selection_sheet.dart';
+import '../../../../../core/widgets/update_snackbar.dart';
+import '../../../../location/presentation/cubits/location_cubit.dart';
+import '../../../../location/presentation/cubits/location_state.dart';
 
 import '../../../../search/presentation/cubits/search_suggestion_cubit.dart';
 import '../../../../search/presentation/cubits/search_cubit.dart';
@@ -40,8 +37,14 @@ class _SearchPageState extends State<SearchPage> {
     super.initState();
     _searchController = TextEditingController(text: widget.initialQuery);
     _searchCubit = getIt<SearchCubit>();
+    final locationState = context.read<LocationCubit>().state;
+    final coords = _coordsFromLocationState(locationState);
     if (widget.initialQuery != null && widget.initialQuery!.isNotEmpty) {
-      _searchCubit.searchProducts(widget.initialQuery!);
+      _searchCubit.searchProducts(
+        widget.initialQuery!,
+        userLatitude: coords.$1,
+        userLongitude: coords.$2,
+      );
     }
   }
 
@@ -55,6 +58,7 @@ class _SearchPageState extends State<SearchPage> {
   Widget build(BuildContext context) {
     final colorScheme = Theme.of(context).colorScheme;
 
+    final coords = _coordsFromLocationState(context.read<LocationCubit>().state);
     return MultiBlocProvider(
       providers: [
         BlocProvider.value(value: _searchCubit),
@@ -69,7 +73,17 @@ class _SearchPageState extends State<SearchPage> {
           },
         ),
       ],
-      child: Scaffold(
+      child: BlocListener<LocationCubit, LocationState>(
+        listener: (context, state) {
+          if (state is LocationError) {
+            updateSnackbar(
+              context,
+              message: 'Location permission denied. Showing all products.',
+              backgroundColor: Colors.orange,
+            );
+          }
+        },
+        child: Scaffold(
         appBar: AppBar(
           title: Text(
             'Search Products',
@@ -86,7 +100,11 @@ class _SearchPageState extends State<SearchPage> {
             SizedBox(height: 8.h),
             HomeSearchField(
               onSearch: (query) {
-                _searchCubit.searchProducts(query);
+                _searchCubit.searchProducts(
+                  query,
+                  userLatitude: coords.$1,
+                  userLongitude: coords.$2,
+                );
               },
               onProductSelect: (product) {
                 Navigator.push(
@@ -135,16 +153,22 @@ class _SearchPageState extends State<SearchPage> {
                       );
                     }
 
-                    return GridView.builder(
-                      padding: EdgeInsets.symmetric(horizontal: 16.w),
-                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
-                        childAspectRatio: 0.82,
-                        crossAxisSpacing: 12.w,
-                        mainAxisSpacing: 12.h,
+                    return RefreshIndicator(
+                      onRefresh: () => _searchCubit.searchProducts(
+                        state.query,
+                        userLatitude: coords.$1,
+                        userLongitude: coords.$2,
                       ),
-                      itemCount: state.products.length,
-                      itemBuilder: (context, index) {
+                      child: GridView.builder(
+                        padding: EdgeInsets.symmetric(horizontal: 16.w),
+                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          childAspectRatio: 0.82,
+                          crossAxisSpacing: 12.w,
+                          mainAxisSpacing: 12.h,
+                        ),
+                        itemCount: state.products.length,
+                        itemBuilder: (context, index) {
                         final product = state.products[index];
                         return BlocBuilder<CartCubit, CartState>(
                           builder: (context, cartState) {
@@ -176,25 +200,7 @@ class _SearchPageState extends State<SearchPage> {
                                   product: product,
                                   onTap: () => Navigator.push(
                                     context,
-                                    MaterialPageRoute(
-                                      builder: (context) => BlocProvider(
-                                        create: (context) =>
-                                            ProductDetailsCubit(
-                                          productRepository:
-                                              ProductRepositoryImpl(
-                                            remoteDataSource:
-                                                ProductRemoteDataSourceImpl(
-                                              firestore:
-                                                  FirebaseFirestore.instance,
-                                            ),
-                                            networkInfo: NetworkInfoImpl(
-                                              Connectivity(),
-                                            ),
-                                          ),
-                                        )..getProductDetails(product.id),
-                                        child: const ProductDetailsView(),
-                                      ),
-                                    ),
+                                    ProductDetailsPage.route(product.id),
                                   ),
                                   isWishlisted: isWishlisted,
                                   onWishlistToggle: () => context
@@ -203,6 +209,14 @@ class _SearchPageState extends State<SearchPage> {
                                   quantity: quantity,
                                   selectedTierLabel: displayCartItem?.tierLabel,
                                   onAddToCart: () {
+                                    if (!product.isDeliverableToUser) {
+                                      updateSnackbar(
+                                        context,
+                                        message: 'Out-of-delivery-area item cannot be added to cart.',
+                                        backgroundColor: Colors.red,
+                                      );
+                                      return;
+                                    }
                                     if (hasTiers) {
                                       TierSelectionSheet.show(context, product);
                                       return;
@@ -211,6 +225,14 @@ class _SearchPageState extends State<SearchPage> {
                                   },
                                   showQuantityControls: true,
                                   onIncrementQuantity: () {
+                                    if (!product.isDeliverableToUser) {
+                                      updateSnackbar(
+                                        context,
+                                        message: 'Out-of-delivery-area item cannot be added to cart.',
+                                        backgroundColor: Colors.red,
+                                      );
+                                      return;
+                                    }
                                     if (hasTiers) {
                                       TierSelectionSheet.show(context, product);
                                       return;
@@ -235,7 +257,7 @@ class _SearchPageState extends State<SearchPage> {
                             );
                           },
                         );
-                      },
+                      }),
                     );
                   }
 
@@ -245,9 +267,19 @@ class _SearchPageState extends State<SearchPage> {
             ),
           ],
         ),
-      ),
+      )),
     );
   }
+}
+
+(double?, double?) _coordsFromLocationState(LocationState state) {
+  if (state is LocationLoaded) {
+    return (state.location.latitude, state.location.longitude);
+  }
+  if (state is LocationUnserviceable) {
+    return (state.location.latitude, state.location.longitude);
+  }
+  return (null, null);
 }
 
 class _EmptySearchState extends StatelessWidget {

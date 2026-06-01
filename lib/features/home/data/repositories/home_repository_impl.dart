@@ -17,7 +17,10 @@ class HomeRepositoryImpl implements HomeRepository {
   final NetworkInfo networkInfo;
 
   @override
-  Future<Either<Failure, HomeDataEntity>> getHomeData() async {
+  Future<Either<Failure, HomeDataEntity>> getHomeData({
+    double? userLatitude,
+    double? userLongitude,
+  }) async {
     if (!await networkInfo.isConnected) {
       return Left(NetworkFailure('No internet connection'));
     }
@@ -25,18 +28,32 @@ class HomeRepositoryImpl implements HomeRepository {
     try {
       final banners = await _safeLoad(remoteDataSource.getBanners);
       final categories = await _safeLoad(remoteDataSource.getCategories);
-      final featuredProducts = await _safeLoad(remoteDataSource.getFeaturedProducts);
-      final newArrivals = await _safeLoad(remoteDataSource.getNewArrivals);
-      final deals = await _safeLoad(remoteDataSource.getDeals);
-      final recommended = await _safeLoad(remoteDataSource.getRecommendedProducts);
+      final featuredProducts = await _safeLoad(() => remoteDataSource.getFeaturedProducts(
+            userLatitude: userLatitude,
+            userLongitude: userLongitude,
+          ));
+      final newArrivals = await _safeLoad(() => remoteDataSource.getNewArrivals(
+            userLatitude: userLatitude,
+            userLongitude: userLongitude,
+          ));
+      final deals = await _safeLoad(() => remoteDataSource.getDeals(
+            userLatitude: userLatitude,
+            userLongitude: userLongitude,
+          ));
+      final recommended = await _safeLoad(
+        () => remoteDataSource.getRecommendedProducts(
+          userLatitude: userLatitude,
+          userLongitude: userLongitude,
+        ),
+      );
 
       final homeData = HomeDataEntity(
-        banners: banners ?? [],
-        categories: categories ?? [],
-        featuredProducts: featuredProducts ?? [],
-        newArrivals: newArrivals ?? [],
-        deals: deals ?? [],
-        recommended: recommended ?? [],
+        banners: banners,
+        categories: categories,
+        featuredProducts: featuredProducts,
+        newArrivals: newArrivals,
+        deals: deals,
+        recommended: recommended,
       );
 
       return Right(homeData);

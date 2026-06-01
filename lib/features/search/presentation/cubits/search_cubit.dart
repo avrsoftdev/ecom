@@ -7,7 +7,11 @@ class SearchCubit extends Cubit<SearchState> {
 
   SearchCubit({required this.searchProductsUseCase}) : super(SearchInitial());
 
-  Future<void> searchProducts(String query) async {
+  Future<void> searchProducts(
+    String query, {
+    double? userLatitude,
+    double? userLongitude,
+  }) async {
     if (query.isEmpty) {
       emit(SearchInitial());
       return;
@@ -15,7 +19,13 @@ class SearchCubit extends Cubit<SearchState> {
 
     emit(SearchLoading(query));
 
-    final result = await searchProductsUseCase(query);
+    final result = await searchProductsUseCase(
+      SearchProductsParams(
+        query: query,
+        userLatitude: userLatitude,
+        userLongitude: userLongitude,
+      ),
+    );
 
     result.fold(
       (failure) => emit(SearchError(failure.message, query)),

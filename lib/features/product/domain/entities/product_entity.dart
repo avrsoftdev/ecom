@@ -24,6 +24,12 @@ class ProductEntity extends Equatable {
   final ProductUnitType unitType;
   /// Different pricing tiers for the product (e.g., 0.5kg, 1kg, 2kg)
   final List<ProductPricing> pricingTiers;
+  final String vendorId;
+  final String vendorStoreName;
+  final double? vendorDistanceKm;
+  final double vendorDeliveryRadiusKm;
+  final bool isVendorBlocked;
+  final bool isDeliverableToUser;
 
   const ProductEntity({
     required this.id,
@@ -42,6 +48,12 @@ class ProductEntity extends Equatable {
     this.soldCount = 0,
     this.unitType = ProductUnitType.quantity,
     this.pricingTiers = const [],
+    this.vendorId = '',
+    this.vendorStoreName = '',
+    this.vendorDistanceKm,
+    this.vendorDeliveryRadiusKm = 10,
+    this.isVendorBlocked = false,
+    this.isDeliverableToUser = true,
   });
 
   double get effectivePrice {
@@ -93,5 +105,49 @@ class ProductEntity extends Equatable {
         soldCount,
         unitType,
         pricingTiers,
+        vendorId,
+        vendorStoreName,
+        vendorDistanceKm,
+        vendorDeliveryRadiusKm,
+        isVendorBlocked,
+        isDeliverableToUser,
       ];
+
+  ProductEntity copyWith({
+    String? vendorId,
+    String? vendorStoreName,
+    double? vendorDistanceKm,
+    bool clearVendorDistance = false,
+    double? vendorDeliveryRadiusKm,
+    bool? isVendorBlocked,
+    bool? isDeliverableToUser,
+  }) {
+    return ProductEntity(
+      id: id,
+      name: name,
+      description: description,
+      price: price,
+      imageUrl: imageUrl,
+      categoryId: categoryId,
+      stock: stock,
+      isAvailable: isAvailable,
+      createdAt: createdAt,
+      updatedAt: updatedAt,
+      discountPercent: discountPercent,
+      featured: featured,
+      imageUrls: imageUrls,
+      soldCount: soldCount,
+      unitType: unitType,
+      pricingTiers: pricingTiers,
+      vendorId: vendorId ?? this.vendorId,
+      vendorStoreName: vendorStoreName ?? this.vendorStoreName,
+      vendorDistanceKm: clearVendorDistance
+          ? null
+          : (vendorDistanceKm ?? this.vendorDistanceKm),
+      vendorDeliveryRadiusKm:
+          vendorDeliveryRadiusKm ?? this.vendorDeliveryRadiusKm,
+      isVendorBlocked: isVendorBlocked ?? this.isVendorBlocked,
+      isDeliverableToUser: isDeliverableToUser ?? this.isDeliverableToUser,
+    );
+  }
 }

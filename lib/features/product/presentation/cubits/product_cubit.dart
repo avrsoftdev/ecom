@@ -16,6 +16,8 @@ class ProductCubit extends Cubit<ProductState> {
     String? searchQuery,
     int? limit,
     int? offset,
+    double? userLatitude,
+    double? userLongitude,
   }) async {
     emit(ProductLoading());
 
@@ -24,6 +26,8 @@ class ProductCubit extends Cubit<ProductState> {
       searchQuery: searchQuery,
       limit: limit,
       offset: offset,
+      userLatitude: userLatitude,
+      userLongitude: userLongitude,
     );
 
     final result = await getProductsUseCase(params);

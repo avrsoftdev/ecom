@@ -11,12 +11,15 @@ import 'package:latlong2/latlong.dart';
 import '../../../../core/di/injection.dart';
 import '../../../../core/services/notification_service.dart';
 import '../../../../core/services/admin_notification_service.dart';
+import '../../../../core/services/vendor_delivery_service.dart';
 import '../../../../core/utils/delivery_fee_calculator.dart';
 import '../../../../core/widgets/location_autocomplete_field.dart';
+import '../../../../core/widgets/update_snackbar.dart';
 import '../../../auth/presentation/cubits/auth_cubit.dart';
 import '../../../cart/presentation/cubits/cart_cubit.dart';
 import '../../../location/presentation/cubits/location_cubit.dart';
 import '../../../location/presentation/cubits/location_state.dart';
+import '../../../cart/domain/entities/cart_item_entity.dart';
 import '../cubits/checkout_cubit.dart';
 import '../cubits/checkout_state.dart';
 import '../../domain/entities/checkout_contact_entity.dart';
@@ -260,12 +263,11 @@ class _ContactStepViewState extends State<_ContactStepView> {
                     if (_selectedLatLng != null) {
                       _validateServiceArea(_selectedLatLng!);
                       if (!_isServiceable) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text(
-                                'Currently, We are not providing services in your area'),
-                            backgroundColor: Colors.red,
-                          ),
+                        updateSnackbar(
+                          context,
+                          message:
+                              'Currently, we are not providing services in your area',
+                          backgroundColor: Colors.red,
                         );
                       }
                     }
@@ -368,13 +370,11 @@ class _ContactStepViewState extends State<_ContactStepView> {
               _validateServiceArea(_selectedLatLng!);
 
               if (!_isServiceable) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text(
-                        'Currently, We are not providing services in your area'),
-                    backgroundColor: Colors.red,
-                    duration: Duration(seconds: 3),
-                  ),
+                updateSnackbar(
+                  context,
+                  message:
+                      'Currently, we are not providing services in your area',
+                  backgroundColor: Colors.red,
                 );
               }
 
@@ -568,9 +568,7 @@ class _ContactStepViewState extends State<_ContactStepView> {
   Future<void> _placeOrder() async {
     final cartState = context.read<CartCubit>().state;
     if (cartState is! CartLoaded || cartState.items.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Your cart is empty')),
-      );
+      updateSnackbar(context, message: 'Your cart is empty');
       return;
     }
 
@@ -579,17 +577,13 @@ class _ContactStepViewState extends State<_ContactStepView> {
       setState(() {
         _phoneErrorText = phoneErrorText;
       });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(phoneErrorText)),
-      );
+      updateSnackbar(context, message: phoneErrorText);
       return;
     }
 
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please login to place order')),
-      );
+      updateSnackbar(context, message: 'Please login to place order');
       return;
     }
 
@@ -597,21 +591,79 @@ class _ContactStepViewState extends State<_ContactStepView> {
     if (_selectedLatLng != null) {
       _validateServiceArea(_selectedLatLng!);
       if (!_isServiceable) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content:
-                Text('Currently, We are not providing services in your area'),
-            backgroundColor: Colors.red,
-          ),
+        updateSnackbar(
+          context,
+          message: 'Currently, we are not providing services in your area',
+          backgroundColor: Colors.red,
         );
         return;
       }
     }
 
+    final deliveryLatLng = _selectedLatLng ?? _resolveLocationFromState();
+    if (deliveryLatLng == null) {
+      updateSnackbar(
+        context,
+        message: 'Location permission denied. Please enable location to continue.',
+        backgroundColor: Colors.orange,
+      );
+      return;
+    }
+
+    final vendorService =
+        VendorDeliveryService(firestore: FirebaseFirestore.instance);
+    final vendorIds = cartState.items
+        .map((item) => item.product.vendorId.trim())
+        .where((vendorId) => vendorId.isNotEmpty)
+        .toSet();
+    final vendorMap = await vendorService.loadVendorMetadata(vendorIds);
+
+    if (vendorIds.isNotEmpty && vendorMap.isEmpty) {
+      updateSnackbar(
+        context,
+        message: 'No vendors nearby for the selected address.',
+        backgroundColor: Colors.orange,
+      );
+      return;
+    }
+
+    final groupedItems = <String, List<CartItemEntity>>{};
+    final blockedItems = <String>[];
+
+    for (final item in cartState.items) {
+      final vendorId = item.product.vendorId.trim();
+      final vendor = vendorMap[vendorId];
+      final updatedProduct = vendorService.enrichProduct(
+        item.product,
+        vendor,
+        userLatitude: deliveryLatLng.latitude,
+        userLongitude: deliveryLatLng.longitude,
+      );
+      final updatedItem = item.copyWith(product: updatedProduct);
+
+      if (!updatedProduct.isDeliverableToUser || updatedProduct.isVendorBlocked) {
+        blockedItems.add(updatedProduct.name);
+        continue;
+      }
+      groupedItems.putIfAbsent(vendorId, () => []).add(updatedItem);
+    }
+
+    if (blockedItems.isNotEmpty || groupedItems.isEmpty) {
+      updateSnackbar(
+        context,
+        message:
+            'Checkout blocked due to delivery constraints. Remove out-of-delivery-area items.',
+        backgroundColor: Colors.red,
+      );
+      return;
+    }
+
     setState(() => _isPlacingOrder = true);
     try {
       const taxRate = 0.0;
-      final subtotal = cartState.totalPrice;
+      final subtotal = groupedItems.values
+          .expand((items) => items)
+          .fold<double>(0, (sum, item) => sum + item.totalPrice);
       final deliveryCharge = calculateDeliveryFee(subtotal);
       final tax = subtotal * taxRate;
       final total = subtotal + deliveryCharge + tax;
@@ -628,14 +680,15 @@ class _ContactStepViewState extends State<_ContactStepView> {
       // Get FCM token for push notifications
       final fcmToken = await NotificationService().getFCMToken();
 
-      final orderDoc =
-          await FirebaseFirestore.instance.collection('orders').add({
+      final orderDoc = await FirebaseFirestore.instance.collection('orders').add({
         'userId': user.uid,
         'fcmToken': fcmToken, // FCM token for push notifications
-        'items': cartState.items
+        'items': groupedItems.values
+            .expand((items) => items)
             .map(
               (item) => {
                 'productId': item.product.id,
+                'vendorId': item.product.vendorId,
                 'name': item.product.name,
                 'quantity': item.quantity,
                 'unitPrice': item.unitPrice,
@@ -662,6 +715,58 @@ class _ContactStepViewState extends State<_ContactStepView> {
         'checkoutContact': checkoutContact.toJson(),
       });
 
+      final batch = FirebaseFirestore.instance.batch();
+      for (final entry in groupedItems.entries) {
+        final vendorId = entry.key;
+        final vendorItems = entry.value;
+        final vendorSubtotal = vendorItems.fold<double>(
+          0,
+          (sum, item) => sum + item.totalPrice,
+        );
+        final vendorDeliveryCharge = calculateDeliveryFee(vendorSubtotal);
+        final vendorTax = vendorSubtotal * taxRate;
+        final vendorTotal = vendorSubtotal + vendorDeliveryCharge + vendorTax;
+
+        final vendorOrderDoc =
+            FirebaseFirestore.instance.collection('vendor_orders').doc();
+        batch.set(vendorOrderDoc, {
+          'orderId': orderDoc.id,
+          'vendorId': vendorId,
+          'vendorStoreName': vendorMap[vendorId]?.storeName ?? '',
+          'userId': user.uid,
+          'status': 'pending',
+          'createdAt': FieldValue.serverTimestamp(),
+          'updatedAt': FieldValue.serverTimestamp(),
+          'subtotal': vendorSubtotal,
+          'deliveryCharge': vendorDeliveryCharge,
+          'tax': vendorTax,
+          'total': vendorTotal,
+          'items': vendorItems
+              .map(
+                (item) => {
+                  'productId': item.product.id,
+                  'vendorId': item.product.vendorId,
+                  'name': item.product.name,
+                  'quantity': item.quantity,
+                  'unitPrice': item.unitPrice,
+                  'lineTotal': item.totalPrice,
+                  'unitType': item.product.unitType.displayUnit,
+                  'tierId': item.tierId,
+                  'tierLabel': item.tierLabel,
+                },
+              )
+              .toList(),
+          'customerName': _nameController.text.trim().isEmpty
+              ? (user.displayName ?? '')
+              : _nameController.text.trim(),
+          'customerEmail': user.email ?? '',
+          'shippingAddress': shippingAddress,
+          'phone': _phoneController.text.trim(),
+          'checkoutContact': checkoutContact.toJson(),
+        });
+      }
+      await batch.commit();
+
       // Send notification to admin users about new order
       await AdminNotificationService().notifyAdminsOnNewOrder(
         orderId: orderDoc.id,
@@ -677,21 +782,20 @@ class _ContactStepViewState extends State<_ContactStepView> {
       final checkoutCubit = context.read<CheckoutCubit>();
       final cartCubit = context.read<CartCubit>();
       final navigator = Navigator.of(context);
-      final messenger = ScaffoldMessenger.of(context);
       await checkoutCubit.saveContactForLater(checkoutContact);
       cartCubit.clearCart();
       navigator.pop();
-      messenger.showSnackBar(
-        const SnackBar(
-          content: Text('Order placed successfully!'),
-          backgroundColor: Colors.green,
-        ),
+      updateSnackbar(
+        context,
+        message: 'Order placed successfully!',
+        backgroundColor: Colors.green,
       );
     } catch (_) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-            content: Text('Failed to place order. Please try again.')),
+      updateSnackbar(
+        context,
+        message: 'Order placed failed. Please try again.',
+        backgroundColor: Colors.red,
       );
     } finally {
       if (mounted) {
@@ -712,6 +816,23 @@ class _ContactStepViewState extends State<_ContactStepView> {
       phoneNumber: _phoneController.text.trim(),
       isForSelf: widget.contact.isForSelf,
     );
+  }
+
+  LatLng? _resolveLocationFromState() {
+    final locationState = context.read<LocationCubit>().state;
+    if (locationState is LocationLoaded) {
+      return LatLng(
+        locationState.location.latitude,
+        locationState.location.longitude,
+      );
+    }
+    if (locationState is LocationUnserviceable) {
+      return LatLng(
+        locationState.location.latitude,
+        locationState.location.longitude,
+      );
+    }
+    return null;
   }
 }
 

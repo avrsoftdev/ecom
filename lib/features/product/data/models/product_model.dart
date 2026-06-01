@@ -22,6 +22,12 @@ class ProductModel extends ProductEntity {
     super.soldCount = 0,
     super.unitType = ProductUnitType.quantity,
     super.pricingTiers = const [],
+    super.vendorId = '',
+    super.vendorStoreName = '',
+    super.vendorDistanceKm,
+    super.vendorDeliveryRadiusKm = 10,
+    super.isVendorBlocked = false,
+    super.isDeliverableToUser = true,
   });
 
   factory ProductModel.fromJson(Map<String, dynamic> json) {
@@ -65,6 +71,18 @@ class ProductModel extends ProductEntity {
           ?.map((e) => ProductPricing.fromJson(e as Map<String, dynamic>))
           .toList() ??
           [],
+      vendorId: (json['vendorId'] as String?) ??
+          (json['vendor_id'] as String?) ??
+          '',
+      vendorStoreName: (json['vendorStoreName'] as String?) ??
+          (json['storeName'] as String?) ??
+          '',
+      vendorDeliveryRadiusKm: parseDouble(json['vendorDeliveryRadiusKm'],
+          fallback: parseDouble(json['deliveryRadiusKm'], fallback: 10)),
+      isVendorBlocked: json['isVendorBlocked'] as bool? ??
+          json['vendorBlocked'] as bool? ??
+          false,
+      isDeliverableToUser: json['isDeliverableToUser'] as bool? ?? true,
     );
   }
 
@@ -100,6 +118,12 @@ class ProductModel extends ProductEntity {
       soldCount: entity.soldCount,
       unitType: entity.unitType,
       pricingTiers: entity.pricingTiers,
+      vendorId: entity.vendorId,
+      vendorStoreName: entity.vendorStoreName,
+      vendorDistanceKm: entity.vendorDistanceKm,
+      vendorDeliveryRadiusKm: entity.vendorDeliveryRadiusKm,
+      isVendorBlocked: entity.isVendorBlocked,
+      isDeliverableToUser: entity.isDeliverableToUser,
     );
   }
 
@@ -121,6 +145,12 @@ class ProductModel extends ProductEntity {
       'soldCount': soldCount,
       'unitType': unitType.code,
       'pricingTiers': pricingTiers.map((p) => p.toJson()).toList(),
+      'vendorId': vendorId,
+      'vendorStoreName': vendorStoreName,
+      'vendorDistanceKm': vendorDistanceKm,
+      'vendorDeliveryRadiusKm': vendorDeliveryRadiusKm,
+      'isVendorBlocked': isVendorBlocked,
+      'isDeliverableToUser': isDeliverableToUser,
     };
   }
 
@@ -142,6 +172,12 @@ class ProductModel extends ProductEntity {
       soldCount: soldCount,
       unitType: unitType,
       pricingTiers: pricingTiers,
+      vendorId: vendorId,
+      vendorStoreName: vendorStoreName,
+      vendorDistanceKm: vendorDistanceKm,
+      vendorDeliveryRadiusKm: vendorDeliveryRadiusKm,
+      isVendorBlocked: isVendorBlocked,
+      isDeliverableToUser: isDeliverableToUser,
     );
   }
 }

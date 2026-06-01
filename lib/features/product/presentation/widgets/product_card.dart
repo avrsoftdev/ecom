@@ -57,6 +57,27 @@ class ProductCard extends StatelessWidget {
                       style: Theme.of(context).textTheme.bodyMedium,
                     ),
                     const SizedBox(height: 8),
+                    Text(
+                      product.vendorStoreName.isNotEmpty
+                          ? product.vendorStoreName
+                          : 'Store unavailable',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: Colors.blueGrey,
+                            fontWeight: FontWeight.w600,
+                          ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      product.isDeliverableToUser
+                          ? 'Delivering to your area'
+                          : 'Not deliverable',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                            color: product.isDeliverableToUser
+                                ? Colors.green
+                                : Colors.red,
+                          ),
+                    ),
+                    const SizedBox(height: 8),
                     PricingOptionsWidget(
                       product: product,
                     ),

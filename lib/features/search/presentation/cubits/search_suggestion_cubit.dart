@@ -26,7 +26,9 @@ class SearchSuggestionCubit extends Cubit<SearchSuggestionState> {
     _debounce = Timer(const Duration(milliseconds: 300), () async {
       emit(SearchSuggestionLoading());
 
-      final productResult = await searchProductsUseCase(query);
+      final productResult = await searchProductsUseCase(
+        SearchProductsParams(query: query),
+      );
 
       List<ProductEntity> products = [];
       productResult.fold(

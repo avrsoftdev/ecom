@@ -15,6 +15,9 @@ import '../../../../core/utils/currency_formatter.dart';
 import '../../../home/presentation/widgets/product_card.dart';
 import '../../../wishlist/presentation/cubits/wishlist_cubit.dart';
 import '../widgets/tier_selection_sheet.dart';
+import '../../../location/presentation/cubits/location_cubit.dart';
+import '../../../location/presentation/cubits/location_state.dart';
+import '../../../../core/widgets/update_snackbar.dart';
 
 class ProductDetailsPage extends StatelessWidget {
   final String productId;
@@ -29,6 +32,8 @@ class ProductDetailsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final locationState = context.read<LocationCubit>().state;
+    final coords = _coordsFromLocationState(locationState);
     return BlocProvider(
       create: (context) => ProductDetailsCubit(
         productRepository: ProductRepositoryImpl(
@@ -39,10 +44,24 @@ class ProductDetailsPage extends StatelessWidget {
             Connectivity(),
           ),
         ),
-      )..getProductDetails(productId),
+      )..getProductDetails(
+          productId,
+          userLatitude: coords.$1,
+          userLongitude: coords.$2,
+        ),
       child: const ProductDetailsView(),
     );
   }
+}
+
+(double?, double?) _coordsFromLocationState(LocationState state) {
+  if (state is LocationLoaded) {
+    return (state.location.latitude, state.location.longitude);
+  }
+  if (state is LocationUnserviceable) {
+    return (state.location.latitude, state.location.longitude);
+  }
+  return (null, null);
 }
 
 class ProductDetailsView extends StatefulWidget {
@@ -187,6 +206,28 @@ class _ProductInfoSection extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 8),
+                    if (product.vendorStoreName.isNotEmpty) ...[
+                      Text(
+                        product.vendorStoreName,
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              fontWeight: FontWeight.w600,
+                              color: Colors.blueGrey,
+                            ),
+                      ),
+                      const SizedBox(height: 8),
+                    ],
+                    Text(
+                      product.isDeliverableToUser
+                          ? 'Delivering to your area'
+                          : 'Not deliverable',
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                            color: product.isDeliverableToUser
+                                ? Colors.green
+                                : Colors.red,
+                            fontWeight: FontWeight.w600,
+                          ),
+                    ),
+                    const SizedBox(height: 8),
                     if (selectedTier != null) ...[
                       Text(
                         formatCurrency(selectedTier!.price),
@@ -320,6 +361,14 @@ class _ProductInfoSection extends StatelessWidget {
             width: double.infinity,
             child: ElevatedButton(
               onPressed: product.stock > 0 ? () {
+                if (!product.isDeliverableToUser) {
+                  updateSnackbar(
+                    context,
+                    message: 'Out-of-delivery-area item cannot be added to cart.',
+                    backgroundColor: Colors.red,
+                  );
+                  return;
+                }
                 final hasTiers = product.pricingTiers.isNotEmpty;
                 if (hasTiers && selectedTier != null) {
                   // Add to cart logic for tiered products
@@ -329,21 +378,21 @@ class _ProductInfoSection extends StatelessWidget {
                     tierLabel: '${selectedTier!.quantity} ${product.unitType.displayUnit}',
                     tierPrice: selectedTier!.price,
                   );
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Product added to cart!'),
-                      duration: Duration(seconds: 2),
-                    ),
+                  updateSnackbar(
+                    context,
+                    message: 'Product added to cart!',
+                    backgroundColor: Colors.green,
+                    duration: const Duration(seconds: 2),
                   );
                   return;
                 }
                 // Add to cart logic for non-tiered products
                 context.read<CartCubit>().addToCart(product);
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('Product added to cart!'),
-                    duration: Duration(seconds: 2),
-                  ),
+                updateSnackbar(
+                  context,
+                  message: 'Product added to cart!',
+                  backgroundColor: Colors.green,
+                  duration: const Duration(seconds: 2),
                 );
               } : null,
               style: ElevatedButton.styleFrom(
@@ -551,6 +600,15 @@ class _RelatedProductsSection extends StatelessWidget {
                             );
                           },
                           onAddToCart: () {
+                            if (!product.isDeliverableToUser) {
+                              updateSnackbar(
+                                context,
+                                message:
+                                    'Out-of-delivery-area item cannot be added to cart.',
+                                backgroundColor: Colors.red,
+                              );
+                              return;
+                            }
                             if (hasTiers) {
                               TierSelectionSheet.show(context, product);
                               return;
@@ -565,6 +623,15 @@ class _RelatedProductsSection extends StatelessWidget {
                           selectedTierLabel: displayCartItem?.tierLabel,
                           showQuantityControls: quantity > 0,
                           onIncrementQuantity: () {
+                            if (!product.isDeliverableToUser) {
+                              updateSnackbar(
+                                context,
+                                message:
+                                    'Out-of-delivery-area item cannot be added to cart.',
+                                backgroundColor: Colors.red,
+                              );
+                              return;
+                            }
                             if (hasTiers) {
                               TierSelectionSheet.show(context, product);
                               return;

@@ -259,6 +259,12 @@ class CartCubit extends Cubit<CartState> {
       'soldCount': product.soldCount,
       'unitType': product.unitType.code,
       'pricingTiers': product.pricingTiers.map((tier) => tier.toJson()).toList(),
+      'vendorId': product.vendorId,
+      'vendorStoreName': product.vendorStoreName,
+      'vendorDistanceKm': product.vendorDistanceKm,
+      'vendorDeliveryRadiusKm': product.vendorDeliveryRadiusKm,
+      'isVendorBlocked': product.isVendorBlocked,
+      'isDeliverableToUser': product.isDeliverableToUser,
     };
   }
 
@@ -295,6 +301,15 @@ class CartCubit extends Cubit<CartState> {
               )
               .toList() ??
           const [],
+      vendorId: json['vendorId'] as String? ?? '',
+      vendorStoreName: (json['vendorStoreName'] as String?) ??
+          (json['storeName'] as String?) ??
+          '',
+      vendorDistanceKm: (json['vendorDistanceKm'] as num?)?.toDouble(),
+      vendorDeliveryRadiusKm:
+          (json['vendorDeliveryRadiusKm'] as num?)?.toDouble() ?? 10,
+      isVendorBlocked: json['isVendorBlocked'] as bool? ?? false,
+      isDeliverableToUser: json['isDeliverableToUser'] as bool? ?? true,
     );
   }
 }

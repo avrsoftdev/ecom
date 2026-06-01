@@ -203,6 +203,34 @@ class ProductCard extends StatelessWidget {
                                   ),
                                   SizedBox(height: 2.h),
                                   Text(
+                                    product.vendorStoreName.isNotEmpty
+                                        ? product.vendorStoreName
+                                        : 'Store unavailable',
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      fontSize: 10.sp,
+                                      fontWeight: FontWeight.w500,
+                                      color: colorScheme.secondary,
+                                    ),
+                                  ),
+                                  SizedBox(height: 2.h),
+                                  Text(
+                                    product.isDeliverableToUser
+                                        ? 'Delivering to your area'
+                                        : 'Not deliverable',
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                    style: TextStyle(
+                                      fontSize: 9.sp,
+                                      fontWeight: FontWeight.w600,
+                                      color: product.isDeliverableToUser
+                                          ? Colors.green
+                                          : colorScheme.error,
+                                    ),
+                                  ),
+                                  SizedBox(height: 2.h),
+                                  Text(
                                     '${product.stock} ${product.unitType.displayUnit} available',
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,

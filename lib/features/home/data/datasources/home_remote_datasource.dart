@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+import '../../../../core/services/vendor_delivery_service.dart';
 import '../../../common/domain/entities/banner_entity.dart';
 import '../../../common/domain/entities/category_entity.dart';
 import '../../../product/data/models/product_model.dart';
@@ -8,16 +9,30 @@ import '../../../product/domain/entities/product_entity.dart';
 abstract class HomeRemoteDataSource {
   Future<List<BannerEntity>> getBanners();
   Future<List<CategoryEntity>> getCategories();
-  Future<List<ProductEntity>> getFeaturedProducts();
-  Future<List<ProductEntity>> getNewArrivals();
-  Future<List<ProductEntity>> getDeals();
-  Future<List<ProductEntity>> getRecommendedProducts();
+  Future<List<ProductEntity>> getFeaturedProducts({
+    double? userLatitude,
+    double? userLongitude,
+  });
+  Future<List<ProductEntity>> getNewArrivals({
+    double? userLatitude,
+    double? userLongitude,
+  });
+  Future<List<ProductEntity>> getDeals({
+    double? userLatitude,
+    double? userLongitude,
+  });
+  Future<List<ProductEntity>> getRecommendedProducts({
+    double? userLatitude,
+    double? userLongitude,
+  });
 }
 
 class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
   HomeRemoteDataSourceImpl({required this.firestore});
 
   final FirebaseFirestore firestore;
+  VendorDeliveryService get _vendorService =>
+      VendorDeliveryService(firestore: firestore);
 
   @override
   Future<List<BannerEntity>> getBanners() async {
@@ -49,43 +64,81 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
   }
 
   @override
-  Future<List<ProductEntity>> getFeaturedProducts() async {
-    final products = await _getAvailableProducts();
+  Future<List<ProductEntity>> getFeaturedProducts({
+    double? userLatitude,
+    double? userLongitude,
+  }) async {
+    final products = await _getAvailableProducts(
+      userLatitude: userLatitude,
+      userLongitude: userLongitude,
+    );
     final featured = products.where((product) => product.featured).toList();
     featured.sort((a, b) => b.createdAt.compareTo(a.createdAt));
     return featured.take(10).toList();
   }
 
   @override
-  Future<List<ProductEntity>> getNewArrivals() async {
-    final products = await _getAvailableProducts();
+  Future<List<ProductEntity>> getNewArrivals({
+    double? userLatitude,
+    double? userLongitude,
+  }) async {
+    final products = await _getAvailableProducts(
+      userLatitude: userLatitude,
+      userLongitude: userLongitude,
+    );
     products.sort((a, b) => b.createdAt.compareTo(a.createdAt));
     return products.take(10).toList();
   }
 
   @override
-  Future<List<ProductEntity>> getDeals() async {
-    final products = await _getAvailableProducts();
+  Future<List<ProductEntity>> getDeals({
+    double? userLatitude,
+    double? userLongitude,
+  }) async {
+    final products = await _getAvailableProducts(
+      userLatitude: userLatitude,
+      userLongitude: userLongitude,
+    );
     final deals = products.where((product) => product.discountPercent > 0).toList();
     deals.sort((a, b) => b.discountPercent.compareTo(a.discountPercent));
     return deals.take(10).toList();
   }
 
   @override
-  Future<List<ProductEntity>> getRecommendedProducts() async {
-    final products = await _getAvailableProducts();
+  Future<List<ProductEntity>> getRecommendedProducts({
+    double? userLatitude,
+    double? userLongitude,
+  }) async {
+    final products = await _getAvailableProducts(
+      userLatitude: userLatitude,
+      userLongitude: userLongitude,
+    );
     products.sort((a, b) => b.soldCount.compareTo(a.soldCount));
     return products.take(10).toList();
   }
 
-  Future<List<ProductEntity>> _getAvailableProducts() async {
+  Future<List<ProductEntity>> _getAvailableProducts({
+    double? userLatitude,
+    double? userLongitude,
+  }) async {
     final snapshot = await firestore
         .collection('products')
         .where('isAvailable', isEqualTo: true)
         .limit(60)
         .get();
 
-    return _mapProductsFromSnapshot(snapshot);
+    final products = _mapProductsFromSnapshot(snapshot);
+    final vendorIds = products
+        .map((product) => product.vendorId)
+        .where((id) => id.trim().isNotEmpty)
+        .toSet();
+    final vendorMap = await _vendorService.loadVendorMetadata(vendorIds);
+    return _vendorService.enrichAndFilterProducts(
+      products,
+      vendorMap: vendorMap,
+      userLatitude: userLatitude,
+      userLongitude: userLongitude,
+    );
   }
 
   List<ProductEntity> _mapProductsFromSnapshot(
@@ -180,26 +233,9 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
     return fallback;
   }
 
-  double _asDouble(dynamic value, {double fallback = 0}) {
-    if (value is double) return value;
-    if (value is num) return value.toDouble();
-    if (value is String) return double.tryParse(value.trim()) ?? fallback;
-    return fallback;
-  }
-
   DateTime? _asDateTime(dynamic value) {
     if (value is Timestamp) return value.toDate();
     if (value is DateTime) return value;
     return null;
-  }
-
-  List<String> _asStringList(dynamic value) {
-    if (value is List) {
-      return value
-          .map((item) => item?.toString().trim() ?? '')
-          .where((item) => item.isNotEmpty)
-          .toList();
-    }
-    return const [];
   }
 }

@@ -2,18 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:connectivity_plus/connectivity_plus.dart';
 
 import '../../../../core/widgets/fresh_veggie_header.dart';
+import '../../../../core/widgets/update_snackbar.dart';
 import '../../../cart/presentation/cubits/cart_cubit.dart';
 import '../../../product/domain/entities/product_entity.dart';
-import '../../../product/presentation/cubits/product_details_cubit.dart';
 import '../../../product/presentation/pages/product_details_page.dart';
 import '../../../product/presentation/widgets/tier_selection_sheet.dart';
-import '../../../product/data/repositories/product_repository_impl.dart';
-import '../../../product/data/datasources/product_remote_datasource.dart';
-import '../../../../core/network/network_info.dart';
 import '../../../wishlist/presentation/cubits/wishlist_cubit.dart';
 import '../cubits/home_cubit.dart';
 import '../widgets/banner_slider.dart';
@@ -25,13 +20,33 @@ import '../../../search/presentation/cubits/search_suggestion_cubit.dart';
 import '../../../../core/di/injection.dart';
 import '../widgets/product_card.dart';
 import '../widgets/section_header.dart';
+import '../../../location/presentation/cubits/location_cubit.dart';
+import '../../../location/presentation/cubits/location_state.dart';
 
 class HomePage extends StatelessWidget {
   const HomePage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return BlocListener<LocationCubit, LocationState>(
+      listener: (context, locationState) {
+        if (locationState is LocationError) {
+          updateSnackbar(
+            context,
+            message: 'Location permission denied. Showing all products.',
+            backgroundColor: Colors.orange,
+          );
+          return;
+        }
+        if (locationState is LocationLoaded || locationState is LocationUnserviceable) {
+          final coords = _coordsFromLocationState(locationState);
+          context.read<HomeCubit>().loadHomeData(
+                userLatitude: coords.$1,
+                userLongitude: coords.$2,
+              );
+        }
+      },
+      child: Scaffold(
       appBar: const FreshVeggieHeader(),
       body: BlocBuilder<HomeCubit, HomeState>(
         builder: (context, state) {
@@ -48,9 +63,13 @@ class HomePage extends StatelessWidget {
           }
 
           final homeData = state.homeData;
+          final coords = _coordsFromLocationState(context.read<LocationCubit>().state);
 
           return RefreshIndicator(
-            onRefresh: () => context.read<HomeCubit>().refreshHomeData(),
+            onRefresh: () => context.read<HomeCubit>().refreshHomeData(
+                  userLatitude: coords.$1,
+                  userLongitude: coords.$2,
+                ),
             child: CustomScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
               slivers: [
@@ -165,8 +184,9 @@ class HomePage extends StatelessWidget {
           );
         },
       ),
-    );
+    ));
   }
+
 }
 
 class _ProductSection extends StatelessWidget {
@@ -240,24 +260,17 @@ class _ProductSection extends StatelessWidget {
                             product: product,
                             onTap: () => Navigator.push(
                               context,
-                              MaterialPageRoute(
-                                builder: (context) => BlocProvider(
-                                  create: (context) => ProductDetailsCubit(
-                                    productRepository: ProductRepositoryImpl(
-                                      remoteDataSource:
-                                          ProductRemoteDataSourceImpl(
-                                        firestore: FirebaseFirestore.instance,
-                                      ),
-                                      networkInfo: NetworkInfoImpl(
-                                        Connectivity(),
-                                      ),
-                                    ),
-                                  )..getProductDetails(product.id),
-                                  child: ProductDetailsView(),
-                                ),
-                              ),
+                              ProductDetailsPage.route(product.id),
                             ),
                             onAddToCart: () {
+                              if (!product.isDeliverableToUser) {
+                                updateSnackbar(
+                                  context,
+                                  message: 'Out-of-delivery-area item cannot be added to cart.',
+                                  backgroundColor: Colors.red,
+                                );
+                                return;
+                              }
                               if (hasTiers) {
                                 TierSelectionSheet.show(context, product);
                                 return;
@@ -307,6 +320,16 @@ class _ProductSection extends StatelessWidget {
   }
 }
 
+(double?, double?) _coordsFromLocationState(LocationState state) {
+  if (state is LocationLoaded) {
+    return (state.location.latitude, state.location.longitude);
+  }
+  if (state is LocationUnserviceable) {
+    return (state.location.latitude, state.location.longitude);
+  }
+  return (null, null);
+}
+
 class _HomeErrorView extends StatelessWidget {
   const _HomeErrorView({
     required this.message,
@@ -351,7 +374,14 @@ class _HomeErrorView extends StatelessWidget {
             ),
             SizedBox(height: 16.h),
             ElevatedButton.icon(
-              onPressed: () => context.read<HomeCubit>().loadHomeData(),
+              onPressed: () {
+                final locationState = context.read<LocationCubit>().state;
+                final coords = _coordsFromLocationState(locationState);
+                context.read<HomeCubit>().loadHomeData(
+                      userLatitude: coords.$1,
+                      userLongitude: coords.$2,
+                    );
+              },
               icon: const Icon(Icons.refresh_rounded),
               label: const Text('Try again'),
             ),

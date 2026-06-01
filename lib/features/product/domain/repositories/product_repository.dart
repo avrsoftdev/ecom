@@ -9,11 +9,25 @@ abstract class ProductRepository {
     String? searchQuery,
     int? limit,
     int? offset,
+    double? userLatitude,
+    double? userLongitude,
   });
 
-  Future<Either<Failure, ProductEntity>> getProductById(String id);
+  Future<Either<Failure, ProductEntity>> getProductById(
+    String id, {
+    double? userLatitude,
+    double? userLongitude,
+  });
 
-  Future<Either<Failure, List<ProductEntity>>> getProductsByCategory(String categoryId);
+  Future<Either<Failure, List<ProductEntity>>> getProductsByCategory(
+    String categoryId, {
+    double? userLatitude,
+    double? userLongitude,
+  });
 
-  Future<Either<Failure, List<ProductEntity>>> searchProducts(String query);
+  Future<Either<Failure, List<ProductEntity>>> searchProducts(
+    String query, {
+    double? userLatitude,
+    double? userLongitude,
+  });
 }

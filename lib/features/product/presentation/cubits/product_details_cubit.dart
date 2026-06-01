@@ -11,10 +11,18 @@ class ProductDetailsCubit extends Cubit<ProductDetailsState> {
 
   ProductDetailsCubit({required this.productRepository}) : super(ProductDetailsInitial());
 
-  Future<void> getProductDetails(String productId) async {
+  Future<void> getProductDetails(
+    String productId, {
+    double? userLatitude,
+    double? userLongitude,
+  }) async {
     emit(ProductDetailsLoading());
     
-    final result = await productRepository.getProductById(productId);
+    final result = await productRepository.getProductById(
+      productId,
+      userLatitude: userLatitude,
+      userLongitude: userLongitude,
+    );
     
     result.fold(
       (failure) => emit(ProductDetailsError(failure.message)),
@@ -22,13 +30,27 @@ class ProductDetailsCubit extends Cubit<ProductDetailsState> {
         emit(ProductDetailsLoaded(product: product, relatedProducts: []));
         
         // Load related products based on category
-        await _loadRelatedProducts(product.categoryId, productId);
+        await _loadRelatedProducts(
+          product.categoryId,
+          productId,
+          userLatitude: userLatitude,
+          userLongitude: userLongitude,
+        );
       },
     );
   }
 
-  Future<void> _loadRelatedProducts(String categoryId, String currentProductId) async {
-    final result = await productRepository.getProductsByCategory(categoryId);
+  Future<void> _loadRelatedProducts(
+    String categoryId,
+    String currentProductId, {
+    double? userLatitude,
+    double? userLongitude,
+  }) async {
+    final result = await productRepository.getProductsByCategory(
+      categoryId,
+      userLatitude: userLatitude,
+      userLongitude: userLongitude,
+    );
     
     result.fold(
       (failure) => emit(ProductDetailsError(failure.message)),

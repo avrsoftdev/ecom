@@ -3,7 +3,6 @@ import 'package:equatable/equatable.dart';
 import '../../domain/entities/home_data_entity.dart';
 import '../../domain/usecases/get_home_data_usecase.dart';
 import '../../../../core/error/failures.dart';
-import '../../../../core/usecases/usecase.dart';
 
 part 'home_state.dart';
 
@@ -12,10 +11,18 @@ class HomeCubit extends Cubit<HomeState> {
 
   HomeCubit({required this.getHomeDataUseCase}) : super(HomeInitial());
 
-  Future<void> loadHomeData() async {
+  Future<void> loadHomeData({
+    double? userLatitude,
+    double? userLongitude,
+  }) async {
     emit(HomeLoading());
     
-    final result = await getHomeDataUseCase(NoParams());
+    final result = await getHomeDataUseCase(
+      GetHomeDataParams(
+        userLatitude: userLatitude,
+        userLongitude: userLongitude,
+      ),
+    );
     
     if (isClosed) return;
     
@@ -32,12 +39,6 @@ class HomeCubit extends Cubit<HomeState> {
         }
       },
       (homeData) {
-        if (homeData == null) {
-          if (!isClosed) {
-            emit(HomeError(message: 'Received null home data'));
-          }
-          return;
-        }
         try {
           if (!isClosed) {
             emit(HomeLoaded(homeData: homeData));
@@ -53,16 +54,25 @@ class HomeCubit extends Cubit<HomeState> {
     );
   }
 
-  Future<void> refreshHomeData() async {
+  Future<void> refreshHomeData({
+    double? userLatitude,
+    double? userLongitude,
+  }) async {
     final currentState = state;
     if (currentState is HomeLoaded) {
       // Keep the current data while refreshing
       if (!isClosed) {
         emit(HomeLoading());
       }
-      await loadHomeData();
+      await loadHomeData(
+        userLatitude: userLatitude,
+        userLongitude: userLongitude,
+      );
     } else {
-      await loadHomeData();
+      await loadHomeData(
+        userLatitude: userLatitude,
+        userLongitude: userLongitude,
+      );
     }
   }
 }

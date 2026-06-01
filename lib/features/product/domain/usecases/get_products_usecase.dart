@@ -18,6 +18,8 @@ class GetProductsUseCase implements UseCase<List<ProductEntity>, GetProductsPara
       searchQuery: params.searchQuery,
       limit: params.limit,
       offset: params.offset,
+      userLatitude: params.userLatitude,
+      userLongitude: params.userLongitude,
     );
   }
 }
@@ -27,14 +29,25 @@ class GetProductsParams extends Equatable {
   final String? searchQuery;
   final int? limit;
   final int? offset;
+  final double? userLatitude;
+  final double? userLongitude;
 
   const GetProductsParams({
     this.categoryId,
     this.searchQuery,
     this.limit,
     this.offset,
+    this.userLatitude,
+    this.userLongitude,
   });
 
   @override
-  List<Object?> get props => [categoryId, searchQuery, limit, offset];
+  List<Object?> get props => [
+        categoryId,
+        searchQuery,
+        limit,
+        offset,
+        userLatitude,
+        userLongitude,
+      ];
 }

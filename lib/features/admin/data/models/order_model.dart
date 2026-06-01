@@ -57,6 +57,7 @@ class OrderModel extends OrderEntity {
       'items': items
           .map((e) => OrderItemModel(
                 productId: e.productId,
+                vendorId: e.vendorId,
                 name: e.name,
                 quantity: e.quantity,
                 unitPrice: e.unitPrice,

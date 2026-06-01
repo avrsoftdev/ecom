@@ -3,5 +3,8 @@ import '../entities/home_data_entity.dart';
 import '../../../../core/error/failures.dart';
 
 abstract class HomeRepository {
-  Future<Either<Failure, HomeDataEntity>> getHomeData();
+  Future<Either<Failure, HomeDataEntity>> getHomeData({
+    double? userLatitude,
+    double? userLongitude,
+  });
 }
