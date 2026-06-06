@@ -11,6 +11,7 @@ class CategoryModel extends CategoryEntity {
     super.sortOrder = 0,
     required super.createdAt,
     super.updatedAt,
+    super.vendorId,
   });
 
   factory CategoryModel.fromFirestore(DocumentSnapshot<Map<String, dynamic>> doc) {
@@ -23,6 +24,7 @@ class CategoryModel extends CategoryEntity {
       sortOrder: (data['sortOrder'] as num?)?.toInt() ?? 0,
       createdAt: _ts(data['createdAt']) ?? DateTime.now(),
       updatedAt: _ts(data['updatedAt']),
+      vendorId: data['vendorId'] as String?,
     );
   }
 
@@ -39,6 +41,7 @@ class CategoryModel extends CategoryEntity {
       'sortOrder': sortOrder,
       'createdAt': Timestamp.fromDate(createdAt),
       'updatedAt': FieldValue.serverTimestamp(),
+      'vendorId': vendorId,
     };
   }
 }

@@ -64,6 +64,7 @@ import '../../features/notification/presentation/cubits/notification_cubit.dart'
 import '../../firebase_options.dart';
 import '../network/network_info.dart';
 import '../services/play_integrity_service.dart';
+import '../services/vendor_delivery_service.dart';
 import '../theme/theme_cubit.dart';
 
 final getIt = GetIt.instance;
@@ -84,6 +85,8 @@ Future<void> configureDependencies() async {
   getIt.registerSingleton<GoogleSignIn>(googleSignIn);
   getIt.registerLazySingleton<PlayIntegrityService>(
       () => PlayIntegrityService());
+  getIt.registerLazySingleton<VendorDeliveryService>(
+      () => VendorDeliveryService(firestore: getIt()));
 
   getIt.registerSingleton<Dio>(Dio());
   getIt.registerSingleton<Connectivity>(Connectivity());
@@ -235,7 +238,7 @@ Future<void> configureDependencies() async {
     () => LocationRemoteDataSourceImpl(),
   );
   getIt.registerLazySingleton<LocationRepository>(
-    () => LocationRepositoryImpl(getIt()),
+    () => LocationRepositoryImpl(getIt(), getIt()),
   );
   getIt.registerLazySingleton(
     () => GetCurrentLocationAddressUseCase(getIt()),

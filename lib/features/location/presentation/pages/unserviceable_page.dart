@@ -37,7 +37,7 @@ class UnserviceablePage extends StatelessWidget {
             ),
             SizedBox(height: 16.h),
             Text(
-              'FreshVeggie services are available only within 10 km of Wave City, Ghaziabad. You can still try again if you move into the service area.',
+              'FreshVeggie services are currently not available at your selected location. Please try a different address or explore the app.',
               style: TextStyle(
                 fontSize: 15.sp,
                 height: 1.5,

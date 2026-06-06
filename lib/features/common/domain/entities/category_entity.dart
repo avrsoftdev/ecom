@@ -9,6 +9,7 @@ class CategoryEntity extends Equatable {
     this.sortOrder = 0,
     required this.createdAt,
     this.updatedAt,
+    this.vendorId,
   });
 
   final String id;
@@ -18,10 +19,11 @@ class CategoryEntity extends Equatable {
   final int sortOrder;
   final DateTime createdAt;
   final DateTime? updatedAt;
+  final String? vendorId;
 
   bool get isSubCategory => parentId != null && parentId!.isNotEmpty;
 
   @override
   List<Object?> get props =>
-      [id, name, parentId, imageUrl, sortOrder, createdAt, updatedAt];
+      [id, name, parentId, imageUrl, sortOrder, createdAt, updatedAt, vendorId];
 }

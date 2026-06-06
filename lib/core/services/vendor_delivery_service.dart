@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 
 import '../../features/product/domain/entities/product_entity.dart';
 
@@ -66,6 +67,78 @@ class VendorDeliveryService {
     return metadata;
   }
 
+  Future<Map<String, VendorMetadata>> loadAllVendorMetadata() async {
+    final snapshot = await _firestore.collection('vendors').get();
+    final metadata = <String, VendorMetadata>{};
+
+    for (final doc in snapshot.docs) {
+      final data = doc.data();
+      metadata[doc.id] = VendorMetadata(
+        vendorId: doc.id,
+        storeName: _readStoreName(data),
+        latitude: _asDoubleOrNull(data['latitude']),
+        longitude: _asDoubleOrNull(data['longitude']),
+        deliveryRadiusKm:
+            _asDouble(data['deliveryRadiusKm'], defaultDeliveryRadiusKm),
+        isBlocked: _asBool(data['isBlocked']),
+      );
+    }
+
+    return metadata;
+  }
+
+  Future<bool> isLocationServiceable(
+    double userLatitude,
+    double userLongitude,
+  ) async {
+    debugPrint('--- Serviceability Check Started ---');
+    debugPrint('User Location: Lat: $userLatitude, Lng: $userLongitude');
+
+    final vendorMap = await loadAllVendorMetadata();
+    if (vendorMap.isEmpty) {
+      debugPrint('No vendors found in database.');
+      return false;
+    }
+
+    bool isServiceable = false;
+    for (final vendor in vendorMap.values) {
+      if (vendor.isBlocked) {
+        debugPrint(
+            'Vendor ${vendor.storeName} (${vendor.vendorId}) is blocked. Skipping.');
+        continue;
+      }
+      if (vendor.latitude == null || vendor.longitude == null) {
+        debugPrint(
+            'Vendor ${vendor.storeName} (${vendor.vendorId}) has missing coordinates. Skipping.');
+        continue;
+      }
+
+      final distanceKm = haversineDistanceKm(
+        userLatitude,
+        userLongitude,
+        vendor.latitude!,
+        vendor.longitude!,
+      );
+
+      debugPrint('Vendor: ${vendor.storeName}');
+      debugPrint(
+          '  Vendor Location: Lat: ${vendor.latitude}, Lng: ${vendor.longitude}');
+      debugPrint('  Delivery Radius: ${vendor.deliveryRadiusKm} km');
+      debugPrint('  Calculated Distance: $distanceKm km');
+
+      if (distanceKm <= vendor.deliveryRadiusKm) {
+        debugPrint('  Result: SERVICEABLE');
+        isServiceable = true;
+      } else {
+        debugPrint('  Result: OUT OF RANGE');
+      }
+    }
+
+    debugPrint('Final Serviceability Result: $isServiceable');
+    debugPrint('--- Serviceability Check Ended ---');
+    return isServiceable;
+  }
+
   ProductEntity enrichProduct(
     ProductEntity product,
     VendorMetadata? vendor, {
@@ -73,7 +146,8 @@ class VendorDeliveryService {
     double? userLongitude,
   }) {
     final resolvedVendorId = (product.vendorId).trim();
-    final vendorId = resolvedVendorId.isNotEmpty ? resolvedVendorId : vendor?.vendorId ?? '';
+    final vendorId =
+        resolvedVendorId.isNotEmpty ? resolvedVendorId : vendor?.vendorId ?? '';
     final storeName = (product.vendorStoreName).trim().isNotEmpty
         ? product.vendorStoreName
         : (vendor?.storeName ?? '');

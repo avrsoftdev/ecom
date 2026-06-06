@@ -13,6 +13,7 @@ class BannerModel extends BannerEntity {
     super.sortOrder = 0,
     required super.createdAt,
     super.updatedAt,
+    super.vendorId,
   });
 
   static BannerLinkType _linkType(String? raw) {
@@ -37,7 +38,8 @@ class BannerModel extends BannerEntity {
     }
   }
 
-  factory BannerModel.fromFirestore(DocumentSnapshot<Map<String, dynamic>> doc) {
+  factory BannerModel.fromFirestore(
+      DocumentSnapshot<Map<String, dynamic>> doc) {
     final data = doc.data() ?? {};
     return BannerModel(
       id: doc.id,
@@ -49,6 +51,7 @@ class BannerModel extends BannerEntity {
       sortOrder: (data['sortOrder'] as num?)?.toInt() ?? 0,
       createdAt: _ts(data['createdAt']) ?? DateTime.now(),
       updatedAt: _ts(data['updatedAt']),
+      vendorId: data['vendorId'] as String?,
     );
   }
 
@@ -67,6 +70,7 @@ class BannerModel extends BannerEntity {
       'sortOrder': sortOrder,
       'createdAt': Timestamp.fromDate(createdAt),
       'updatedAt': FieldValue.serverTimestamp(),
+      'vendorId': vendorId,
     };
   }
 }

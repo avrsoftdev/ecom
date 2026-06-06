@@ -4,4 +4,5 @@ import '../entities/location_entity.dart';
 
 abstract class LocationRepository {
   Future<Either<Failure, LocationEntity>> getCurrentLocationAddress();
+  Future<Either<Failure, bool>> isLocationServiceable(double latitude, double longitude);
 }

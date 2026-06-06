@@ -26,8 +26,14 @@ class HomeRepositoryImpl implements HomeRepository {
     }
 
     try {
-      final banners = await _safeLoad(remoteDataSource.getBanners);
-      final categories = await _safeLoad(remoteDataSource.getCategories);
+      final banners = await _safeLoad(() => remoteDataSource.getBanners(
+            userLatitude: userLatitude,
+            userLongitude: userLongitude,
+          ));
+      final categories = await _safeLoad(() => remoteDataSource.getCategories(
+            userLatitude: userLatitude,
+            userLongitude: userLongitude,
+          ));
       final featuredProducts = await _safeLoad(() => remoteDataSource.getFeaturedProducts(
             userLatitude: userLatitude,
             userLongitude: userLongitude,

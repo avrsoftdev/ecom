@@ -18,6 +18,7 @@ class BannerEntity extends Equatable {
     this.sortOrder = 0,
     required this.createdAt,
     this.updatedAt,
+    this.vendorId,
   });
 
   final String id;
@@ -29,6 +30,7 @@ class BannerEntity extends Equatable {
   final int sortOrder;
   final DateTime createdAt;
   final DateTime? updatedAt;
+  final String? vendorId;
 
   @override
   List<Object?> get props => [
@@ -41,5 +43,6 @@ class BannerEntity extends Equatable {
         sortOrder,
         createdAt,
         updatedAt,
+        vendorId,
       ];
 }

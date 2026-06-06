@@ -7,8 +7,14 @@ import '../../../product/data/models/product_model.dart';
 import '../../../product/domain/entities/product_entity.dart';
 
 abstract class HomeRemoteDataSource {
-  Future<List<BannerEntity>> getBanners();
-  Future<List<CategoryEntity>> getCategories();
+  Future<List<BannerEntity>> getBanners({
+    double? userLatitude,
+    double? userLongitude,
+  });
+  Future<List<CategoryEntity>> getCategories({
+    double? userLatitude,
+    double? userLongitude,
+  });
   Future<List<ProductEntity>> getFeaturedProducts({
     double? userLatitude,
     double? userLongitude,
@@ -35,7 +41,10 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
       VendorDeliveryService(firestore: firestore);
 
   @override
-  Future<List<BannerEntity>> getBanners() async {
+  Future<List<BannerEntity>> getBanners({
+    double? userLatitude,
+    double? userLongitude,
+  }) async {
     final snapshot = await firestore
         .collection('banners')
         .where('isActive', isEqualTo: true)
@@ -46,12 +55,22 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
         .whereType<BannerEntity>()
         .toList();
 
-    banners.sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
-    return banners;
+    final filtered = await _filterByVendorServiceability(
+      banners,
+      userLatitude: userLatitude,
+      userLongitude: userLongitude,
+      getVendorId: (b) => b.vendorId,
+    );
+
+    filtered.sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
+    return filtered;
   }
 
   @override
-  Future<List<CategoryEntity>> getCategories() async {
+  Future<List<CategoryEntity>> getCategories({
+    double? userLatitude,
+    double? userLongitude,
+  }) async {
     final snapshot = await firestore.collection('categories').get();
 
     final categories = snapshot.docs
@@ -59,8 +78,54 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
         .whereType<CategoryEntity>()
         .toList();
 
-    categories.sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
-    return categories;
+    final filtered = await _filterByVendorServiceability(
+      categories,
+      userLatitude: userLatitude,
+      userLongitude: userLongitude,
+      getVendorId: (c) => c.vendorId,
+    );
+
+    filtered.sort((a, b) => a.sortOrder.compareTo(b.sortOrder));
+    return filtered;
+  }
+
+  Future<List<T>> _filterByVendorServiceability<T>(
+    List<T> items, {
+    double? userLatitude,
+    double? userLongitude,
+    required String? Function(T) getVendorId,
+  }) async {
+    if (userLatitude == null || userLongitude == null) return items;
+
+    final vendorIds = items
+        .map(getVendorId)
+        .where((id) => id != null && id.trim().isNotEmpty)
+        .cast<String>()
+        .toSet();
+
+    if (vendorIds.isEmpty) return items;
+
+    final vendorMap = await _vendorService.loadVendorMetadata(vendorIds);
+
+    return items.where((item) {
+      final vendorId = getVendorId(item);
+      if (vendorId == null || vendorId.trim().isEmpty)
+        return true; // Global items
+
+      final vendor = vendorMap[vendorId];
+      if (vendor == null) return false;
+      if (vendor.isBlocked) return false;
+      if (vendor.latitude == null || vendor.longitude == null) return false;
+
+      final distanceKm = VendorDeliveryService.haversineDistanceKm(
+        userLatitude,
+        userLongitude,
+        vendor.latitude!,
+        vendor.longitude!,
+      );
+
+      return distanceKm <= vendor.deliveryRadiusKm;
+    }).toList();
   }
 
   @override
@@ -99,7 +164,8 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
       userLatitude: userLatitude,
       userLongitude: userLongitude,
     );
-    final deals = products.where((product) => product.discountPercent > 0).toList();
+    final deals =
+        products.where((product) => product.discountPercent > 0).toList();
     deals.sort((a, b) => b.discountPercent.compareTo(a.discountPercent));
     return deals.take(10).toList();
   }
@@ -169,7 +235,8 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
     }
   }
 
-  CategoryEntity? _mapCategory(QueryDocumentSnapshot<Map<String, dynamic>> doc) {
+  CategoryEntity? _mapCategory(
+      QueryDocumentSnapshot<Map<String, dynamic>> doc) {
     try {
       final data = doc.data();
       return CategoryEntity(

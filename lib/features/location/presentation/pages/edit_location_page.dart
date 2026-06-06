@@ -9,10 +9,13 @@ import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 
+import '../../../../core/di/injection.dart';
 import '../../../../core/services/location_suggestion_service.dart';
+import '../../../../core/services/vendor_delivery_service.dart';
 import '../cubits/location_cubit.dart';
 import '../cubits/location_state.dart';
 import '../../domain/entities/location_entity.dart';
+import '../../domain/repositories/location_repository.dart';
 
 class EditLocationPage extends StatefulWidget {
   const EditLocationPage({super.key});
@@ -125,32 +128,6 @@ class _EditLocationPageState extends State<EditLocationPage> {
     _updateSelectedLocation(suggestion.position, suggestion.title);
   }
 
-  // Calculate distance from Wave City, Ghaziabad using Haversine formula
-  double _calculateDistanceFromWaveCity(double latitude, double longitude) {
-    const double waveCityLat = 28.6535345;
-    const double waveCityLng = 77.4996625;
-
-    const double earthRadius = 6371; // Earth's radius in kilometers
-
-    double lat1Rad = _degreesToRadians(waveCityLat);
-    double lat2Rad = _degreesToRadians(latitude);
-    double deltaLatRad = _degreesToRadians(latitude - waveCityLat);
-    double deltaLngRad = _degreesToRadians(longitude - waveCityLng);
-
-    double a = math.sin(deltaLatRad / 2) * math.sin(deltaLatRad / 2) +
-        math.cos(lat1Rad) *
-            math.cos(lat2Rad) *
-            math.sin(deltaLngRad / 2) *
-            math.sin(deltaLngRad / 2);
-    double c = 2 * math.asin(math.sqrt(a));
-
-    return earthRadius * c;
-  }
-
-  double _degreesToRadians(double degrees) {
-    return degrees * (math.pi / 180);
-  }
-
   String _formatPlacemark(Placemark placemark) {
     final components = <String>[];
 
@@ -216,7 +193,7 @@ class _EditLocationPageState extends State<EditLocationPage> {
     }
   }
 
-  void _saveLocation() {
+  void _saveLocation() async {
     if (_selectedLatLng == null || _selectedAddress == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -226,33 +203,77 @@ class _EditLocationPageState extends State<EditLocationPage> {
       return;
     }
 
-    // Check if location is within 10km of Wave City, Ghaziabad
-    final distanceFromWaveCity = _calculateDistanceFromWaveCity(
-      _selectedLatLng!.latitude,
-      _selectedLatLng!.longitude,
+    // Show loading indicator
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const Center(child: CircularProgressIndicator()),
     );
 
-    if (distanceFromWaveCity > 10.0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('We are not currently available in your area'),
-          backgroundColor: Colors.red,
-          duration: Duration(seconds: 3),
-        ),
+    try {
+      final vendorService = getIt<VendorDeliveryService>();
+      final vendors = await vendorService.loadAllVendorMetadata();
+
+      double? minDistance;
+      bool isServiceable = false;
+
+      for (final vendor in vendors.values) {
+        if (vendor.isBlocked) continue;
+        if (vendor.latitude == null || vendor.longitude == null) continue;
+
+        final distanceKm = VendorDeliveryService.haversineDistanceKm(
+          _selectedLatLng!.latitude,
+          _selectedLatLng!.longitude,
+          vendor.latitude!,
+          vendor.longitude!,
+        );
+
+        if (minDistance == null || distanceKm < minDistance) {
+          minDistance = distanceKm;
+        }
+
+        if (distanceKm <= vendor.deliveryRadiusKm) {
+          isServiceable = true;
+        }
+      }
+
+      if (mounted) {
+        Navigator.pop(context); // Close loading dialog
+      }
+
+      if (!isServiceable) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('We are not currently available in your area'),
+              backgroundColor: Colors.red,
+              duration: Duration(seconds: 3),
+            ),
+          );
+        }
+        return;
+      }
+
+      final locationEntity = LocationEntity(
+        address: _selectedAddress!,
+        latitude: _selectedLatLng!.latitude,
+        longitude: _selectedLatLng!.longitude,
+        distanceInKm: minDistance ?? 0.0,
+        isWithinServiceArea: true,
       );
-      return;
+
+      if (mounted) {
+        context.read<LocationCubit>().updateLocation(locationEntity);
+        context.go('/home');
+      }
+    } catch (e) {
+      if (mounted) {
+        Navigator.pop(context); // Close loading dialog
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error validating location: $e')),
+        );
+      }
     }
-
-    final locationEntity = LocationEntity(
-      address: _selectedAddress!,
-      latitude: _selectedLatLng!.latitude,
-      longitude: _selectedLatLng!.longitude,
-      distanceInKm: distanceFromWaveCity,
-      isWithinServiceArea: true,
-    );
-
-    context.read<LocationCubit>().updateLocation(locationEntity);
-    context.go('/home');
   }
 
   @override
@@ -261,7 +282,8 @@ class _EditLocationPageState extends State<EditLocationPage> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Edit Location', style: TextStyle(color: Colors.white)),
+        title:
+            const Text('Edit Location', style: TextStyle(color: Colors.white)),
         backgroundColor: const Color(0xFF006400),
       ),
       body: SafeArea(
@@ -410,7 +432,9 @@ class _EditLocationPageState extends State<EditLocationPage> {
                       child: Text(
                         'Save location',
                         style: TextStyle(
-                            fontSize: 15.sp, fontWeight: FontWeight.w600, color: Colors.white),
+                            fontSize: 15.sp,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.white),
                       ),
                     ),
                   ),
