@@ -6,6 +6,8 @@ import '../../../search/presentation/cubits/search_suggestion_cubit.dart';
 import '../../../search/presentation/cubits/search_suggestion_state.dart';
 import '../../../product/domain/entities/product_entity.dart';
 import '../../../common/domain/entities/category_entity.dart';
+import '../../../location/presentation/cubits/location_cubit.dart';
+import '../../../location/presentation/cubits/location_state.dart';
 
 class HomeSearchField extends StatefulWidget {
   final Function(String) onSearch;
@@ -231,7 +233,21 @@ class _HomeSearchFieldState extends State<HomeSearchField> {
           onChanged: (value) {
             if (!widget.readOnly) {
               _showOverlay();
-              context.read<SearchSuggestionCubit>().getSuggestions(value);
+              final locationState = context.read<LocationCubit>().state;
+              double? lat;
+              double? lng;
+              if (locationState is LocationLoaded) {
+                lat = locationState.location.latitude;
+                lng = locationState.location.longitude;
+              } else if (locationState is LocationUnserviceable) {
+                lat = locationState.location.latitude;
+                lng = locationState.location.longitude;
+              }
+              context.read<SearchSuggestionCubit>().getSuggestions(
+                    value,
+                    userLatitude: lat,
+                    userLongitude: lng,
+                  );
             }
           },
           onSubmitted: (value) {

@@ -1,6 +1,4 @@
 import 'package:dartz/dartz.dart';
-import 'package:flutter/foundation.dart';
-import 'package:geolocator/geolocator.dart';
 import '../../../../core/error/failures.dart';
 import '../../../../core/services/vendor_delivery_service.dart';
 import '../datasources/location_remote_datasource.dart';
@@ -32,42 +30,31 @@ class LocationRepositoryImpl implements LocationRepository {
 
         final address = parts.join(', ');
 
-        debugPrint('--- Auto Location Serviceability Check ---');
-        debugPrint(
-            'User Auto Location: Lat: ${position.latitude}, Lng: ${position.longitude}');
+        final isWithinServiceArea =
+            await vendorDeliveryService.isLocationServiceable(
+          position.latitude,
+          position.longitude,
+        );
 
+        // We still want to calculate minDistance for the entity
         final vendors = await vendorDeliveryService.loadAllVendorMetadata();
-
         double? minDistance;
-        bool isWithinServiceArea = false;
-
         for (final vendor in vendors.values) {
-          if (vendor.isBlocked) continue;
-          if (vendor.latitude == null || vendor.longitude == null) continue;
-
-          final distanceKm = VendorDeliveryService.haversineDistanceKm(
+          if (vendor.isBlocked ||
+              vendor.latitude == null ||
+              vendor.longitude == null) {
+            continue;
+          }
+          final dist = VendorDeliveryService.haversineDistanceKm(
             position.latitude,
             position.longitude,
             vendor.latitude!,
             vendor.longitude!,
           );
-
-          debugPrint('Checking Vendor: ${vendor.storeName}');
-          debugPrint(
-              '  Distance: $distanceKm km, Radius: ${vendor.deliveryRadiusKm} km');
-
-          if (minDistance == null || distanceKm < minDistance) {
-            minDistance = distanceKm;
-          }
-
-          if (distanceKm <= vendor.deliveryRadiusKm) {
-            debugPrint('  Status: SERVICEABLE');
-            isWithinServiceArea = true;
+          if (minDistance == null || dist < minDistance) {
+            minDistance = dist;
           }
         }
-
-        debugPrint('Final Auto Serviceability: $isWithinServiceArea');
-        debugPrint('--- Auto Location Serviceability Check Ended ---');
 
         return Right(
           LocationEntity(

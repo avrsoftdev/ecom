@@ -91,12 +91,12 @@ class VendorDeliveryService {
     double userLatitude,
     double userLongitude,
   ) async {
-    debugPrint('--- Serviceability Check Started ---');
+    debugPrint('--- [DEBUG] Serviceability Check Started ---');
     debugPrint('User Location: Lat: $userLatitude, Lng: $userLongitude');
 
     final vendorMap = await loadAllVendorMetadata();
     if (vendorMap.isEmpty) {
-      debugPrint('No vendors found in database.');
+      debugPrint('[DEBUG] No vendors found in database.');
       return false;
     }
 
@@ -104,12 +104,12 @@ class VendorDeliveryService {
     for (final vendor in vendorMap.values) {
       if (vendor.isBlocked) {
         debugPrint(
-            'Vendor ${vendor.storeName} (${vendor.vendorId}) is blocked. Skipping.');
+            '[DEBUG] Vendor ${vendor.storeName} (${vendor.vendorId}) is blocked. Skipping.');
         continue;
       }
       if (vendor.latitude == null || vendor.longitude == null) {
         debugPrint(
-            'Vendor ${vendor.storeName} (${vendor.vendorId}) has missing coordinates. Skipping.');
+            '[DEBUG] Vendor ${vendor.storeName} (${vendor.vendorId}) has missing coordinates. Skipping.');
         continue;
       }
 
@@ -120,22 +120,22 @@ class VendorDeliveryService {
         vendor.longitude!,
       );
 
-      debugPrint('Vendor: ${vendor.storeName}');
+      debugPrint('[DEBUG] Checking Vendor: ${vendor.storeName}');
       debugPrint(
-          '  Vendor Location: Lat: ${vendor.latitude}, Lng: ${vendor.longitude}');
-      debugPrint('  Delivery Radius: ${vendor.deliveryRadiusKm} km');
-      debugPrint('  Calculated Distance: $distanceKm km');
+          '  [DEBUG] Vendor Location: Lat: ${vendor.latitude}, Lng: ${vendor.longitude}');
+      debugPrint('  [DEBUG] Delivery Radius: ${vendor.deliveryRadiusKm} km');
+      debugPrint('  [DEBUG] Calculated Distance: $distanceKm km');
 
       if (distanceKm <= vendor.deliveryRadiusKm) {
-        debugPrint('  Result: SERVICEABLE');
+        debugPrint('  [DEBUG] Result: SERVICEABLE');
         isServiceable = true;
       } else {
-        debugPrint('  Result: OUT OF RANGE');
+        debugPrint('  [DEBUG] Result: OUT OF RANGE');
       }
     }
 
-    debugPrint('Final Serviceability Result: $isServiceable');
-    debugPrint('--- Serviceability Check Ended ---');
+    debugPrint('[DEBUG] Final Serviceability Result: $isServiceable');
+    debugPrint('--- [DEBUG] Serviceability Check Ended ---');
     return isServiceable;
   }
 
@@ -167,7 +167,23 @@ class VendorDeliveryService {
         vendor.longitude!,
       );
       isDeliverable = distanceKm <= radiusKm;
+
+      debugPrint('[DEBUG] Product: ${product.name}');
+      debugPrint('  [DEBUG] Vendor: $storeName ($vendorId)');
+      debugPrint(
+          '  [DEBUG] User Location: Lat: $userLatitude, Lng: $userLongitude');
+      debugPrint(
+          '  [DEBUG] Vendor Location: Lat: ${vendor.latitude}, Lng: ${vendor.longitude}');
+      debugPrint('  [DEBUG] Delivery Radius: $radiusKm km');
+      debugPrint('  [DEBUG] Calculated Distance: $distanceKm km');
+      debugPrint('  [DEBUG] Serviceable: $isDeliverable');
     } else if ((vendor?.isBlocked) ?? false) {
+      isDeliverable = false;
+      debugPrint(
+          '[DEBUG] Product ${product.name}: Vendor $vendorId is BLOCKED');
+    } else if (userLatitude != null && userLongitude != null && !hasCoords) {
+      debugPrint(
+          '[DEBUG] Product ${product.name}: Vendor $vendorId missing coordinates');
       isDeliverable = false;
     }
 

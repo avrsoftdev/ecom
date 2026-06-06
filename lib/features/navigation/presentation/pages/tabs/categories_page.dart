@@ -1,12 +1,16 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../../../core/di/injection.dart';
+import '../../../../../core/services/vendor_delivery_service.dart';
 import '../../../../../core/widgets/fresh_veggie_header.dart';
 import '../../../../admin/domain/repositories/admin_category_repository.dart';
 import '../../../../common/domain/entities/category_entity.dart';
+import '../../../../location/presentation/cubits/location_cubit.dart';
+import '../../../../location/presentation/cubits/location_state.dart';
 
 class CategoriesPage extends StatelessWidget {
   const CategoriesPage({super.key});
@@ -14,103 +18,188 @@ class CategoriesPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final categoryRepository = getIt<AdminCategoryRepository>();
+    final vendorService = getIt<VendorDeliveryService>();
 
     return Scaffold(
       appBar: const FreshVeggieHeader(),
-      body: StreamBuilder<List<CategoryEntity>>(
-        stream: categoryRepository.watchCategories(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting &&
-              !snapshot.hasData) {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
-          }
+      body: BlocBuilder<LocationCubit, LocationState>(
+        builder: (context, locationState) {
+          final userLat = locationState is LocationLoaded
+              ? locationState.location.latitude
+              : (locationState is LocationUnserviceable
+                  ? locationState.location.latitude
+                  : null);
+          final userLng = locationState is LocationLoaded
+              ? locationState.location.longitude
+              : (locationState is LocationUnserviceable
+                  ? locationState.location.longitude
+                  : null);
 
-          if (snapshot.hasError) {
-            return _CategoriesMessage(
-              icon: Icons.cloud_off_rounded,
-              title: 'Unable to load categories',
-              message: 'Please try again in a moment.',
-              iconColor: Theme.of(context).colorScheme.error,
-            );
-          }
-
-          final categories = [...snapshot.data ?? <CategoryEntity>[]]
-            ..sort((a, b) {
-              final orderCompare = a.sortOrder.compareTo(b.sortOrder);
-              if (orderCompare != 0) {
-                return orderCompare;
+          return StreamBuilder<List<CategoryEntity>>(
+            stream: categoryRepository.watchCategories(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting &&
+                  !snapshot.hasData) {
+                return const Center(
+                  child: CircularProgressIndicator(),
+                );
               }
-              return a.name.toLowerCase().compareTo(b.name.toLowerCase());
-            });
 
-          if (categories.isEmpty) {
-            return _CategoriesMessage(
-              icon: Icons.category_outlined,
-              title: 'No categories yet',
-              message: 'Fresh categories will appear here soon.',
-              iconColor: Theme.of(context).colorScheme.onSurfaceVariant,
-            );
-          }
+              if (snapshot.hasError) {
+                return _CategoriesMessage(
+                  icon: Icons.cloud_off_rounded,
+                  title: 'Unable to load categories',
+                  message: 'Please try again in a moment.',
+                  iconColor: Theme.of(context).colorScheme.error,
+                );
+              }
 
-          return CustomScrollView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            slivers: [
-              SliverPadding(
-                padding: EdgeInsets.fromLTRB(16.w, 20.h, 16.w, 12.h),
-                sliver: SliverToBoxAdapter(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Categories',
-                        style: TextStyle(
-                          fontSize: 24.sp,
-                          fontWeight: FontWeight.w700,
-                          color: Theme.of(context).colorScheme.onSurface,
+              return FutureBuilder<List<CategoryEntity>>(
+                future: _filterCategories(
+                  snapshot.data ?? [],
+                  userLat,
+                  userLng,
+                  vendorService,
+                ),
+                builder: (context, filteredSnapshot) {
+                  if (filteredSnapshot.connectionState ==
+                          ConnectionState.waiting &&
+                      !filteredSnapshot.hasData) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+
+                  final categories = [...filteredSnapshot.data ?? []]
+                    ..sort((a, b) {
+                      final orderCompare = a.sortOrder.compareTo(b.sortOrder);
+                      if (orderCompare != 0) {
+                        return orderCompare;
+                      }
+                      return a.name
+                          .toLowerCase()
+                          .compareTo(b.name.toLowerCase());
+                    });
+
+                  if (categories.isEmpty) {
+                    return _CategoriesMessage(
+                      icon: Icons.category_outlined,
+                      title: 'No categories nearby',
+                      message:
+                          'We couldn\'t find any active vendors serving your location.',
+                      iconColor: Theme.of(context).colorScheme.onSurfaceVariant,
+                    );
+                  }
+
+                  return CustomScrollView(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    slivers: [
+                      SliverPadding(
+                        padding: EdgeInsets.fromLTRB(16.w, 20.h, 16.w, 12.h),
+                        sliver: SliverToBoxAdapter(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Categories',
+                                style: TextStyle(
+                                  fontSize: 24.sp,
+                                  fontWeight: FontWeight.w700,
+                                  color:
+                                      Theme.of(context).colorScheme.onSurface,
+                                ),
+                              ),
+                              SizedBox(height: 8.h),
+                              Text(
+                                'Browse fresh picks from vendors near you.',
+                                style: TextStyle(
+                                  fontSize: 14.sp,
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .onSurfaceVariant,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
-                      SizedBox(height: 8.h),
-                      Text(
-                        'Browse all fresh picks by category.',
-                        style: TextStyle(
-                          fontSize: 14.sp,
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      SliverPadding(
+                        padding: EdgeInsets.fromLTRB(16.w, 8.h, 16.w, 24.h),
+                        sliver: SliverGrid(
+                          gridDelegate:
+                              SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 2,
+                            crossAxisSpacing: 12.w,
+                            mainAxisSpacing: 12.h,
+                            childAspectRatio: 1.05,
+                          ),
+                          delegate: SliverChildBuilderDelegate(
+                            (context, index) {
+                              final category = categories[index];
+                              return _CategoryTile(
+                                category: category,
+                                onTap: () => context.go(
+                                  '/products?categoryId=${Uri.encodeComponent(category.id)}',
+                                ),
+                              );
+                            },
+                            childCount: categories.length,
+                          ),
                         ),
                       ),
                     ],
-                  ),
-                ),
-              ),
-              SliverPadding(
-                padding: EdgeInsets.fromLTRB(16.w, 8.h, 16.w, 24.h),
-                sliver: SliverGrid(
-                  gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    crossAxisSpacing: 12.w,
-                    mainAxisSpacing: 12.h,
-                    childAspectRatio: 1.05,
-                  ),
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) {
-                      final category = categories[index];
-                      return _CategoryTile(
-                        category: category,
-                        onTap: () => context.go(
-                          '/products?categoryId=${Uri.encodeComponent(category.id)}',
-                        ),
-                      );
-                    },
-                    childCount: categories.length,
-                  ),
-                ),
-              ),
-            ],
+                  );
+                },
+              );
+            },
           );
         },
       ),
     );
+  }
+
+  Future<List<CategoryEntity>> _filterCategories(
+    List<CategoryEntity> items,
+    double? userLat,
+    double? userLng,
+    VendorDeliveryService vendorService,
+  ) async {
+    if (userLat == null || userLng == null) return items;
+
+    final vendorIds = items
+        .map((e) => e.vendorId)
+        .where((id) => id != null && id.trim().isNotEmpty)
+        .cast<String>()
+        .toSet();
+
+    if (vendorIds.isEmpty) return items;
+
+    final vendorMap = await vendorService.loadVendorMetadata(vendorIds);
+
+    return items.where((item) {
+      final vendorId = item.vendorId;
+      if (vendorId == null || vendorId.trim().isEmpty) return true;
+
+      final vendor = vendorMap[vendorId];
+      if (vendor == null || vendor.isBlocked) return false;
+      if (vendor.latitude == null || vendor.longitude == null) return false;
+
+      final distanceKm = VendorDeliveryService.haversineDistanceKm(
+        userLat,
+        userLng,
+        vendor.latitude!,
+        vendor.longitude!,
+      );
+
+      final isServiceable = distanceKm <= vendor.deliveryRadiusKm;
+
+      debugPrint('[DEBUG] Category Check: ${item.name}');
+      debugPrint('  [DEBUG] Vendor: ${vendor.storeName} ($vendorId)');
+      debugPrint(
+          '  [DEBUG] Distance: $distanceKm km, Radius: ${vendor.deliveryRadiusKm} km');
+      debugPrint(
+          '  [DEBUG] Result: ${isServiceable ? 'SERVICEABLE' : 'OUT OF RANGE'}');
+
+      return isServiceable;
+    }).toList();
   }
 }
 

@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -15,7 +14,6 @@ import '../../../../core/services/vendor_delivery_service.dart';
 import '../cubits/location_cubit.dart';
 import '../cubits/location_state.dart';
 import '../../domain/entities/location_entity.dart';
-import '../../domain/repositories/location_repository.dart';
 
 class EditLocationPage extends StatefulWidget {
   const EditLocationPage({super.key});
@@ -212,14 +210,17 @@ class _EditLocationPageState extends State<EditLocationPage> {
 
     try {
       final vendorService = getIt<VendorDeliveryService>();
-      final vendors = await vendorService.loadAllVendorMetadata();
+      final isServiceable = await vendorService.isLocationServiceable(
+        _selectedLatLng!.latitude,
+        _selectedLatLng!.longitude,
+      );
 
+      // Still need to calculate minDistance for the entity
+      final vendors = await vendorService.loadAllVendorMetadata();
       double? minDistance;
-      bool isServiceable = false;
 
       for (final vendor in vendors.values) {
-        if (vendor.isBlocked) continue;
-        if (vendor.latitude == null || vendor.longitude == null) continue;
+        if (vendor.isBlocked || vendor.latitude == null || vendor.longitude == null) continue;
 
         final distanceKm = VendorDeliveryService.haversineDistanceKm(
           _selectedLatLng!.latitude,
@@ -230,10 +231,6 @@ class _EditLocationPageState extends State<EditLocationPage> {
 
         if (minDistance == null || distanceKm < minDistance) {
           minDistance = distanceKm;
-        }
-
-        if (distanceKm <= vendor.deliveryRadiusKm) {
-          isServiceable = true;
         }
       }
 

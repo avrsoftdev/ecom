@@ -67,7 +67,13 @@ class _SearchPageState extends State<SearchPage> {
             final cubit = getIt<SearchSuggestionCubit>();
             if (widget.initialQuery != null &&
                 widget.initialQuery!.isNotEmpty) {
-              cubit.getSuggestions(widget.initialQuery!);
+              final locState = context.read<LocationCubit>().state;
+              final (lat, lng) = _coordsFromLocationState(locState);
+              cubit.getSuggestions(
+                widget.initialQuery!,
+                userLatitude: lat,
+                userLongitude: lng,
+              );
             }
             return cubit;
           },

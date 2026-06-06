@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 
 import '../../../../core/services/vendor_delivery_service.dart';
 import '../../../common/domain/entities/banner_entity.dart';
@@ -95,7 +96,10 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
     double? userLongitude,
     required String? Function(T) getVendorId,
   }) async {
-    if (userLatitude == null || userLongitude == null) return items;
+    if (userLatitude == null || userLongitude == null) {
+      debugPrint('[DEBUG] Filtering skipped: User location missing');
+      return items;
+    }
 
     final vendorIds = items
         .map(getVendorId)
@@ -103,19 +107,34 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
         .cast<String>()
         .toSet();
 
-    if (vendorIds.isEmpty) return items;
+    if (vendorIds.isEmpty) {
+      debugPrint('[DEBUG] Filtering: No vendor-specific items found');
+      return items;
+    }
 
     final vendorMap = await _vendorService.loadVendorMetadata(vendorIds);
 
     return items.where((item) {
       final vendorId = getVendorId(item);
-      if (vendorId == null || vendorId.trim().isEmpty)
+      if (vendorId == null || vendorId.trim().isEmpty) {
         return true; // Global items
+      }
 
       final vendor = vendorMap[vendorId];
-      if (vendor == null) return false;
-      if (vendor.isBlocked) return false;
-      if (vendor.latitude == null || vendor.longitude == null) return false;
+      if (vendor == null) {
+        debugPrint('[DEBUG] Item filtered out: Vendor $vendorId not found');
+        return false;
+      }
+      if (vendor.isBlocked) {
+        debugPrint(
+            '[DEBUG] Item filtered out: Vendor ${vendor.storeName} is blocked');
+        return false;
+      }
+      if (vendor.latitude == null || vendor.longitude == null) {
+        debugPrint(
+            '[DEBUG] Item filtered out: Vendor ${vendor.storeName} missing location');
+        return false;
+      }
 
       final distanceKm = VendorDeliveryService.haversineDistanceKm(
         userLatitude,
@@ -124,7 +143,19 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
         vendor.longitude!,
       );
 
-      return distanceKm <= vendor.deliveryRadiusKm;
+      final isServiceable = distanceKm <= vendor.deliveryRadiusKm;
+
+      debugPrint('[DEBUG] Item Check: Vendor: ${vendor.storeName}');
+      debugPrint(
+          '  [DEBUG] User Location: Lat: $userLatitude, Lng: $userLongitude');
+      debugPrint(
+          '  [DEBUG] Vendor Location: Lat: ${vendor.latitude}, Lng: ${vendor.longitude}');
+      debugPrint(
+          '  [DEBUG] Distance: $distanceKm km, Radius: ${vendor.deliveryRadiusKm} km');
+      debugPrint(
+          '  [DEBUG] Result: ${isServiceable ? 'SERVICEABLE' : 'OUT OF RANGE'}');
+
+      return isServiceable;
     }).toList();
   }
 
@@ -229,6 +260,7 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
         sortOrder: _asInt(data['sortOrder'], fallback: _asInt(data['order'])),
         createdAt: _asDateTime(data['createdAt']) ?? DateTime.now(),
         updatedAt: _asDateTime(data['updatedAt']),
+        vendorId: _asNullableString(data['vendorId']),
       );
     } catch (_) {
       return null;
@@ -247,6 +279,7 @@ class HomeRemoteDataSourceImpl implements HomeRemoteDataSource {
         sortOrder: _asInt(data['sortOrder'], fallback: _asInt(data['order'])),
         createdAt: _asDateTime(data['createdAt']) ?? DateTime.now(),
         updatedAt: _asDateTime(data['updatedAt']),
+        vendorId: _asNullableString(data['vendorId']),
       );
     } catch (_) {
       return null;
