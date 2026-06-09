@@ -176,11 +176,17 @@ class _ContactStepViewState extends State<_ContactStepView> {
     }
   }
 
-  void _validateServiceArea(LatLng latLng) {
-    final distance = _calculateDistance(latLng.latitude, latLng.longitude);
-    setState(() {
-      _isServiceable = distance <= 10.0;
-    });
+  Future<void> _validateServiceArea(LatLng latLng) async {
+    final vendorService = getIt<VendorDeliveryService>();
+    final isServiceable = await vendorService.isLocationServiceable(
+      latLng.latitude,
+      latLng.longitude,
+    );
+    if (mounted) {
+      setState(() {
+        _isServiceable = isServiceable;
+      });
+    }
   }
 
   @override
@@ -236,7 +242,7 @@ class _ContactStepViewState extends State<_ContactStepView> {
                   title: 'Myself',
                   icon: Icons.person_outline_rounded,
                   isSelected: widget.contact.isForSelf,
-                  onTap: () {
+                  onTap: () async {
                     final authState = context.read<AuthCubit>().state;
                     final locationState = context.read<LocationCubit>().state;
 
@@ -261,20 +267,24 @@ class _ContactStepViewState extends State<_ContactStepView> {
                     }
 
                     if (_selectedLatLng != null) {
-                      _validateServiceArea(_selectedLatLng!);
+                      await _validateServiceArea(_selectedLatLng!);
                       if (!_isServiceable) {
-                        updateSnackbar(
-                          context,
-                          message:
-                              'Currently, we are not providing services in your area',
-                          backgroundColor: Colors.red,
-                        );
+                        if (context.mounted) {
+                          updateSnackbar(
+                            context,
+                            message:
+                                'Currently, we are not providing services in your area',
+                            backgroundColor: Colors.red,
+                          );
+                        }
                       }
                     }
 
-                    context
-                        .read<CheckoutCubit>()
-                        .setOrderForSelf(name, address);
+                    if (context.mounted) {
+                      context
+                          .read<CheckoutCubit>()
+                          .setOrderForSelf(name, address);
+                    }
                   },
                 ),
               ),
@@ -354,7 +364,7 @@ class _ContactStepViewState extends State<_ContactStepView> {
             onChanged: (val) => context.read<CheckoutCubit>().updateContact(
                   widget.contact.copyWith(streetAreaColony: val),
                 ),
-            onSuggestionSelected: (suggestion) {
+            onSuggestionSelected: (suggestion) async {
               // Update controllers
               if (suggestion.city != null) {
                 _cityController.text = suggestion.city!;
@@ -367,26 +377,30 @@ class _ContactStepViewState extends State<_ContactStepView> {
               }
 
               _selectedLatLng = suggestion.position;
-              _validateServiceArea(_selectedLatLng!);
+              await _validateServiceArea(_selectedLatLng!);
 
               if (!_isServiceable) {
-                updateSnackbar(
-                  context,
-                  message:
-                      'Currently, we are not providing services in your area',
-                  backgroundColor: Colors.red,
-                );
+                if (context.mounted) {
+                  updateSnackbar(
+                    context,
+                    message:
+                        'Currently, we are not providing services in your area',
+                    backgroundColor: Colors.red,
+                  );
+                }
               }
 
               // Update state in Cubit
-              context.read<CheckoutCubit>().updateContact(
-                    widget.contact.copyWith(
-                      streetAreaColony: suggestion.title,
-                      city: suggestion.city ?? _cityController.text,
-                      state: suggestion.state ?? _stateController.text,
-                      pincode: suggestion.pincode ?? _pincodeController.text,
-                    ),
-                  );
+              if (context.mounted) {
+                context.read<CheckoutCubit>().updateContact(
+                      widget.contact.copyWith(
+                        streetAreaColony: suggestion.title,
+                        city: suggestion.city ?? _cityController.text,
+                        state: suggestion.state ?? _stateController.text,
+                        pincode: suggestion.pincode ?? _pincodeController.text,
+                      ),
+                    );
+              }
             },
           ),
           SizedBox(height: 12.h),
@@ -494,28 +508,6 @@ class _ContactStepViewState extends State<_ContactStepView> {
     );
   }
 
-  double _calculateDistance(double latitude, double longitude) {
-    const double waveCityLat = 28.6535345;
-    const double waveCityLng = 77.4996625;
-    const double earthRadius = 6371; // km
-
-    final double dLat = _degreesToRadians(latitude - waveCityLat);
-    final double dLon = _degreesToRadians(longitude - waveCityLng);
-
-    final double a = math.sin(dLat / 2) * math.sin(dLat / 2) +
-        math.cos(_degreesToRadians(waveCityLat)) *
-            math.cos(_degreesToRadians(latitude)) *
-            math.sin(dLon / 2) *
-            math.sin(dLon / 2);
-    final double c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a));
-
-    return earthRadius * c;
-  }
-
-  double _degreesToRadians(double degrees) {
-    return degrees * (math.pi / 180);
-  }
-
   String? _validatePhoneNumber(String value) {
     final trimmedValue = value.trim();
     if (trimmedValue.isEmpty) {
@@ -589,13 +581,15 @@ class _ContactStepViewState extends State<_ContactStepView> {
 
     // Double check service area before placing order
     if (_selectedLatLng != null) {
-      _validateServiceArea(_selectedLatLng!);
+      await _validateServiceArea(_selectedLatLng!);
       if (!_isServiceable) {
-        updateSnackbar(
-          context,
-          message: 'Currently, we are not providing services in your area',
-          backgroundColor: Colors.red,
-        );
+        if (mounted) {
+          updateSnackbar(
+            context,
+            message: 'Currently, we are not providing services in your area',
+            backgroundColor: Colors.red,
+          );
+        }
         return;
       }
     }
@@ -604,7 +598,8 @@ class _ContactStepViewState extends State<_ContactStepView> {
     if (deliveryLatLng == null) {
       updateSnackbar(
         context,
-        message: 'Location permission denied. Please enable location to continue.',
+        message:
+            'Location permission denied. Please enable location to continue.',
         backgroundColor: Colors.orange,
       );
       return;
@@ -641,7 +636,8 @@ class _ContactStepViewState extends State<_ContactStepView> {
       );
       final updatedItem = item.copyWith(product: updatedProduct);
 
-      if (!updatedProduct.isDeliverableToUser || updatedProduct.isVendorBlocked) {
+      if (!updatedProduct.isDeliverableToUser ||
+          updatedProduct.isVendorBlocked) {
         blockedItems.add(updatedProduct.name);
         continue;
       }
@@ -680,7 +676,8 @@ class _ContactStepViewState extends State<_ContactStepView> {
       // Get FCM token for push notifications
       final fcmToken = await NotificationService().getFCMToken();
 
-      final orderDoc = await FirebaseFirestore.instance.collection('orders').add({
+      final orderDoc =
+          await FirebaseFirestore.instance.collection('orders').add({
         'userId': user.uid,
         'fcmToken': fcmToken, // FCM token for push notifications
         'items': groupedItems.values
