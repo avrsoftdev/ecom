@@ -36,15 +36,24 @@ class AuthCubit extends Cubit<AuthState> {
     // to Firestore rules without requiring a manual sign-out/sign-in cycle.
     await user.getIdToken(true);
 
+    if (isClosed) return;
+
     final roleResult = await getUserRoleUseCase(GetUserRoleParams(uid: user.uid));
-    roleResult.fold(
-      (failure) {
+    
+    if (isClosed) return;
+
+    await roleResult.fold(
+      (failure) async {
         AuthRoleNotifier.instance.clear();
-        emit(AuthError(failure.message));
+        if (!isClosed) {
+          emit(AuthError(failure.message));
+        }
       },
       (role) async {
         // Save FCM token with user role
         await UserTokenService().saveTokenForUser(userRole: role);
+        
+        if (isClosed) return;
         
         AuthRoleNotifier.instance.setRole(role);
         emit(Authenticated(user, role: role));
@@ -58,9 +67,13 @@ class AuthCubit extends Cubit<AuthState> {
     final params = SignInParams(email: email, password: password);
     final result = await signInUseCase(params);
 
+    if (isClosed) return;
+
     await result.fold<Future<void>>(
       (failure) async {
-        emit(AuthError(failure.message));
+        if (!isClosed) {
+          emit(AuthError(failure.message));
+        }
       },
       (userCredential) async {
         await _emitAuthenticated(userCredential.user!);
@@ -86,9 +99,13 @@ class AuthCubit extends Cubit<AuthState> {
     );
     final result = await signUpUseCase(params);
 
+    if (isClosed) return;
+
     await result.fold<Future<void>>(
       (failure) async {
-        emit(AuthError(failure.message));
+        if (!isClosed) {
+          emit(AuthError(failure.message));
+        }
       },
       (userCredential) async {
         await _emitAuthenticated(userCredential.user!);

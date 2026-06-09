@@ -28,6 +28,8 @@ class ThemeCubit extends Cubit<ThemeMode> {
       nextThemeMode == ThemeMode.dark ? 'dark' : 'light',
     );
 
+    if (isClosed) return;
+
     emit(nextThemeMode);
   }
 }

@@ -14,9 +14,16 @@ class SettingsCubit extends Cubit<SettingsState> {
   Future<void> load() async {
     emit(state.copyWith(status: SettingsStatus.loading));
     final store = await _repository.getStoreSettings();
+
+    if (isClosed) return;
+
     final rc = await _repository.fetchRemoteMaintenanceMode();
+
+    if (isClosed) return;
+
     store.fold(
-      (f) => emit(state.copyWith(status: SettingsStatus.failure, errorMessage: f.message)),
+      (f) => emit(state.copyWith(
+          status: SettingsStatus.failure, errorMessage: f.message)),
       (s) {
         rc.fold(
           (f2) => emit(state.copyWith(
@@ -43,8 +50,12 @@ class SettingsCubit extends Cubit<SettingsState> {
     if (state.settings == null) return;
     emit(state.copyWith(status: SettingsStatus.saving));
     final result = await _repository.saveStoreSettings(state.settings!);
+
+    if (isClosed) return;
+
     result.fold(
-      (f) => emit(state.copyWith(status: SettingsStatus.failure, errorMessage: f.message)),
+      (f) => emit(state.copyWith(
+          status: SettingsStatus.failure, errorMessage: f.message)),
       (_) => emit(state.copyWith(status: SettingsStatus.saved)),
     );
     await load();

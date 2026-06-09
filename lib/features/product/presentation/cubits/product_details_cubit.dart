@@ -23,12 +23,15 @@ class ProductDetailsCubit extends Cubit<ProductDetailsState> {
       userLatitude: userLatitude,
       userLongitude: userLongitude,
     );
-    
+
+    if (isClosed) return;
+
     result.fold(
       (failure) => emit(ProductDetailsError(failure.message)),
       (product) async {
+        if (isClosed) return;
         emit(ProductDetailsLoaded(product: product, relatedProducts: []));
-        
+
         // Load related products based on category
         await _loadRelatedProducts(
           product.categoryId,
@@ -51,12 +54,15 @@ class ProductDetailsCubit extends Cubit<ProductDetailsState> {
       userLatitude: userLatitude,
       userLongitude: userLongitude,
     );
-    
+
+    if (isClosed) return;
+
     result.fold(
       (failure) => emit(ProductDetailsError(failure.message)),
       (products) {
+        if (isClosed) return;
         final relatedProducts = products.where((p) => p.id != currentProductId).take(6).toList();
-        
+
         final currentState = state;
         if (currentState is ProductDetailsLoaded) {
           emit(ProductDetailsLoaded(

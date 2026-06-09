@@ -34,31 +34,35 @@ class CheckoutCubit extends Cubit<CheckoutState> {
   }
 
   void setOrderForSelf(String name, String address) {
-    emit(CheckoutContactStep(CheckoutContactEntity(
-      name: name,
-      houseFlatBuilding: '',
-      streetAreaColony: address,
-      city: '',
-      state: '',
-      pincode: '',
-      landmark: '',
-      phoneNumber: '',
-      isForSelf: true,
-    ), savedContacts: _savedContacts));
+    emit(CheckoutContactStep(
+        CheckoutContactEntity(
+          name: name,
+          houseFlatBuilding: '',
+          streetAreaColony: address,
+          city: '',
+          state: '',
+          pincode: '',
+          landmark: '',
+          phoneNumber: '',
+          isForSelf: true,
+        ),
+        savedContacts: _savedContacts));
   }
 
   void setOrderForSomeoneElse() {
-    emit(CheckoutContactStep(const CheckoutContactEntity(
-      name: '',
-      houseFlatBuilding: '',
-      streetAreaColony: '',
-      city: '',
-      state: '',
-      pincode: '',
-      landmark: '',
-      phoneNumber: '',
-      isForSelf: false,
-    ), savedContacts: _savedContacts));
+    emit(CheckoutContactStep(
+        const CheckoutContactEntity(
+          name: '',
+          houseFlatBuilding: '',
+          streetAreaColony: '',
+          city: '',
+          state: '',
+          pincode: '',
+          landmark: '',
+          phoneNumber: '',
+          isForSelf: false,
+        ),
+        savedContacts: _savedContacts));
   }
 
   void useSavedContact(CheckoutContactEntity contact) {
@@ -75,6 +79,8 @@ class CheckoutCubit extends Cubit<CheckoutState> {
       jsonEncode(_savedContacts.map((contact) => contact.toJson()).toList()),
     );
 
+    if (isClosed) return;
+
     final current = state;
     if (current is CheckoutContactStep) {
       emit(CheckoutContactStep(
@@ -89,7 +95,13 @@ class CheckoutCubit extends Cubit<CheckoutState> {
   Future<void> _loadSavedContacts() async {
     final localContacts = _loadLocalSavedContacts();
     final accountAddresses = await _loadAccountAddresses();
+
+    if (isClosed) return;
+
     final orderContacts = await _loadOrderContacts();
+
+    if (isClosed) return;
+
     _savedContacts = _dedupeContacts([
       ...accountAddresses,
       ...localContacts,

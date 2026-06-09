@@ -41,15 +41,21 @@ class SearchSuggestionCubit extends Cubit<SearchSuggestionState> {
         ),
       );
 
+      if (isClosed) return;
+
       List<ProductEntity> products = [];
       productResult.fold(
         (failure) => emit(SearchSuggestionError(failure.message)),
         (p) => products = p,
       );
 
+      if (isClosed) return;
+
       // For categories, we fetch all and filter client-side
       final categoryStream = categoryRepository.watchCategories();
       final allCategories = await categoryStream.first;
+
+      if (isClosed) return;
 
       // Filter by name
       final matchedCategories = allCategories
@@ -70,6 +76,8 @@ class SearchSuggestionCubit extends Cubit<SearchSuggestionState> {
             firestore: FirebaseFirestore.instance,
           );
           final vendorMap = await vendorService.loadVendorMetadata(vendorIds);
+
+          if (isClosed) return;
 
           filteredCategories = matchedCategories.where((c) {
             final vendorId = c.vendorId;
@@ -94,6 +102,8 @@ class SearchSuggestionCubit extends Cubit<SearchSuggestionState> {
           }).toList();
         }
       }
+
+      if (isClosed) return;
 
       emit(SearchSuggestionLoaded(
         products: products,

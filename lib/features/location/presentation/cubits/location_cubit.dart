@@ -48,6 +48,9 @@ class LocationCubit extends Cubit<LocationState> {
   Future<void> fetchLocation() async {
     emit(LocationLoading());
     final result = await getLocationUseCase(NoParams());
+    
+    if (isClosed) return;
+
     result.fold(
       (failure) => emit(LocationError(failure.message)),
       (location) {

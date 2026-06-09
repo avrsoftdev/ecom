@@ -22,7 +22,12 @@ class DashboardCubit extends Cubit<DashboardState> {
     emit(state.copyWith(status: DashboardStatus.loading, chartDays: chartDays));
 
     final metrics = await _repository.getMetrics();
+    
+    if (isClosed) return;
+    
     final series = await _repository.getSalesSeries(days: chartDays);
+
+    if (isClosed) return;
 
     metrics.fold(
       (f) => emit(state.copyWith(status: DashboardStatus.failure, errorMessage: f.message)),
@@ -46,12 +51,22 @@ class DashboardCubit extends Cubit<DashboardState> {
     await _ordersSub?.cancel();
     await _productsSub?.cancel();
 
+    if (isClosed) return;
+
     _ordersSub = _repository.watchRecentOrders(limit: 12).listen(
-          (orders) => emit(state.copyWith(recentOrders: orders)),
-        );
+      (orders) {
+        if (!isClosed) {
+          emit(state.copyWith(recentOrders: orders));
+        }
+      },
+    );
     _productsSub = _repository.watchTopSellingProducts(limit: 8).listen(
-          (products) => emit(state.copyWith(topProducts: products)),
-        );
+      (products) {
+        if (!isClosed) {
+          emit(state.copyWith(topProducts: products));
+        }
+      },
+    );
   }
 
   Future<void> setChartRange(int days) => load(chartDays: days);

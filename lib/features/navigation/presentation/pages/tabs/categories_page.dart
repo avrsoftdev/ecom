@@ -74,17 +74,14 @@ class CategoriesPage extends StatelessWidget {
                       if (orderCompare != 0) {
                         return orderCompare;
                       }
-                      return a.name
-                          .toLowerCase()
-                          .compareTo(b.name.toLowerCase());
+                      return a.name.toLowerCase().compareTo(b.name.toLowerCase());
                     });
 
                   if (categories.isEmpty) {
                     return _CategoriesMessage(
                       icon: Icons.category_outlined,
                       title: 'No categories nearby',
-                      message:
-                          'We couldn\'t find any active vendors serving your location.',
+                      message: 'We couldn\'t find any active vendors serving your location.',
                       iconColor: Theme.of(context).colorScheme.onSurfaceVariant,
                     );
                   }
@@ -103,8 +100,7 @@ class CategoriesPage extends StatelessWidget {
                                 style: TextStyle(
                                   fontSize: 24.sp,
                                   fontWeight: FontWeight.w700,
-                                  color:
-                                      Theme.of(context).colorScheme.onSurface,
+                                  color: Theme.of(context).colorScheme.onSurface,
                                 ),
                               ),
                               SizedBox(height: 8.h),
@@ -112,9 +108,7 @@ class CategoriesPage extends StatelessWidget {
                                 'Browse fresh picks from vendors near you.',
                                 style: TextStyle(
                                   fontSize: 14.sp,
-                                  color: Theme.of(context)
-                                      .colorScheme
-                                      .onSurfaceVariant,
+                                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                                 ),
                               ),
                             ],
@@ -124,8 +118,7 @@ class CategoriesPage extends StatelessWidget {
                       SliverPadding(
                         padding: EdgeInsets.fromLTRB(16.w, 8.h, 16.w, 24.h),
                         sliver: SliverGrid(
-                          gridDelegate:
-                              SliverGridDelegateWithFixedCrossAxisCount(
+                          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                             crossAxisCount: 2,
                             crossAxisSpacing: 12.w,
                             mainAxisSpacing: 12.h,
@@ -193,10 +186,8 @@ class CategoriesPage extends StatelessWidget {
 
       debugPrint('[DEBUG] Category Check: ${item.name}');
       debugPrint('  [DEBUG] Vendor: ${vendor.storeName} ($vendorId)');
-      debugPrint(
-          '  [DEBUG] Distance: $distanceKm km, Radius: ${vendor.deliveryRadiusKm} km');
-      debugPrint(
-          '  [DEBUG] Result: ${isServiceable ? 'SERVICEABLE' : 'OUT OF RANGE'}');
+      debugPrint('  [DEBUG] Distance: $distanceKm km, Radius: ${vendor.deliveryRadiusKm} km');
+      debugPrint('  [DEBUG] Result: ${isServiceable ? 'SERVICEABLE' : 'OUT OF RANGE'}');
 
       return isServiceable;
     }).toList();

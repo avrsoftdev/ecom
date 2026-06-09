@@ -27,6 +27,8 @@ class SearchCubit extends Cubit<SearchState> {
       ),
     );
 
+    if (isClosed) return;
+
     result.fold(
       (failure) => emit(SearchError(failure.message, query)),
       (products) => emit(SearchLoaded(products, query)),

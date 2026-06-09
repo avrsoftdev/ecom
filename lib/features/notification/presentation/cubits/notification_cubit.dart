@@ -33,6 +33,9 @@ class NotificationCubit extends Cubit<NotificationState> {
 
       // Initialize SharedPreferences
       _prefs = await SharedPreferences.getInstance();
+
+      if (isClosed) return;
+
       print('🔔 NotificationCubit: SharedPreferences initialized');
 
       final user = _firebaseAuth.currentUser;
@@ -53,9 +56,11 @@ class NotificationCubit extends Cubit<NotificationState> {
             .orderBy('timestamp', descending: true)
             .snapshots()
             .listen((snapshot) {
+          if (isClosed) return;
           print('Received notification snapshot: ${snapshot.docs.length} docs');
           _processNotificationSnapshot(snapshot);
         }, onError: (error) {
+          if (isClosed) return;
           print('Stream error: $error');
           if (error.toString().contains('PERMISSION_DENIED')) {
             print(
@@ -71,9 +76,12 @@ class NotificationCubit extends Cubit<NotificationState> {
             .orderBy('timestamp', descending: true)
             .get();
 
+        if (isClosed) return;
+
         print('Got initial snapshot: ${snapshot.docs.length} docs');
         _processNotificationSnapshot(snapshot);
       } catch (e, stackTrace) {
+        if (isClosed) return;
         print('Error loading notifications collection: $e');
         print('Stack trace: $stackTrace');
 
@@ -88,6 +96,7 @@ class NotificationCubit extends Cubit<NotificationState> {
         }
       }
     } catch (e, stackTrace) {
+      if (isClosed) return;
       print('Critical error in loadNotifications: $e');
       print('Stack trace: $stackTrace');
       emit(NotificationError('Failed to load notifications: $e'));
@@ -102,15 +111,19 @@ class NotificationCubit extends Cubit<NotificationState> {
 
       final unreadCount = notifications.where((n) => !n.isRead).length;
 
-      emit(NotificationLoaded(
-        notifications: notifications,
-        unreadCount: unreadCount,
-      ));
+      if (!isClosed) {
+        emit(NotificationLoaded(
+          notifications: notifications,
+          unreadCount: unreadCount,
+        ));
+      }
 
       // Also generate notifications from order status changes
       _generateOrderNotifications();
     } catch (e) {
-      emit(NotificationError('Failed to process notifications: $e'));
+      if (!isClosed) {
+        emit(NotificationError('Failed to process notifications: $e'));
+      }
     }
   }
 
@@ -129,10 +142,13 @@ class NotificationCubit extends Cubit<NotificationState> {
           .limit(20)
           .get();
 
+      if (isClosed) return;
+
       print('Found ${ordersSnapshot.docs.length} orders');
 
       final notifications = <NotificationEntity>[];
 
+      // ... (keep the existing logic for loop)
       for (final orderDoc in ordersSnapshot.docs) {
         try {
           final orderData = orderDoc.data();
@@ -210,10 +226,12 @@ class NotificationCubit extends Cubit<NotificationState> {
           'Generated ${notifications.length} notifications with $unreadCount unread');
       print('🔔 NotificationCubit: About to emit NotificationLoaded state');
 
-      emit(NotificationLoaded(
-        notifications: notifications,
-        unreadCount: unreadCount,
-      ));
+      if (!isClosed) {
+        emit(NotificationLoaded(
+          notifications: notifications,
+          unreadCount: unreadCount,
+        ));
+      }
 
       print(
           '🔔 NotificationCubit: Emitted NotificationLoaded state successfully');
@@ -224,10 +242,12 @@ class NotificationCubit extends Cubit<NotificationState> {
       // Emit empty state when there's an error - no sample notifications
       print(
           '🔔 NotificationCubit: About to emit empty NotificationLoaded state due to error');
-      emit(const NotificationLoaded(
-        notifications: [],
-        unreadCount: 0,
-      ));
+      if (!isClosed) {
+        emit(const NotificationLoaded(
+          notifications: [],
+          unreadCount: 0,
+        ));
+      }
       print(
           '🔔 NotificationCubit: Emitted empty NotificationLoaded state successfully');
     }
@@ -240,6 +260,8 @@ class NotificationCubit extends Cubit<NotificationState> {
     // Persist the read status
     await _markNotificationAsRead(notificationId);
 
+    if (isClosed) return;
+
     // Update local state
     if (state is NotificationLoaded) {
       final currentState = state as NotificationLoaded;
@@ -251,10 +273,12 @@ class NotificationCubit extends Cubit<NotificationState> {
 
       print('🔔 NotificationCubit: Updated unread count to: $unreadCount');
 
-      emit(NotificationLoaded(
-        notifications: updatedNotifications,
-        unreadCount: unreadCount,
-      ));
+      if (!isClosed) {
+        emit(NotificationLoaded(
+          notifications: updatedNotifications,
+          unreadCount: unreadCount,
+        ));
+      }
     }
   }
 
@@ -272,13 +296,17 @@ class NotificationCubit extends Cubit<NotificationState> {
       final notificationIds = updatedNotifications.map((n) => n.id).toList();
       await _markAllNotificationsAsRead(notificationIds);
 
+      if (isClosed) return;
+
       print(
           '🔔 NotificationCubit: Marked all ${updatedNotifications.length} notifications as read');
 
-      emit(NotificationLoaded(
-        notifications: updatedNotifications,
-        unreadCount: 0,
-      ));
+      if (!isClosed) {
+        emit(NotificationLoaded(
+          notifications: updatedNotifications,
+          unreadCount: 0,
+        ));
+      }
     }
   }
 

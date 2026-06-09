@@ -40,6 +40,8 @@ class ProductAdminCubit extends Cubit<ProductAdminState> {
       descending: descending,
     );
 
+    if (isClosed) return;
+
     result.fold(
       (f) => emit(state.copyWith(status: ProductAdminStatus.failure, errorMessage: f.message)),
       (page) {
@@ -70,6 +72,8 @@ class ProductAdminCubit extends Cubit<ProductAdminState> {
       descending: state.sortDescending,
     );
 
+    if (isClosed) return;
+
     result.fold(
       (f) => emit(state.copyWith(status: ProductAdminStatus.failure, errorMessage: f.message)),
       (page) {
@@ -87,6 +91,9 @@ class ProductAdminCubit extends Cubit<ProductAdminState> {
 
   Future<void> deleteProduct(String id) async {
     final result = await _repository.delete(id);
+    
+    if (isClosed) return;
+
     result.fold(
       (f) => emit(state.copyWith(errorMessage: f.message)),
       (_) {
