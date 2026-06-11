@@ -116,7 +116,9 @@ class CheckoutPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const CheckoutBottomSheet();
+    return const Scaffold(
+      body: CheckoutBottomSheet(),
+    );
   }
 }
 
@@ -558,14 +560,17 @@ class _ContactStepViewState extends State<_ContactStepView> {
   }
 
   Future<void> _placeOrder() async {
+    debugPrint('--- [_placeOrder] Started ---');
     final cartState = context.read<CartCubit>().state;
     if (cartState is! CartLoaded || cartState.items.isEmpty) {
+      debugPrint('[_placeOrder] Cart empty or not loaded');
       updateSnackbar(context, message: 'Your cart is empty');
       return;
     }
 
     final phoneErrorText = _validatePhoneNumber(_phoneController.text);
     if (phoneErrorText != null) {
+      debugPrint('[_placeOrder] Phone validation failed: $phoneErrorText');
       setState(() {
         _phoneErrorText = phoneErrorText;
       });
@@ -575,14 +580,18 @@ class _ContactStepViewState extends State<_ContactStepView> {
 
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) {
+      debugPrint('[_placeOrder] User not logged in');
       updateSnackbar(context, message: 'Please login to place order');
       return;
     }
 
     // Double check service area before placing order
     if (_selectedLatLng != null) {
+      debugPrint(
+          '[_placeOrder] Validating service area for selected LatLng: $_selectedLatLng');
       await _validateServiceArea(_selectedLatLng!);
       if (!_isServiceable) {
+        debugPrint('[_placeOrder] Area not serviceable');
         if (mounted) {
           updateSnackbar(
             context,
@@ -595,7 +604,9 @@ class _ContactStepViewState extends State<_ContactStepView> {
     }
 
     final deliveryLatLng = _selectedLatLng ?? _resolveLocationFromState();
+    debugPrint('[_placeOrder] Delivery LatLng: $deliveryLatLng');
     if (deliveryLatLng == null) {
+      debugPrint('[_placeOrder] Delivery LatLng is null');
       updateSnackbar(
         context,
         message:
@@ -605,15 +616,19 @@ class _ContactStepViewState extends State<_ContactStepView> {
       return;
     }
 
-    final vendorService =
-        VendorDeliveryService(firestore: FirebaseFirestore.instance);
+    final vendorService = getIt<VendorDeliveryService>();
     final vendorIds = cartState.items
         .map((item) => item.product.vendorId.trim())
         .where((vendorId) => vendorId.isNotEmpty)
         .toSet();
+    debugPrint('[_placeOrder] Vendor IDs in cart: $vendorIds');
+
     final vendorMap = await vendorService.loadVendorMetadata(vendorIds);
+    debugPrint(
+        '[_placeOrder] Loaded vendor metadata for ${vendorMap.length} vendors');
 
     if (vendorIds.isNotEmpty && vendorMap.isEmpty) {
+      debugPrint('[_placeOrder] No vendors found for IDs: $vendorIds');
       updateSnackbar(
         context,
         message: 'No vendors nearby for the selected address.',
@@ -638,6 +653,8 @@ class _ContactStepViewState extends State<_ContactStepView> {
 
       if (!updatedProduct.isDeliverableToUser ||
           updatedProduct.isVendorBlocked) {
+        debugPrint(
+            '[_placeOrder] Product blocked: ${updatedProduct.name}. Deliverable: ${updatedProduct.isDeliverableToUser}, Blocked: ${updatedProduct.isVendorBlocked}');
         blockedItems.add(updatedProduct.name);
         continue;
       }
@@ -645,6 +662,8 @@ class _ContactStepViewState extends State<_ContactStepView> {
     }
 
     if (blockedItems.isNotEmpty || groupedItems.isEmpty) {
+      debugPrint(
+          '[_placeOrder] Checkout blocked. Blocked items: $blockedItems, Grouped items empty: ${groupedItems.isEmpty}');
       updateSnackbar(
         context,
         message:
@@ -655,6 +674,7 @@ class _ContactStepViewState extends State<_ContactStepView> {
     }
 
     setState(() => _isPlacingOrder = true);
+    debugPrint('[_placeOrder] Proceeding with order creation...');
     try {
       const taxRate = 0.0;
       final subtotal = groupedItems.values
@@ -787,7 +807,9 @@ class _ContactStepViewState extends State<_ContactStepView> {
         message: 'Order placed successfully!',
         backgroundColor: Colors.green,
       );
-    } catch (_) {
+    } catch (e, s) {
+      debugPrint('[_placeOrder] Error placing order: $e');
+      debugPrint('[_placeOrder] Stack trace: $s');
       if (!mounted) return;
       updateSnackbar(
         context,
