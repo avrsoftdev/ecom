@@ -18,7 +18,21 @@ class AdminNotificationService {
     required String phone,
   }) async {
     try {
-      // Create notification document for Cloud Function to process
+      // First, get all admin FCM tokens
+      final adminTokens = await getAdminFCMTokens();
+      debugPrint('Found ${adminTokens.length} admin tokens');
+
+      if (adminTokens.isNotEmpty) {
+        // Create direct notification document
+        await createDirectAdminNotification(
+          orderId: orderId,
+          customerName: customerName,
+          totalAmount: totalAmount,
+          adminTokens: adminTokens,
+        );
+      }
+
+      // Also create notification document for Cloud Function to process (as backup)
       await _firestore.collection('admin_notifications').add({
         'type': 'new_order',
         'orderId': orderId,
