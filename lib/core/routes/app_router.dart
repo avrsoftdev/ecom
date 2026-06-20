@@ -24,6 +24,7 @@ import '../../features/navigation/presentation/pages/privacy_policy_page.dart';
 import '../../features/navigation/presentation/pages/saved_addresses_page.dart';
 import '../../features/product/presentation/pages/product_list_page.dart';
 import '../../features/checkout/presentation/pages/checkout_page.dart';
+import '../../features/vendor/presentation/pages/vendor_application_page.dart';
 
 class AppRouter {
   static final ValueNotifier<bool> locationServiceableNotifier =
@@ -136,6 +137,10 @@ class AppRouter {
       GoRoute(
         path: '/profile/privacy-policy',
         builder: (context, state) => const PrivacyPolicyPage(),
+      ),
+      GoRoute(
+        path: '/vendor-application',
+        builder: (context, state) => const VendorApplicationPage(),
       ),
     ],
     redirect: (context, state) {

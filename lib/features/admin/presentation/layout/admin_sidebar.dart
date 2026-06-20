@@ -13,6 +13,7 @@ class AdminSidebar extends StatelessWidget {
     _NavItem('/admin/orders', Icons.receipt_long_rounded, 'Orders'),
     _NavItem('/admin/banners', Icons.view_carousel_rounded, 'Banners'),
     _NavItem('/admin/customers', Icons.people_rounded, 'Customers'),
+    _NavItem('/admin/vendor-applications', Icons.storefront_rounded, 'Vendor Apps'),
     _NavItem('/admin/settings', Icons.settings_rounded, 'Settings'),
   ];
 

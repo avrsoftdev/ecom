@@ -14,6 +14,8 @@ import 'presentation/pages/orders_admin_page.dart';
 import 'presentation/pages/product_form_page.dart';
 import 'presentation/pages/settings_admin_page.dart';
 import 'presentation/pages/unauthorized_page.dart';
+import 'presentation/pages/vendor_applications_admin_page.dart';
+import 'presentation/pages/vendor_application_detail_admin_page.dart';
 
 class AdminRouter {
   static List<RouteBase> routes() {
@@ -88,6 +90,18 @@ class AdminRouter {
           GoRoute(
             path: '/admin/settings',
             builder: (context, state) => const SettingsAdminPage(),
+          ),
+          GoRoute(
+            path: '/admin/vendor-applications',
+            builder: (context, state) => const VendorApplicationsAdminPage(),
+            routes: [
+              GoRoute(
+                path: ':id',
+                builder: (context, state) => VendorApplicationDetailAdminPage(
+                  applicationId: state.pathParameters['id']!,
+                ),
+              ),
+            ],
           ),
         ],
       ),

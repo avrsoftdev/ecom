@@ -61,6 +61,9 @@ import '../../features/location/domain/usecases/get_location_usecase.dart';
 import '../../features/location/presentation/cubits/location_cubit.dart';
 import '../../features/checkout/presentation/cubits/checkout_cubit.dart';
 import '../../features/notification/presentation/cubits/notification_cubit.dart';
+import '../../features/vendor/data/datasources/vendor_firestore_datasource.dart';
+import '../../features/vendor/data/repositories/vendor_repository_impl.dart';
+import '../../features/vendor/domain/repositories/vendor_repository.dart';
 import '../../firebase_options.dart';
 import '../network/network_info.dart';
 import '../services/play_integrity_service.dart';
@@ -263,5 +266,13 @@ Future<void> configureDependencies() async {
       firestore: getIt(),
       firebaseAuth: getIt(),
     ),
+  );
+
+  // Vendor
+  getIt.registerLazySingleton<VendorFirestoreDataSource>(
+    () => VendorFirestoreDataSource(firestore: getIt()),
+  );
+  getIt.registerLazySingleton<VendorRepository>(
+    () => VendorRepositoryImpl(getIt()),
   );
 }
