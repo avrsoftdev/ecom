@@ -1,6 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:equatable/equatable.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 import '../../../../core/auth/auth_role_notifier.dart';
 import '../../../../core/services/user_token_service.dart';
@@ -21,6 +22,7 @@ class AuthCubit extends Cubit<AuthState> {
   final SignOutUseCase signOutUseCase;
   final CheckAuthStatusUseCase checkAuthStatusUseCase;
   final GetUserRoleUseCase getUserRoleUseCase;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   AuthCubit({
     required this.signInUseCase,
@@ -50,8 +52,22 @@ class AuthCubit extends Cubit<AuthState> {
         }
       },
       (role) async {
-        // Save FCM token with user role
-        await UserTokenService().saveTokenForUser(userRole: role);
+        // Get vendorId if user is a vendor
+        String? vendorId;
+        if (role == 'vendor') {
+          try {
+            final userDoc = await _firestore.collection('users').doc(user.uid).get();
+            vendorId = userDoc.data()?['vendorId'] as String?;
+          } catch (e) {
+            // Ignore if we can't get vendorId for some reason
+          }
+        }
+
+        // Save FCM token with user role and vendorId (if applicable)
+        await UserTokenService().saveTokenForUser(
+          userRole: role,
+          vendorId: vendorId,
+        );
         
         if (isClosed) return;
         

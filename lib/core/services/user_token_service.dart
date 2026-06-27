@@ -13,7 +13,7 @@ class UserTokenService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
   /// Save FCM token to user profile when user logs in
-  Future<void> saveTokenForUser({String? userRole}) async {
+  Future<void> saveTokenForUser({String? userRole, String? vendorId}) async {
     try {
       final user = _auth.currentUser;
       if (user == null) return;
@@ -21,15 +21,55 @@ class UserTokenService {
       final fcmToken = await NotificationService().getFCMToken();
       if (fcmToken == null || fcmToken.isEmpty) return;
 
+      // Get existing user data to retrieve role and vendorId if not provided
+      String? existingRole;
+      String? existingVendorId;
+      List<String>? existingTokens;
+      try {
+        final userDoc =
+            await _firestore.collection('users').doc(user.uid).get();
+        if (userDoc.exists) {
+          existingRole = userDoc.data()?['role'] as String?;
+          existingVendorId = userDoc.data()?['vendorId'] as String?;
+          final tokensData = userDoc.data()?['fcmTokens'];
+          if (tokensData is List) {
+            existingTokens = tokensData.map((e) => e.toString()).toList();
+          }
+        }
+      } catch (e) {
+        debugPrint('Error fetching existing user data: $e');
+      }
+
+      // Use provided values or fall back to existing ones
+      final role = userRole ?? existingRole ?? 'customer';
+      final vid = vendorId ?? existingVendorId;
+
+      // Update tokens array (add new token if not present)
+      final updatedTokens = <String>{
+        ...?existingTokens,
+        fcmToken,
+      }.toList();
+
       // Save token to user document with role information
-      await _firestore.collection('users').doc(user.uid).set({
-        'fcmToken': fcmToken,
-        'role': userRole ?? 'customer', // Default to customer if not specified
+      final data = <String, dynamic>{
+        'fcmTokens': updatedTokens,
+        'role': role,
         'tokenUpdatedAt': FieldValue.serverTimestamp(),
         'lastActiveAt': FieldValue.serverTimestamp(),
-      }, SetOptions(merge: true));
+      };
 
-      debugPrint('FCM token saved for user: ${user.uid} with role: ${userRole ?? 'customer'}');
+      // Add vendorId if user is a vendor
+      if (role == 'vendor' && vid != null && vid.isNotEmpty) {
+        data['vendorId'] = vid;
+      }
+
+      await _firestore
+          .collection('users')
+          .doc(user.uid)
+          .set(data, SetOptions(merge: true));
+
+      debugPrint(
+          'FCM token saved for user: ${user.uid} with role: $role. Total tokens: ${updatedTokens.length}');
     } catch (e) {
       debugPrint('Error saving FCM token: $e');
     }
@@ -41,11 +81,25 @@ class UserTokenService {
       final user = _auth.currentUser;
       if (user == null) return;
 
-      // Remove token from user document
-      await _firestore.collection('users').doc(user.uid).update({
-        'fcmToken': FieldValue.delete(),
-        'tokenUpdatedAt': FieldValue.serverTimestamp(),
-      });
+      final fcmToken = await NotificationService().getFCMToken();
+
+      if (fcmToken != null && fcmToken.isNotEmpty) {
+        // Remove specific token from array
+        final userDoc =
+            await _firestore.collection('users').doc(user.uid).get();
+        if (userDoc.exists) {
+          final tokensData = userDoc.data()?['fcmTokens'];
+          if (tokensData is List) {
+            final existingTokens = tokensData.map((e) => e.toString()).toList();
+            final updatedTokens =
+                existingTokens.where((t) => t != fcmToken).toList();
+            await _firestore.collection('users').doc(user.uid).update({
+              'fcmTokens': updatedTokens,
+              'tokenUpdatedAt': FieldValue.serverTimestamp(),
+            });
+          }
+        }
+      }
 
       debugPrint('FCM token removed for user: ${user.uid}');
     } catch (e) {
@@ -54,7 +108,7 @@ class UserTokenService {
   }
 
   /// Update FCM token (call when token changes)
-  Future<void> updateToken() async {
-    await saveTokenForUser();
+  Future<void> updateToken({String? userRole, String? vendorId}) async {
+    await saveTokenForUser(userRole: userRole, vendorId: vendorId);
   }
 }

@@ -1,3 +1,29 @@
+# Admin/Vendor App FCM Notification Implementation Guide
+
+This guide provides a complete, step-by-step implementation for the Admin/Vendor App to handle FCM push notifications correctly according to your business requirements.
+
+## Business Requirements Recap
+- **Admin**: Receives push notifications for ALL new orders, regardless of vendor.
+- **Vendor**: Receives push notifications ONLY for new orders that contain their products.
+
+## Implementation Steps
+
+### 1. Add Required Dependencies
+Ensure these dependencies are in your `pubspec.yaml`:
+```yaml
+dependencies:
+  firebase_core: ^latest_version
+  firebase_messaging: ^latest_version
+  flutter_local_notifications: ^latest_version
+  permission_handler: ^latest_version
+  cloud_firestore: ^latest_version
+  firebase_auth: ^latest_version
+```
+
+### 2. Create Notification Service
+Create `lib/core/services/notification_service.dart`:
+
+```dart
 import 'dart:async';
 import 'dart:io';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -113,7 +139,7 @@ class NotificationService {
     );
   }
 
-  /// Get FCM token and store it
+  /// Get FCM token
   Future<String?> getFCMToken() async {
     try {
       final token = await _firebaseMessaging.getToken();
@@ -129,7 +155,6 @@ class NotificationService {
   Future<void> _getAndStoreToken() async {
     final token = await getFCMToken();
     if (token != null) {
-      // Token will be stored when user logs in or creates order
       debugPrint('FCM Token obtained: $token');
     }
   }
@@ -152,7 +177,7 @@ class NotificationService {
     // Add to stream for UI updates
     _messageStreamController.add(message);
 
-    // Handle notification tap
+    // Handle notification click
     if (message.data.isNotEmpty) {
       _notificationClickStreamController.add(message.data['orderId']);
     }
@@ -211,3 +236,190 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   // Add to stream for when app comes to foreground
   NotificationService._messageStreamController.add(message);
 }
+```
+
+### 3. Create User Token Service
+Create `lib/core/services/user_token_service.dart`:
+
+```dart
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
+import 'notification_service.dart';
+
+/// Service for managing user FCM tokens
+class UserTokenService {
+  static final UserTokenService _instance = UserTokenService._internal();
+  factory UserTokenService() => _instance;
+  UserTokenService._internal();
+
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
+
+  /// Save FCM token to user profile when user logs in
+  Future<void> saveTokenForUser({String? userRole, String? vendorId}) async {
+    try {
+      final user = _auth.currentUser;
+      if (user == null) return;
+
+      final fcmToken = await NotificationService().getFCMToken();
+      if (fcmToken == null || fcmToken.isEmpty) return;
+
+      // Get existing user data to retrieve role and vendorId if not provided
+      String? existingRole;
+      String? existingVendorId;
+      List<String>? existingTokens;
+      try {
+        final userDoc = await _firestore.collection('users').doc(user.uid).get();
+        if (userDoc.exists) {
+          existingRole = userDoc.data()?['role'] as String?;
+          existingVendorId = userDoc.data()?['vendorId'] as String?;
+          final tokensData = userDoc.data()?['fcmTokens'];
+          if (tokensData is List) {
+            existingTokens = tokensData.map((e) => e.toString()).toList();
+          }
+        }
+      } catch (e) {
+        debugPrint('Error fetching existing user data: $e');
+      }
+
+      // Use provided values or fall back to existing ones
+      final role = userRole ?? existingRole ?? 'customer';
+      final vid = vendorId ?? existingVendorId;
+
+      // Update tokens array (add new token if not present)
+      final updatedTokens = <String>{
+        ...?existingTokens,
+        fcmToken,
+      }.toList();
+
+      // Save token to user document with role information
+      final data = <String, dynamic>{
+        'fcmTokens': updatedTokens,
+        'role': role,
+        'tokenUpdatedAt': FieldValue.serverTimestamp(),
+        'lastActiveAt': FieldValue.serverTimestamp(),
+      };
+
+      // Add vendorId if user is a vendor
+      if (role == 'vendor' && vid != null && vid.isNotEmpty) {
+        data['vendorId'] = vid;
+      }
+
+      await _firestore
+          .collection('users')
+          .doc(user.uid)
+          .set(data, SetOptions(merge: true));
+
+      debugPrint(
+          'FCM token saved for user: ${user.uid} with role: $role. Total tokens: ${updatedTokens.length}');
+    } catch (e) {
+      debugPrint('Error saving FCM token: $e');
+    }
+  }
+
+  /// Remove FCM token when user logs out
+  Future<void> removeTokenForUser() async {
+    try {
+      final user = _auth.currentUser;
+      if (user == null) return;
+
+      final fcmToken = await NotificationService().getFCMToken();
+
+      if (fcmToken != null && fcmToken.isNotEmpty) {
+        // Remove specific token from array
+        final userDoc = await _firestore.collection('users').doc(user.uid).get();
+        if (userDoc.exists) {
+          final tokensData = userDoc.data()?['fcmTokens'];
+          if (tokensData is List) {
+            final existingTokens = tokensData.map((e) => e.toString()).toList();
+            final updatedTokens = existingTokens.where((t) => t != fcmToken).toList();
+            await _firestore.collection('users').doc(user.uid).update({
+              'fcmTokens': updatedTokens,
+              'tokenUpdatedAt': FieldValue.serverTimestamp(),
+            });
+          }
+        }
+      }
+
+      debugPrint('FCM token removed for user: ${user.uid}');
+    } catch (e) {
+      debugPrint('Error removing FCM token: $e');
+    }
+  }
+
+  /// Update FCM token (call when token changes)
+  Future<void> updateToken({String? userRole, String? vendorId}) async {
+    await saveTokenForUser(userRole: userRole, vendorId: vendorId);
+  }
+}
+```
+
+### 4. Update Auth Cubit
+Integrate token saving/removal in your auth cubit (e.g., `lib/features/auth/presentation/cubits/auth_cubit.dart`):
+
+```dart
+// Add this import
+import '../../../../core/services/user_token_service.dart';
+
+// In your _emitAuthenticated method, after determining role and vendorId:
+await UserTokenService().saveTokenForUser(
+  userRole: role,
+  vendorId: vendorId,
+);
+
+// In your signOut method, before signing out:
+await UserTokenService().removeTokenForUser();
+```
+
+### 5. Initialize Services in App
+Initialize the NotificationService in your `lib/app.dart` or main initialization:
+
+```dart
+// Call this when your app starts
+await NotificationService().initialize();
+```
+
+### 6. Android Setup (if not already done)
+Update `android/app/build.gradle`:
+```gradle
+defaultConfig {
+    // ...
+    multiDexEnabled true
+}
+
+dependencies {
+    // ...
+    implementation 'com.android.support:multidex:1.0.3'
+}
+```
+
+Update `android/app/src/main/AndroidManifest.xml` inside the `<application>` tag:
+```xml
+<meta-data
+    android:name="com.google.firebase.messaging.default_notification_channel_id"
+    android:value="freshveggie_channel" />
+```
+
+### 7. iOS Setup (if not already done)
+Add these capabilities in `ios/Runner/Info.plist`:
+```xml
+<key>UIBackgroundModes</key>
+<array>
+    <string>remote-notification</string>
+</array>
+<key>FirebaseAppDelegateProxyEnabled</key>
+<false/>
+```
+
+## Key Features Implemented
+- ✅ Role-based notification routing (Admin gets all, Vendor only their orders)
+- ✅ Multi-device support (tokens stored as array)
+- ✅ Token refresh handling
+- ✅ Invalid token cleanup (handled by Cloud Functions)
+- ✅ Foreground, background, and terminated state handling
+- ✅ Local notifications for foreground messages
+- ✅ Notification click handling
+
+## Cloud Functions
+Ensure the Cloud Functions from the User App are deployed (they handle sending notifications to the correct recipients).
