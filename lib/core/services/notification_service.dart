@@ -111,6 +111,21 @@ class NotificationService {
       initializationSettings,
       onDidReceiveNotificationResponse: _onNotificationTapped,
     );
+
+    // Create notification channel explicitly for Android
+    if (Platform.isAndroid) {
+      const AndroidNotificationChannel channel = AndroidNotificationChannel(
+        'freshveggie_channel', // id
+        'FreshVeggie Notifications', // name
+        description: 'Notifications for order updates', // description
+        importance: Importance.max,
+      );
+
+      await _localNotifications
+          .resolvePlatformSpecificImplementation<
+              AndroidFlutterLocalNotificationsPlugin>()
+          ?.createNotificationChannel(channel);
+    }
   }
 
   /// Get FCM token and store it
@@ -138,7 +153,7 @@ class NotificationService {
   void _handleForegroundMessage(RemoteMessage message) {
     debugPrint('Received foreground message: ${message.messageId}');
 
-    // Show local notification for foreground messages
+    // Show local notification for foreground messages (since FCM won't show them automatically)
     _showLocalNotification(message);
 
     // Add to stream for UI updates
@@ -160,6 +175,13 @@ class NotificationService {
 
   /// Show local notification
   Future<void> _showLocalNotification(RemoteMessage message) async {
+    // First, cancel any existing notifications with the same ID to avoid duplicates
+    final notificationId = message.data['orderId']?.hashCode ??
+        message.messageId?.hashCode ??
+        message.hashCode;
+
+    await _localNotifications.cancel(notificationId);
+
     const AndroidNotificationDetails androidPlatformChannelSpecifics =
         AndroidNotificationDetails(
       'freshveggie_channel',
@@ -183,7 +205,7 @@ class NotificationService {
     );
 
     await _localNotifications.show(
-      message.hashCode,
+      notificationId,
       message.notification?.title ?? 'FreshVeggie',
       message.notification?.body ?? 'You have a new notification',
       platformChannelSpecifics,

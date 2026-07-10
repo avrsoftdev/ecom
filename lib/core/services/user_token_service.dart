@@ -44,11 +44,13 @@ class UserTokenService {
       final role = userRole ?? existingRole ?? 'customer';
       final vid = vendorId ?? existingVendorId;
 
-      // Update tokens array (add new token if not present)
-      final updatedTokens = <String>{
-        ...?existingTokens,
+      // Update tokens array: add new token, remove duplicates, limit to last 5
+      final tokenSet = <String>{
         fcmToken,
-      }.toList();
+        ...?existingTokens,
+      };
+      final updatedTokens =
+          tokenSet.take(5).toList(); // Keep only last 5 tokens
 
       // Save token to user document with role information
       final data = <String, dynamic>{

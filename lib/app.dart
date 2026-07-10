@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -13,9 +14,10 @@ import 'core/widgets/free_delivery_snackbar_listener.dart';
 import 'core/widgets/notification_listener.dart';
 import 'features/auth/presentation/cubits/auth_cubit.dart';
 import 'features/cart/presentation/cubits/cart_cubit.dart';
-import 'features/wishlist/presentation/cubits/wishlist_cubit.dart';
+import 'features/common/presentation/pages/maintenance_page.dart';
 import 'features/location/presentation/cubits/location_cubit.dart';
 import 'features/location/presentation/cubits/location_state.dart';
+import 'features/wishlist/presentation/cubits/wishlist_cubit.dart';
 import 'features/notification/presentation/cubits/notification_cubit.dart';
 
 class FreshVeggieApp extends StatelessWidget {
@@ -70,44 +72,81 @@ class FreshVeggieApp extends StatelessWidget {
             ),
             // Add other global cubits here
           ],
-          child: BlocListener<LocationCubit, LocationState>(
-            listener: (context, state) {
-              if (state is LocationLoaded) {
-                AppRouter.locationServiceableNotifier.value = true;
-              } else if (state is LocationUnserviceable ||
-                  state is LocationError) {
-                AppRouter.locationServiceableNotifier.value = false;
-              }
-            },
-            child: BlocBuilder<ThemeCubit, ThemeMode>(
-              builder: (context, themeMode) {
-                return PushNotificationListener(
-                  child: MaterialApp.router(
-                    title: 'Bazariyo',
-                    debugShowCheckedModeBanner: false,
-                    theme: AppTheme.lightTheme,
-                    darkTheme: AppTheme.darkTheme,
-                    themeMode: themeMode,
-                    localizationsDelegates: context.localizationDelegates,
-                    supportedLocales: context.supportedLocales,
-                    locale: context.locale,
-                    routerConfig: AppRouter.router,
-                    builder: (context, child) {
-                      return AppUpdateSnackBarListener(
-                        child: FreeDeliverySnackBarListener(
-                          child: FloatingCartOverlay(
-                            routeListenable:
-                                AppRouter.router.routeInformationProvider,
-                            onCartTap: () => AppRouter.router.go('/cart'),
-                            child: child ?? const SizedBox.shrink(),
-                          ),
-                        ),
-                      );
-                    },
+          child: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+            stream: FirebaseFirestore.instance
+                .collection('store_settings')
+                .doc('main_settings')
+                .snapshots(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const MaterialApp(
+                  home: Scaffold(
+                    body: Center(
+                      child: CircularProgressIndicator(),
+                    ),
                   ),
                 );
-              },
-            ),
+              }
+
+              final doc = snapshot.data;
+              if (doc == null || !doc.exists) {
+                return const MaterialApp(
+                  home: Scaffold(
+                    body: Center(
+                      child: CircularProgressIndicator(),
+                    ),
+                  ),
+                );
+              }
+
+              final isServiceAvailable = doc.data()?['isServiceAvailable'] as bool? ?? true;
+              if (!isServiceAvailable) {
+                return const MaterialApp(
+                  debugShowCheckedModeBanner: false,
+                  home: MaintenancePage(),
+                );
+              }
+
+              return BlocListener<LocationCubit, LocationState>(
+                listener: (context, state) {
+                  if (state is LocationLoaded) {
+                    AppRouter.locationServiceableNotifier.value = true;
+                  } else if (state is LocationUnserviceable ||
+                      state is LocationError) {
+                    AppRouter.locationServiceableNotifier.value = false;
+                  }
+                },
+                child: BlocBuilder<ThemeCubit, ThemeMode>(
+                  builder: (context, themeMode) {
+                    return PushNotificationListener(
+                      child: MaterialApp.router(
+                        title: 'Bazariyo',
+                        debugShowCheckedModeBanner: false,
+                        theme: AppTheme.lightTheme,
+                        darkTheme: AppTheme.darkTheme,
+                        themeMode: themeMode,
+                        localizationsDelegates: context.localizationDelegates,
+                        supportedLocales: context.supportedLocales,
+                        locale: context.locale,
+                        routerConfig: AppRouter.router,
+                        builder: (context, child) {
+                          return AppUpdateSnackBarListener(
+                            child: FreeDeliverySnackBarListener(
+                              child: FloatingCartOverlay(
+                                routeListenable:
+                                    AppRouter.router.routeInformationProvider,
+                                onCartTap: () => AppRouter.router.go('/cart'),
+                                child: child ?? const SizedBox.shrink(),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    );
+                  },
+                ),
+              );
+            },
           ),
         );
       },

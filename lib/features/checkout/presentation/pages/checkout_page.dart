@@ -784,17 +784,6 @@ class _ContactStepViewState extends State<_ContactStepView> {
       }
       await batch.commit();
 
-      // Send notification to admin users about new order
-      await AdminNotificationService().notifyAdminsOnNewOrder(
-        orderId: orderDoc.id,
-        customerName: _nameController.text.trim().isEmpty
-            ? (user.displayName ?? 'Customer')
-            : _nameController.text.trim(),
-        totalAmount: total,
-        customerEmail: user.email ?? '',
-        phone: _phoneController.text.trim(),
-      );
-
       if (!mounted) return;
       final checkoutCubit = context.read<CheckoutCubit>();
       final cartCubit = context.read<CartCubit>();

@@ -10,9 +10,11 @@ const fcm = admin.messaging();
  * @param {Object} snap - Firestore snapshot
  * @return {Promise}
  */
-exports.sendNewOrderNotifications = functions.firestore
-    .document("orders/{orderId}")
-    .onCreate(async (snap) => {
+exports.sendNewOrderNotifications = functions
+  .region("asia-south1")
+  .firestore
+  .document("orders/{orderId}")
+  .onCreate(async (snap) => {
       const order = snap.data();
       const orderId = snap.id;
       const customerName = order.customerName || "Customer";
@@ -22,15 +24,15 @@ exports.sendNewOrderNotifications = functions.firestore
       // Get all unique vendor IDs from order items
       const vendorIds = [
         ...new Set(
-            order.items
-                .map((item) => item.vendorId)
-                .filter((id) => id && id.trim() !== ""),
+          order.items
+              .map((item) => item.vendorId)
+              .filter((id) => id && id.trim() !== ""),
         ),
       ];
 
       console.log(
-          "New order " + orderId + " placed by " + customerName +
-          " - Vendors: " + vendorIds.join(", "),
+        "New order " + orderId + " placed by " + customerName +
+        " - Vendors: " + vendorIds.join(", "),
       );
 
       try {
@@ -41,32 +43,18 @@ exports.sendNewOrderNotifications = functions.firestore
         // 2. Get vendor tokens for each involved vendor
         const vendorTokens = await getUserTokensByVendorIds(vendorIds);
         console.log(
-            "Found " + vendorTokens.length + " vendor token(s) for " +
-            vendorIds.length + " vendor(s)",
+          "Found " + vendorTokens.length + " vendor token(s) for " +
+          vendorIds.length + " vendor(s)",
         );
 
-        // 3. Send notifications to all admins
-        if (adminTokens.length > 0) {
-          await sendFCMNotification({
-            tokens: adminTokens,
-            title: "New Order Received 🛒",
-            body: `Order #${orderId} has been placed by ${customerName}.`,
-            data: {
-              orderId: orderId,
-              customerName: customerName,
-              customerPhone: customerPhone,
-              totalAmount: totalAmount.toString(),
-              vendorId: "", // Admin gets all vendors' orders
-              notificationType: "new_order",
-              click_action: "FLUTTER_NOTIFICATION_CLICK",
-            },
-          });
-        }
+        // Combine and deduplicate all tokens to avoid duplicates
+        const allTokens = [...new Set([...adminTokens, ...vendorTokens])];
+        console.log("Total unique tokens to send: " + allTokens.length);
 
-        // 4. Send notifications to each involved vendor
-        if (vendorTokens.length > 0) {
+        // Send notifications to all unique tokens
+        if (allTokens.length > 0) {
           await sendFCMNotification({
-            tokens: vendorTokens,
+            tokens: allTokens,
             title: "New Order Received 🛒",
             body: `Order #${orderId} has been placed by ${customerName}.`,
             data: {
@@ -77,6 +65,7 @@ exports.sendNewOrderNotifications = functions.firestore
               notificationType: "new_order",
               click_action: "FLUTTER_NOTIFICATION_CLICK",
             },
+            collapseKey: orderId, // Collapse notifications for same order
           });
         }
 
@@ -204,7 +193,7 @@ async function removeInvalidToken(userId, invalidToken) {
  * @param {Object} options - Notification options
  * @return {Promise}
  */
-async function sendFCMNotification({tokens, title, body, data}) {
+async function sendFCMNotification({tokens, title, body, data, collapseKey}) {
   if (tokens.length === 0) {
     console.log("No tokens to send notification to");
     return;
@@ -224,9 +213,12 @@ async function sendFCMNotification({tokens, title, body, data}) {
       tokens: chunk,
       android: {
         priority: "high",
+        collapseKey: collapseKey,
         notification: {
           sound: "alert_ring.mp3",
           priority: "high",
+          tag: collapseKey,
+          channelId: "freshveggie_channel" // Use our custom channel
         },
       },
       apns: {
@@ -234,6 +226,7 @@ async function sendFCMNotification({tokens, title, body, data}) {
           aps: {
             sound: "alert_ring.mp3",
             priority: 10,
+            threadId: collapseKey,
           },
         },
       },
@@ -242,14 +235,14 @@ async function sendFCMNotification({tokens, title, body, data}) {
     const response = await fcm.sendEachForMulticast(message);
     const chunkNum = Math.floor(i / chunkSize) + 1;
     console.log(
-        "Successfully sent " + response.successCount + "/" +
-        response.responses.length + " messages in chunk " + chunkNum,
+      "Successfully sent " + response.successCount + "/" +
+      response.responses.length + " messages in chunk " + chunkNum,
     );
 
     if (response.failureCount > 0) {
       console.error(
-          "Failed to send " + response.failureCount +
-          " messages in chunk " + chunkNum,
+        "Failed to send " + response.failureCount +
+        " messages in chunk " + chunkNum,
       );
 
       // Get all user documents to map tokens back to user IDs for cleanup
@@ -283,52 +276,3 @@ async function sendFCMNotification({tokens, title, body, data}) {
     }
   }
 }
-
-/**
- * Keep the existing function for backward compatibility
- * @param {Object} snap - Firestore snapshot
- * @return {Promise}
- */
-exports.sendAdminNotification = functions.firestore
-    .document("admin_notifications/{notificationId}")
-    .onCreate(async (snap) => {
-      const notification = snap.data();
-
-      if (
-        notification.type !== "new_order" ||
-        notification.targetRole !== "admin"
-      ) {
-        console.log("Skipping non-admin notification");
-        return null;
-      }
-
-      try {
-        const adminTokens = await getUserTokensByRole("admin");
-        if (adminTokens.length > 0) {
-          await sendFCMNotification({
-            tokens: adminTokens,
-            title: notification.title || "New Order Received!",
-            body:
-              notification.body ||
-              `New order from ${notification.customerName}`,
-            data: {
-              type: "new_order",
-              orderId: notification.orderId,
-              customerName: notification.customerName,
-              totalAmount: notification.totalAmount?.toString(),
-              click_action: "FLUTTER_NOTIFICATION_CLICK",
-            },
-          });
-        }
-
-        await snap.ref.update({
-          processed: true,
-          processedAt: admin.firestore.FieldValue.serverTimestamp(),
-        });
-
-        return null;
-      } catch (error) {
-        console.error("Error sending admin notification:", error);
-        throw error;
-      }
-    });
